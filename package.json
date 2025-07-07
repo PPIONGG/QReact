@@ -57,6 +57,7 @@
   },
   "workspaces": [
     "apps/*",
-    "libs/shared/*"
+    "libs/shared/*",
+    "apps/QReactERPc/sales/*"
   ]
 }

@@ -14,6 +14,12 @@
     },
     {
       "path": "./libs/shared/ui"
+    },
+    {
+      "path": "./apps/QReactERPc/sales/sales-visitor"
+    },
+    {
+      "path": "./libs/shared/styles"
     }
   ]
 }
