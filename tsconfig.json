@@ -5,6 +5,15 @@
   "references": [
     {
       "path": "./apps/portal"
+    },
+    {
+      "path": "./libs/shared/i18n"
+    },
+    {
+      "path": "./libs/shared/store"
+    },
+    {
+      "path": "./libs/shared/ui"
     }
   ]
 }

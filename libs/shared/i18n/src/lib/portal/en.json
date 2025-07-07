@@ -1,0 +1,8 @@
+{
+  "welcome": "Welcome",
+  "hello": "Hello {{name}}",
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel"
+  }
+}
