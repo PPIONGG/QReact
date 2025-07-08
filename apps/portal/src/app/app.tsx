@@ -1,8 +1,13 @@
+import { HashRouter } from 'react-router-dom';
+import { AppRoutes } from '../routes/AppRoutes';
+
 export function App() {
   return (
-    <div>
-      test
-    </div>
+    <HashRouter
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    >
+      <AppRoutes />
+    </HashRouter>
   );
 }
 

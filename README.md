@@ -17,3 +17,19 @@ nx g @nx/react:app apps/QReactERPc/sales/sales-visitor
 # สร้าง CSS/SCSS library
 
 nx g @nx/js:lib styles --directory=libs/shared/styles --bundler=tsc --importPath=@qreact/shared-styles
+
+# สร้าง TypeScript library สำหรับ auth
+
+nx g @nx/react:lib auth --directory=libs/shared/auth
+
+# สร้าง TypeScript library สำหรับ api
+
+nx g @nx/react:lib api --directory=libs/shared/api
+
+# สร้าง TypeScript library สำหรับ tpyes
+
+nx g @nx/react:lib types --directory=libs/shared/types
+
+# สร้าง TypeScript library สำหรับ constants
+
+nx g @nx/react:lib constants --directory=libs/shared/constants

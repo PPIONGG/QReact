@@ -20,6 +20,15 @@
     },
     {
       "path": "./libs/shared/styles"
+    },
+    {
+      "path": "./libs/shared/api"
+    },
+    {
+      "path": "./libs/shared/types"
+    },
+    {
+      "path": "./libs/shared/constants"
     }
   ]
 }
