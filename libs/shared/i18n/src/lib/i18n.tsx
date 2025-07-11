@@ -2,16 +2,23 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
-import en from './portal/en.json';
-import th from './portal/th.json';
+// Import ไฟล์แปลภาษา
+import portalLoginTH from './locales/portal/login/th.json';
+import portalLoginEN from './locales/portal/login/en.json';
+import portalDashboardTH from './locales/portal/dashboard/th.json';
+import portalDashboardEN from './locales/portal/dashboard/en.json';
 
 const resources = {
-  en: {
-    translation: en,
-  },
   th: {
-    translation: th,
+    // common: commonTH,
+    'portal-login': portalLoginTH,
+    'portal-dashboard': portalDashboardTH,
   },
+  en: {
+    // common: commonEN,
+    'portal-login': portalLoginEN,
+    'portal-dashboard': portalDashboardEN,
+  }
 };
 
 i18n
@@ -19,14 +26,18 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    fallbackLng: 'en',
-    debug: process.env.NODE_ENV === 'development',
+    lng: 'th', // ภาษาเริ่มต้น
+    fallbackLng: 'th',
+    defaultNS: 'common',
+    ns: ['common', 'portal-login', 'portal-dashboard'],
+
+    detection: {
+      order: ['localStorage', 'navigator'],
+      caches: ['localStorage'],
+    },
+
     interpolation: {
       escapeValue: false,
-    },
-    detection: {
-      order: ['localStorage', 'navigator', 'htmlTag'],
-      caches: ['localStorage'],
     },
   });
 

@@ -1,5 +1,6 @@
 import { Button, Form, Input, Select } from 'antd';
 import { UserOutlined, LockOutlined, LoginOutlined } from '@ant-design/icons';
+import { useTranslation } from '@qreact/i18n';
 
 interface LoginFormProps {
   onSubmit: (values: { username: string; password: string }) => void;
@@ -14,6 +15,7 @@ export default function LoginForm({
   onLoginTypeChange,
   isLoading,
 }: LoginFormProps) {
+  const { t } = useTranslation('portal-login');
   const [form] = Form.useForm();
 
   return (
@@ -24,7 +26,7 @@ export default function LoginForm({
       layout="vertical"
       disabled={isLoading}
     >
-      <Form.Item label={<span style={{ fontWeight: 500 }}>ประเภทผู้ใช้</span>}>
+      <Form.Item label={<span style={{ fontWeight: 500 }}>{t('userType')}</span>}>
         <Select
           value={loginType}
           onChange={onLoginTypeChange}
@@ -38,12 +40,12 @@ export default function LoginForm({
 
       <Form.Item
         name="username"
-        label={<span style={{ fontWeight: 500 }}>ชื่อผู้ใช้</span>}
-        rules={[{ required: true, message: 'กรุณากรอกชื่อผู้ใช้' }]}
+        label={<span style={{ fontWeight: 500 }}>{t('username')}</span>}
+        rules={[{ required: true, message: t('usernameRequired') }]}
       >
         <Input
           prefix={<UserOutlined style={{ color: '#b30000' }} />}
-          placeholder="กรอกชื่อผู้ใช้"
+          placeholder={t('usernamePlaceholder')}
           autoComplete="username"
           style={{
             borderRadius: '8px',
@@ -55,12 +57,12 @@ export default function LoginForm({
 
       <Form.Item
         name="password"
-        label={<span style={{ fontWeight: 500 }}>รหัสผ่าน</span>}
-        rules={[{ required: true, message: 'กรุณากรอกรหัสผ่าน' }]}
+        label={<span style={{ fontWeight: 500 }}>{t('password')}</span>}
+        rules={[{ required: true, message: t('passwordRequired') }]}
       >
         <Input.Password
           prefix={<LockOutlined style={{ color: '#b30000' }} />}
-          placeholder="กรอกรหัสผ่าน"
+          placeholder={t('passwordPlaceholder')}
           autoComplete="current-password"
           style={{
             borderRadius: '8px',
@@ -88,7 +90,7 @@ export default function LoginForm({
             boxShadow: '0 4px 12px rgba(179, 0, 0, 0.3)',
           }}
         >
-          เข้าสู่ระบบ
+          {t('loginButton')}
         </Button>
       </Form.Item>
     </Form>

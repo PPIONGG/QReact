@@ -1,6 +1,6 @@
 # สร้าง library ด้วย directory structure
 
-nx g @nx/react:lib i18n --directory=libs/shared/i18n --importPath=@myorg/shared-i18n
+nx g @nx/react:lib i18n --directory=libs/shared/i18n --importPath=@qreact/shared-i18n
 
 # สร้าง TypeScript library สำหรับ store
 

@@ -1,0 +1,12 @@
+{
+  "title": "Organization Management System",
+  "subtitle": "Please login to continue",
+  "userType": "User Type",
+  "username": "Username",
+  "password": "Password",
+  "loginButton": "Login",
+  "usernamePlaceholder": "Enter username",
+  "passwordPlaceholder": "Enter password",
+  "usernameRequired": "Please enter username",
+  "passwordRequired": "Please enter password"
+}
