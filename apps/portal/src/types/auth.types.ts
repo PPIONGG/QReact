@@ -1,15 +1,26 @@
-export interface ApiResponse {
-  code: number;
-  msg: string;
-  result: {
-    user: string;
-    company: Company[];
-  };
-}
-
+// Company Type
 export interface Company {
   companyCode: string;
   companyName: string;
+  // เพิ่ม fields อื่นๆ ตามต้องการ
+}
+
+// User Type
+export interface User {
+  username: string;
+  loginTime: number;
+  company: Company[];
+}
+
+// API Response Type
+export interface ApiResponse {
+  code: number;
+  msg?: string;
+  result?: {
+    user: string;
+    company: Company[];
+    // เพิ่ม fields อื่นๆ ตามต้องการ
+  };
 }
 
 // Auth State Type
@@ -31,9 +42,5 @@ export interface AuthState {
   logout: () => void;
 }
 
-// User Type
-export interface User {
-  username: string;
-  loginTime: number;
-  company: Company[];
-}
+// Login Types
+export type LoginType = 'Q' | 'DB';

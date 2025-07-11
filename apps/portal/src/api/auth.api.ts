@@ -1,35 +1,23 @@
-import type { ApiResponse } from '@qreact/types';
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-const API_TOKEN = process.env.NEXT_PUBLIC_API_TOKEN;
-const API_PACKAGE = process.env.NEXT_PUBLIC_API_PACKAGE;
-
-// Validation
-if (!API_BASE_URL) {
-  throw new Error('NEXT_PUBLIC_API_BASE_URL is required');
-}
-if (!API_TOKEN) {
-  throw new Error('NEXT_PUBLIC_API_TOKEN is required');
-}
-if (!API_PACKAGE) {
-  throw new Error('NEXT_PUBLIC_API_PACKAGE is required');
-}
+import { ApiResponse } from '../types/auth.types';
+import { ApiConfig } from './config';
 
 // API Configuration
-const createHeaders = () => ({
+const createHeaders = (config: ApiConfig) => ({
   'Content-Type': 'application/json',
-  Authorization: `Bearer ${API_TOKEN}`,
-  'X-API-Package': API_PACKAGE,
+  Authorization: `Bearer ${config.token}`,
+  'X-API-Package': config.package,
 });
 
 // Login API
 export const loginAPI = async (
+  config: ApiConfig,
   username: string,
   password: string,
   loginType: 'Q' | 'DB'
 ): Promise<ApiResponse> => {
-  const response = await fetch(`${API_BASE_URL}/api/Login`, {
+  const response = await fetch(`${config.baseUrl}/api/Login`, {
     method: 'POST',
-    headers: createHeaders(),
+    headers: createHeaders(config),
     body: JSON.stringify({
       QERPUserOrDBUser: loginType,
       UserLogin: username,

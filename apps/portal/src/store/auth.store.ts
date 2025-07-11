@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { AuthState, User } from '@qreact/types';
-import { SESSION_DURATION } from '@qreact/constants';
-import { loginAPI, getErrorMessage } from '@qreact/api';
+import type { AuthState, User } from '../types/auth.types';
+import { SESSION_DURATION } from '../constants/auth.constants';
+import { loginAPI, getErrorMessage } from './../api/auth.api';
+import { API_CONFIG } from '../api/config';
 
 // Auth Store
 export const useAuthStore = create<AuthState>()(
@@ -34,7 +35,12 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
 
         try {
-          const response = await loginAPI(username, password, loginType);
+          const response = await loginAPI(
+            API_CONFIG,
+            username,
+            password,
+            loginType
+          );
 
           if (response.code === 0 && response.result) {
             // Success
