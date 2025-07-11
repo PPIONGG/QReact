@@ -7,20 +7,17 @@ export default function Dashboard() {
   const { t: tLogin, i18n } = useTranslation('portal-login');
   const { t: tDashboard } = useTranslation('portal-dashboard');
 
-  // ฟังก์ชันสลับภาษา
   const toggleLanguage = () => {
     const newLanguage = i18n.language === 'th' ? 'en' : 'th';
     i18n.changeLanguage(newLanguage);
   };
 
-  // แสดงธงชาติ
   const getCurrentFlag = () => {
     return i18n.language === 'th' ? '🇹🇭' : '🇺🇸';
   };
 
   return (
     <div style={{ padding: '24px' }}>
-      {/* ปุ่มเล็กสุด - มุมขวาบน */}
       <div style={{ 
         display: 'flex', 
         justifyContent: 'flex-end', 

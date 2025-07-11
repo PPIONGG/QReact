@@ -1,9 +1,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { AuthState, User } from '../types/auth.types';
-import { SESSION_DURATION } from '../constants/auth.constants';
-import { loginAPI, getErrorMessage } from './../api/auth.api';
-import { API_CONFIG } from '../api/config';
+import { getErrorMessage, loginAPI } from '../../api/auth.api';
+import { API_CONFIG } from '../../api/config';
+
 
 // Auth Store
 export const useAuthStore = create<AuthState>()(
@@ -91,29 +91,6 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'auth-storage',
       version: 1,
-      partialize: (state) => ({
-        user: state.user,
-        isAuthenticated: state.isAuthenticated,
-        selectedCompanyCode: state.selectedCompanyCode,
-      }),
-      migrate: (persistedState: any, version: number) => {
-        if (version === 0) {
-          return {
-            user: null,
-            isAuthenticated: false,
-          };
-        }
-        return persistedState;
-      },
-      onRehydrateStorage: () => (state) => {
-        if (state?.user) {
-          const isExpired =
-            Date.now() - state.user.loginTime > SESSION_DURATION;
-          if (isExpired) {
-            state.logout();
-          }
-        }
-      },
     }
   )
 );

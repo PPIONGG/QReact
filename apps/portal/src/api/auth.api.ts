@@ -1,4 +1,4 @@
-import { ApiResponse } from '../types/auth.types';
+import { ApiResponse } from '../app/types/auth.types';
 import { ApiConfig } from './config';
 
 // API Configuration
