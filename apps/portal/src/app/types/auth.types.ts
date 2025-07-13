@@ -1,46 +1,56 @@
-// Company Type
-export interface Company {
+import { resSalesinfo } from "./api";
+
+export interface CompanyPermission {
   companyCode: string;
   companyName: string;
-  // เพิ่ม fields อื่นๆ ตามต้องการ
+  allPermission: boolean;
+  accessPermission: AccessPermission[];
 }
 
-// User Type
 export interface User {
   username: string;
   loginTime: number;
-  company: Company[];
+  company: CompanyPermission[];
 }
 
-// API Response Type
 export interface ApiResponse {
   code: number;
   msg?: string;
   result?: {
     user: string;
-    company: Company[];
-    // เพิ่ม fields อื่นๆ ตามต้องการ
+    company: CompanyPermission[];
   };
 }
 
-// Auth State Type
 export interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
-  isLoading: boolean;
-  error: string | null;
+  isLoadingLogin: boolean;
+  errorLogin: string | null;
   selectedCompanyCode: string | null;
-  
-  // Actions
+  Salesinfo: resSalesinfo | null;
+  isloadingSalesinfo: boolean;
+  errorSalesinfo: string | null;
+
+
   setSelectedCompany: (code: string) => void;
-  clearError: () => void;
+  clearErrorLogin: () => void;
   login: (
     username: string,
     password: string,
     loginType: 'Q' | 'DB'
   ) => Promise<boolean>;
   logout: () => void;
+
+  setLoadingSalesinfo: (isLoadingLogin: boolean) => void;
+  setSalesinfo: (Salesinfo: resSalesinfo) => void;
+  fetchSalesinfo: (user: string) => Promise<void>;
+  clearSalesinfo: () => void;
+  clearErrorSalesinfo: () => void;
 }
 
-// Login Types
 export type LoginType = 'Q' | 'DB';
+
+export interface AccessPermission {
+  programName: string[];
+}

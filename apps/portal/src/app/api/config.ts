@@ -4,7 +4,7 @@ export interface ApiConfig {
   package: string;
 }
 
-// API Configuration with validation
+// api config สำหรับการเชื่อมต่อกับ API ของระบบ
 const createApiConfig = (): ApiConfig => {
   const baseUrl = import.meta.env.VITE_API_BASE_URL;
   const token = import.meta.env.VITE_API_TOKEN;
@@ -28,5 +28,4 @@ const createApiConfig = (): ApiConfig => {
   };
 };
 
-// Export singleton config
 export const API_CONFIG = createApiConfig();

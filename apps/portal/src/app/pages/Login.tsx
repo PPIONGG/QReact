@@ -7,7 +7,7 @@ import LoginHeader from '../components/LoginHeader';
 import LoginForm from '../components/LoginForm';
 
 export default function Login() {
-  const { login, isLoading, error, clearError } = useAuthStore();
+  const { login, isLoadingLogin, errorLogin, clearErrorLogin } = useAuthStore();
   const { i18n } = useTranslation();
   const [loginType, setLoginType] = React.useState<'Q' | 'DB'>('Q');
 
@@ -70,13 +70,13 @@ export default function Login() {
 
         <LoginHeader />
 
-        {error && (
+        {errorLogin && (
           <Alert
-            message={error}
+            message={errorLogin}
             type="error"
             showIcon
             closable
-            onClose={clearError}
+            onClose={clearErrorLogin}
             style={{
               marginBottom: '24px',
               borderRadius: '8px',
@@ -89,7 +89,7 @@ export default function Login() {
           onSubmit={handleSubmit}
           loginType={loginType}
           onLoginTypeChange={handleLoginTypeChange}
-          isLoading={isLoading}
+          isLoading={isLoadingLogin}
         />
       </Card>
     </BackgroundOverlay>

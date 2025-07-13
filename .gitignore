@@ -48,5 +48,6 @@ vitest.config.*.timestamp*
 
 # Environment varibles
 .env
+.env.local
 .env.development
 .env.production

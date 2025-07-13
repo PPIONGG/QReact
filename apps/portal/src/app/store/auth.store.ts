@@ -1,9 +1,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { AuthState, User } from '../types/auth.types';
-import { getErrorMessage, loginAPI } from '../../api/auth.api';
-import { API_CONFIG } from '../../api/config';
-
+import { getErrorMessage, getSalesInfoAPI, loginAPI } from '../api/auth.api';
+import { API_CONFIG } from '../api/config';
+import { resSalesinfo } from '../types/api';
 
 // Auth Store
 export const useAuthStore = create<AuthState>()(
@@ -12,18 +12,19 @@ export const useAuthStore = create<AuthState>()(
       // Initial State
       user: null,
       isAuthenticated: false,
-      isLoading: false,
-      error: null,
+      isLoadingLogin: false,
+      errorLogin: null,
       selectedCompanyCode: null,
+      Salesinfo: null,
+      isloadingSalesinfo: false,
+      errorSalesinfo: null,
 
-      // Set Selected Company
       setSelectedCompany: (code: string) => {
         set({ selectedCompanyCode: code });
       },
 
-      // Clear Error
-      clearError: () => {
-        set({ error: null });
+      clearErrorLogin: () => {
+        set({ errorLogin: null });
       },
 
       // Login
@@ -32,7 +33,7 @@ export const useAuthStore = create<AuthState>()(
         password: string,
         loginType: 'Q' | 'DB'
       ): Promise<boolean> => {
-        set({ isLoading: true, error: null });
+        set({ isLoadingLogin: true, errorLogin: null });
 
         try {
           const response = await loginAPI(
@@ -53,8 +54,8 @@ export const useAuthStore = create<AuthState>()(
             set({
               user,
               isAuthenticated: true,
-              isLoading: false,
-              error: null,
+              isLoadingLogin: false,
+              errorLogin: null,
               selectedCompanyCode:
                 response.result.company[0]?.companyCode || null,
             });
@@ -63,15 +64,15 @@ export const useAuthStore = create<AuthState>()(
           } else {
             // Login failed
             set({
-              isLoading: false,
-              error: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง',
+              isLoadingLogin: false,
+              errorLogin: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง',
             });
             return false;
           }
         } catch (error) {
           set({
-            isLoading: false,
-            error: getErrorMessage(error),
+            isLoadingLogin: false,
+            errorLogin: getErrorMessage(error),
           });
           return false;
         }
@@ -82,11 +83,35 @@ export const useAuthStore = create<AuthState>()(
         set({
           user: null,
           isAuthenticated: false,
-          isLoading: false,
-          error: null,
+          isLoadingLogin: false,
+          errorLogin: null,
           selectedCompanyCode: null,
         });
       },
+      setLoadingSalesinfo: (isloadingSalesinfo: boolean) => set({ isloadingSalesinfo }),
+
+      setSalesinfo: (Salesinfo: resSalesinfo) => set({ Salesinfo }),
+
+      fetchSalesinfo: async (user: string) => {
+        set({isloadingSalesinfo: true, errorSalesinfo: null });
+
+        try {
+          const data = await getSalesInfoAPI({ user });
+          set({
+            Salesinfo: data,
+            isloadingSalesinfo: false,
+            errorSalesinfo: null,
+          });
+        } catch (error) {
+          set({
+            isloadingSalesinfo: false,
+            errorSalesinfo: error instanceof Error ? error.message : 'An error occurred',
+            Salesinfo: null,
+          });
+        }
+      },
+      clearSalesinfo: () => set({ Salesinfo: null, errorSalesinfo: null }),
+      clearErrorSalesinfo: () => set({ errorSalesinfo: null }),
     }),
     {
       name: 'auth-storage',

@@ -5,6 +5,7 @@ import {
   SESSION_DURATION,
 } from '../constants/auth.constants';
 
+// ฟังก์ชันตรวจสอบเซสชัน และ ออกจากเซสชัน หากหมดเวลา
 export const SessionGuard = () => {
   useEffect(() => {
     const interval = setInterval(() => {

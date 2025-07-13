@@ -1,7 +1,8 @@
-// Session Duration (8 hours in milliseconds)
+// ตัวแปรคงที่สำหรับการจัดการการยืนยันตัวตนในแอปพลิเคชัน 8 ชั่วโมง
 export const SESSION_DURATION = 8 * 60 * 60 * 1000;
 
-export const SESSION_CHECK_INTERVAL = 5 * 60 * 1000; // Check every 5 minutes
+// ระยะเวลาในการตรวจสอบเซสชัน (5 นาที)
+export const SESSION_CHECK_INTERVAL = 5 * 60 * 1000;
 
 // Login Types
 export const LOGIN_TYPES = {

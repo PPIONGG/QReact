@@ -1,5 +1,5 @@
-import { ApiResponse } from '../app/types/auth.types';
-import { ApiConfig } from './config';
+import type { ApiResponse } from '../types/auth.types';
+import type { ApiConfig } from './config';
 
 // API Configuration
 const createHeaders = (config: ApiConfig) => ({
@@ -8,7 +8,6 @@ const createHeaders = (config: ApiConfig) => ({
   'X-API-Package': config.package,
 });
 
-// Login API
 export const loginAPI = async (
   config: ApiConfig,
   username: string,
@@ -33,7 +32,26 @@ export const loginAPI = async (
   return data;
 };
 
-// Error Handler
+export const getSalesInfoAPI = async (
+  config: ApiConfig,
+  user: string
+): Promise<ApiResponse> => {
+  const response = await fetch(
+    `${config.baseUrl}/api/Employee/salesinfo/${user}`,
+    {
+      method: 'GET',
+      headers: createHeaders(config),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`);
+  }
+
+  const data = (await response.json()) as ApiResponse;
+  return data;
+};
+
 export const getErrorMessage = (error: any): string => {
   if (error?.message?.includes('Failed to fetch')) {
     return 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้';
