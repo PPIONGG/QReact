@@ -8,11 +8,17 @@ import {
   Dropdown,
   Avatar,
   Space,
+  Tooltip,
 } from 'antd';
-import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
+import {
+  GlobalOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+} from '@ant-design/icons';
 import { UserOutlined } from '@ant-design/icons';
 import type { MenuItem, ActiveApp } from '../types';
 import type { User } from '../types/auth.types';
+import { useTranslation } from '@qreact/i18n';
 
 const { Header } = Layout;
 const { Title, Text } = Typography;
@@ -38,6 +44,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   selectedCompanyCode,
   onChangeCompany,
 }) => {
+  const { t, i18n } = useTranslation('portal-dashboard');
+
   const currentMenuItem = menuItems.find(
     (item) => item.id === activeApp.parentId
   );
@@ -48,6 +56,11 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   const displayName =
     currentSubItem?.name || currentMenuItem?.name || 'หน้าหลัก';
   const displayIcon = currentSubItem?.icon || currentMenuItem?.icon;
+
+  const toggleLanguage = () => {
+    const newLanguage = i18n.language === 'th' ? 'en' : 'th';
+    i18n.changeLanguage(newLanguage);
+  };
 
   return (
     <Header
@@ -89,7 +102,33 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         </Title>
       </div>
 
-      <div style={{ marginLeft: 'auto', paddingRight: 12 }}>
+      <div
+        style={{
+          marginLeft: 'auto',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+        }}
+      >
+        <Tooltip
+          title={`Switch to ${i18n.language === 'th' ? 'English' : 'ไทย'}`}
+        >
+          <Button
+            type="text"
+            icon={<GlobalOutlined />}
+            onClick={toggleLanguage}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              fontSize: '12px',
+              height: '32px',
+              padding: '0 8px',
+            }}
+          >
+            {i18n.language.toUpperCase()}
+          </Button>
+        </Tooltip>
         <Dropdown
           placement="bottomRight"
           arrow

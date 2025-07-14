@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 import type { AuthState, User } from '../types/auth.types';
 import { getErrorMessage, getSalesInfoAPI, loginAPI } from '../api/auth.api';
 import { API_CONFIG } from '../api/config';
-import { resSalesinfo } from '../types/api';
+import { ResSalesinfo } from '../types/api';
 
 // Auth Store
 export const useAuthStore = create<AuthState>()(
@@ -90,13 +90,13 @@ export const useAuthStore = create<AuthState>()(
       },
       setLoadingSalesinfo: (isloadingSalesinfo: boolean) => set({ isloadingSalesinfo }),
 
-      setSalesinfo: (Salesinfo: resSalesinfo) => set({ Salesinfo }),
+      setSalesinfo: (Salesinfo: ResSalesinfo) => set({ Salesinfo }),
 
       fetchSalesinfo: async (user: string) => {
         set({isloadingSalesinfo: true, errorSalesinfo: null });
-
+ 
         try {
-          const data = await getSalesInfoAPI({ user });
+          const data = await getSalesInfoAPI( API_CONFIG , user );
           set({
             Salesinfo: data,
             isloadingSalesinfo: false,

@@ -22,7 +22,6 @@ export default function Login() {
     setLoginType(type);
   };
 
-  // ฟังก์ชันเปลี่ยนภาษา
   const toggleLanguage = () => {
     const newLanguage = i18n.language === 'th' ? 'en' : 'th';
     i18n.changeLanguage(newLanguage);
@@ -43,7 +42,7 @@ export default function Login() {
         }}
         styles={{ body: { padding: '32px' } }}
       >
-        <div 
+        <div
           onClick={toggleLanguage}
           style={{
             position: 'absolute',

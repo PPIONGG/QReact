@@ -1,4 +1,4 @@
-import { resSalesinfo } from "./api";
+import { ResSalesinfo } from "./api";
 
 export interface CompanyPermission {
   companyCode: string;
@@ -13,7 +13,7 @@ export interface User {
   company: CompanyPermission[];
 }
 
-export interface ApiResponse {
+export interface ResLogin {
   code: number;
   msg?: string;
   result?: {
@@ -28,7 +28,7 @@ export interface AuthState {
   isLoadingLogin: boolean;
   errorLogin: string | null;
   selectedCompanyCode: string | null;
-  Salesinfo: resSalesinfo | null;
+  Salesinfo: ResSalesinfo | null;
   isloadingSalesinfo: boolean;
   errorSalesinfo: string | null;
 
@@ -43,7 +43,7 @@ export interface AuthState {
   logout: () => void;
 
   setLoadingSalesinfo: (isLoadingLogin: boolean) => void;
-  setSalesinfo: (Salesinfo: resSalesinfo) => void;
+  setSalesinfo: (Salesinfo: ResSalesinfo) => void;
   fetchSalesinfo: (user: string) => Promise<void>;
   clearSalesinfo: () => void;
   clearErrorSalesinfo: () => void;

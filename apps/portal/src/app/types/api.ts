@@ -1,4 +1,4 @@
-export interface resSalesinfo {
+export interface ResSalesinfo {
   status: boolean;
   message: string;
   data: {

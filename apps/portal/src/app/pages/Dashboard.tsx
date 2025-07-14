@@ -2,16 +2,14 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/auth.store';
 import { Layout, theme } from 'antd';
 import { HomeOutlined, DollarOutlined, TeamOutlined } from '@ant-design/icons';
-import { useEffect, useMemo, useState } from 'react';
-import { MenuItem } from '../types';
-import {
-  filterMenuByPermission,
-  getAllProgramNames,
-} from '../utils/permissionUtils';
+import { useMemo, useState } from 'react';
+import { MenuItem, SubMenuItem } from '../types';
 import { useDashboardNavigation } from '../hooks/useDashboardNavigation';
 import Sidebar from '../components/Sidebar';
 import AppHeader from '../components/AppHeader';
-import DashboardContent from '../components/DashboardContent';
+import { LoadingComponents } from '../components/LoadingComponents';
+import { useTranslation } from '@qreact/i18n';
+import { User } from '../types/auth.types';
 
 const { Content } = Layout;
 
@@ -19,17 +17,16 @@ export default function Dashboard() {
   const { user, logout, setSelectedCompany, selectedCompanyCode } =
     useAuthStore();
   const navigate = useNavigate();
+  const { t } = useTranslation('portal-dashboard');
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
   const [collapsed, setCollapsed] = useState<boolean>(false);
-  const [allowedPrograms, setAllowedPrograms] = useState<string[]>([]);
-  const [permissionLoaded, setPermissionLoaded] = useState<boolean>(false);
 
   const allMenuItems: MenuItem[] = [
     {
       id: 'home',
-      name: 'หน้าหลัก',
+      name: t('menu.home'),
       icon: <HomeOutlined />,
       url: '/',
     },
@@ -54,12 +51,82 @@ export default function Dashboard() {
     },
   ];
 
-  const menuItems = useMemo(() => {
-    if (!permissionLoaded) {
-      return allMenuItems;
+  const filterMenuItemsByPermission = (
+    menuItems: MenuItem[],
+    user: User | null,
+    selectedCompanyCode: string | null
+  ): MenuItem[] => {
+    // ถ้าไม่มี user หรือ selectedCompanyCode ให้ return array ว่าง
+    if (!user || !selectedCompanyCode) {
+      return [];
     }
-    return filterMenuByPermission(allMenuItems, allowedPrograms);
-  }, [allowedPrograms, permissionLoaded]);
+
+    // หาข้อมูลบริษัทที่เลือกอยู่จาก company array
+    const selectedCompany = user?.company?.find(
+      (comp: any) => comp.companyCode === selectedCompanyCode
+    );
+
+    // ถ้าไม่เจอบริษัทที่เลือก ให้ return array ว่าง
+    if (!selectedCompany) {
+      return [];
+    }
+
+    // ถ้า allPermission เป็น true ให้แสดงทั้งหมด
+    if (selectedCompany.allPermission === true) {
+      return menuItems;
+    }
+
+    // ดึงรายการ programName ที่ user มี permission ในบริษัทที่เลือก
+    const allowedPrograms: string[] = [];
+    selectedCompany.accessPermission?.forEach((perm: any) => {
+      if (perm.programName && Array.isArray(perm.programName)) {
+        allowedPrograms.push(...perm.programName);
+      }
+    });
+
+    // ฟังก์ชันสำหรับกรอง subItems (ใช้ SubMenuItem[] ที่ถูกต้อง)
+    const filterSubItems = (subItems: SubMenuItem[]): SubMenuItem[] => {
+      return subItems.filter((item) => allowedPrograms.includes(item.id));
+    };
+
+    // กรอง menuItems
+    return menuItems
+      .map((item) => {
+        // ถ้าเป็น parent item ที่มี subItems
+        if (item.subItems && item.subItems.length > 0) {
+          const filteredSubItems = filterSubItems(item.subItems);
+
+          // ถ้ามี subItems ที่ผ่านการกรองแล้ว ให้แสดง parent item
+          if (filteredSubItems.length > 0) {
+            return {
+              ...item,
+              subItems: filteredSubItems,
+            };
+          }
+          // ถ้าไม่มี subItems ที่ผ่านการกรอง ให้ return null
+          return null;
+        }
+
+        // ถ้าเป็น single item ให้เช็คว่ามี permission หรือไม่
+        // สำหรับ home หรือ menu หลักๆ ที่ไม่ต้องเช็ค permission
+        if (item.id === 'home') {
+          return item;
+        }
+
+        // เช็ค permission สำหรับ item อื่นๆ
+        if (allowedPrograms.includes(item.id)) {
+          return item;
+        }
+
+        return null;
+      })
+      .filter((item) => item !== null) as MenuItem[];
+  };
+
+  // ใช้ useMemo เพื่อป้องกันการ re-calculate ที่ไม่จำเป็น
+  const filteredMenuItems = useMemo(() => {
+    return filterMenuItemsByPermission(allMenuItems, user, selectedCompanyCode);
+  }, [user, selectedCompanyCode]);
 
   const {
     activeApp,
@@ -67,34 +134,7 @@ export default function Dashboard() {
     handleMenuClick,
     handleOpenChange,
     getSelectedKeys,
-  } = useDashboardNavigation(menuItems);
-
-  useEffect(() => {
-    const loadPermissionData = () => {
-      if (!user || !user.company) {
-        setPermissionLoaded(true);
-        return;
-      }
-
-      const programNames: string[] = [];
-
-      user.company.forEach((company) => {
-        if (company.allPermission) {
-          const allPrograms = getAllProgramNames(allMenuItems);
-          programNames.push(...allPrograms);
-        } else {
-          company.accessPermission.forEach((permission) => {
-            programNames.push(...permission.programName);
-          });
-        }
-      });
-      // ลบ duplicate
-      const uniquePrograms = [...new Set(programNames)];
-      setAllowedPrograms(uniquePrograms);
-      setPermissionLoaded(true);
-    };
-    loadPermissionData();
-  }, [user]);
+  } = useDashboardNavigation(filteredMenuItems);
 
   const handleLogout = (): void => {
     try {
@@ -106,10 +146,10 @@ export default function Dashboard() {
     }
   };
 
-  // 🎨 Dynamic styling functions
+  // ใช้สำหรับกำหนด style ของ content ตาม activeApp
   const getContentStyle = () => {
     if (activeApp.parentId === 'home') {
-      // สำหรับหน้าหลัก: ใช้ padding และ margin ปกติ
+      // สำหรับแอพหลัก: ใช้ style ปกติ
       return {
         margin: '24px 16px',
         padding: '24px',
@@ -119,7 +159,7 @@ export default function Dashboard() {
         overflow: 'auto', // ให้ scroll ได้ปกติ
       };
     } else {
-      // สำหรับ iframe: ไม่ใช้ padding, เต็มจอ, ไม่มี scroll
+      // สำหรับแอพอื่นๆ: ใช้ style พิเศษ
       return {
         margin: 0,
         padding: 0,
@@ -131,83 +171,42 @@ export default function Dashboard() {
   };
 
   if (!user) {
-    return (
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-          fontSize: '16px',
-        }}
-      >
-        Loading...
-      </div>
-    );
+    return <LoadingComponents.Branded />; // เลือกแบบที่ต้องการ
   }
+
   return (
-    <>
-      <style>
-        {`
-          .ant-layout-sider-collapsed .ant-menu-item.parent-active {
-            background-color: #1890ff !important;
-            color: white !important;
-          }
-
-          .ant-layout-sider-collapsed .ant-menu-item.parent-active .anticon {
-            color: white !important;
-          }
-
-          /* เมื่อ hover ใน collapsed state */
-          .ant-layout-sider-collapsed .ant-menu-item.parent-active:hover {
-            background-color: #40a9ff !important;
-          }
-
-          /* Custom dropdown trigger active state */
-          .dropdown-trigger-active {
-            background-color: #1890ff !important;
-            border-radius: 6px !important;
-          }
-
-          .dropdown-trigger-active .anticon {
-            color: white !important;
-          }
-        `}
-      </style>
-      <Layout style={{ minHeight: '100vh', overflow: 'hidden' }}>
-        <Sidebar
-          collapsed={collapsed}
-          menuItems={menuItems}
-          activeApp={activeApp}
-          openKeys={openKeys}
-          onMenuClick={handleMenuClick}
-          onOpenChange={handleOpenChange}
-          onLogout={handleLogout}
-          getSelectedKeys={getSelectedKeys}
+    <Layout style={{ minHeight: '100vh', overflow: 'hidden' }}>
+      <Sidebar
+        collapsed={collapsed} // สถานะ collapsed ของ sidebar
+        menuItems={filteredMenuItems} // เมนูทั้งหมด
+        activeApp={activeApp} // แอพที่เปิดอยู่
+        openKeys={openKeys} // คีย์ที่เปิดอยู่ใน sidebar
+        onMenuClick={handleMenuClick} // ฟังก์ชันจัดการเมื่อคลิกเมนู
+        onOpenChange={handleOpenChange} // ฟังก์ชันจัดการเมื่อเปิด/ปิดเมนู
+        onLogout={handleLogout} // ฟังก์ชันจัดการ logout
+        getSelectedKeys={getSelectedKeys} // ฟังก์ชันเพื่อรับคีย์ที่ถูกเลือก
+      />
+      <Layout style={{ overflow: 'hidden' }}>
+        <AppHeader
+          collapsed={collapsed} // สถานะ collapsed ของ sidebar
+          onToggle={() => setCollapsed(!collapsed)} // ฟังก์ชัน toggle sidebar
+          menuItems={filteredMenuItems} // เมนูทั้งหมด
+          activeApp={activeApp} // แอพที่เปิดอยู่
+          colorBgContainer={colorBgContainer} // สีพื้นหลัง
+          user={user} // ข้อมูลผู้ใช้
+          selectedCompanyCode={selectedCompanyCode} // ส่งค่า company ที่เลือก
+          onChangeCompany={setSelectedCompany} // ฟังก์ชันเปลี่ยนบริษัท
         />
 
-        <Layout style={{ overflow: 'hidden' }}>
-          <AppHeader
-            collapsed={collapsed}
-            onToggle={() => setCollapsed(!collapsed)}
-            menuItems={menuItems}
-            activeApp={activeApp}
-            colorBgContainer={colorBgContainer}
-            user={user} // ✅ ส่ง user
-            selectedCompanyCode={selectedCompanyCode} // ✅ ส่งค่า company ที่เลือก
-            onChangeCompany={setSelectedCompany} // ✅ ฟังก์ชันเปลี่ยนบริษัท
-          />
-
-          <Content className="dashboard-content" style={getContentStyle()}>
-            <DashboardContent
+        <Content className="dashboard-content" style={getContentStyle()}>
+          {/* <DashboardContent
               activeApp={activeApp}
               menuItems={menuItems}
               onMenuClick={handleMenuClick}
               getAppUrl={getAppUrl}
-            />
-          </Content>
-        </Layout>
+            /> */}
+        </Content>
       </Layout>
-    </>
+    </Layout>
   );
 }

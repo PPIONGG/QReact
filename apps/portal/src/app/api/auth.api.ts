@@ -1,4 +1,5 @@
-import type { ApiResponse } from '../types/auth.types';
+import { ResSalesinfo } from '../types/api';
+import { ResLogin } from '../types/auth.types';
 import type { ApiConfig } from './config';
 
 // API Configuration
@@ -13,7 +14,7 @@ export const loginAPI = async (
   username: string,
   password: string,
   loginType: 'Q' | 'DB'
-): Promise<ApiResponse> => {
+): Promise<ResLogin> => {
   const response = await fetch(`${config.baseUrl}/api/Login`, {
     method: 'POST',
     headers: createHeaders(config),
@@ -28,14 +29,14 @@ export const loginAPI = async (
     throw new Error(`HTTP ${response.status}`);
   }
 
-  const data = (await response.json()) as ApiResponse;
+  const data = (await response.json()) as ResLogin;
   return data;
 };
 
 export const getSalesInfoAPI = async (
   config: ApiConfig,
   user: string
-): Promise<ApiResponse> => {
+): Promise<ResSalesinfo> => {
   const response = await fetch(
     `${config.baseUrl}/api/Employee/salesinfo/${user}`,
     {
@@ -48,7 +49,7 @@ export const getSalesInfoAPI = async (
     throw new Error(`HTTP ${response.status}`);
   }
 
-  const data = (await response.json()) as ApiResponse;
+  const data = (await response.json()) as ResSalesinfo;
   return data;
 };
 
