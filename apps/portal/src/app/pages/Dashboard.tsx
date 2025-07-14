@@ -20,7 +20,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { t } = useTranslation('portal-dashboard');
   const {
-    token: { colorBgContainer, borderRadiusLG },
+    token: { colorBgContainer },
   } = theme.useToken();
   const [collapsed, setCollapsed] = useState<boolean>(false);
 

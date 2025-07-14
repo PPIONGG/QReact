@@ -32,7 +32,6 @@ export interface AuthState {
   isloadingSalesinfo: boolean;
   errorSalesinfo: string | null;
 
-
   setSelectedCompany: (code: string) => void;
   clearErrorLogin: () => void;
   login: (
@@ -41,9 +40,6 @@ export interface AuthState {
     loginType: 'Q' | 'DB'
   ) => Promise<boolean>;
   logout: () => void;
-
-  setLoadingSalesinfo: (isLoadingLogin: boolean) => void;
-  setSalesinfo: (Salesinfo: ResSalesinfo) => void;
   fetchSalesinfo: (user: string) => Promise<void>;
   clearSalesinfo: () => void;
   clearErrorSalesinfo: () => void;

@@ -6,7 +6,7 @@ import type { ApiConfig } from './config';
 const createHeaders = (config: ApiConfig) => ({
   'Content-Type': 'application/json',
   Authorization: `Bearer ${config.token}`,
-  'X-API-Package': config.package,
+  'X-PACKAGE': config.package,
 });
 
 export const loginAPI = async (
@@ -46,6 +46,10 @@ export const getSalesInfoAPI = async (
   );
 
   if (!response.ok) {
+    if (response.status === 400) {
+    const errorData = (await response.json()) as ResSalesinfo
+    return errorData;
+    }
     throw new Error(`HTTP ${response.status}`);
   }
 

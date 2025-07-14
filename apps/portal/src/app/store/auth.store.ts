@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
 import type { AuthState, User } from '../types/auth.types';
 import { getErrorMessage, getSalesInfoAPI, loginAPI } from '../api/auth.api';
 import { API_CONFIG } from '../api/config';
@@ -80,23 +80,23 @@ export const useAuthStore = create<AuthState>()(
 
       // Logout
       logout: () => {
+        sessionStorage.removeItem('auth-storage');
         set({
           user: null,
           isAuthenticated: false,
           isLoadingLogin: false,
           errorLogin: null,
           selectedCompanyCode: null,
+          Salesinfo: null,
+          isloadingSalesinfo: false,
+          errorSalesinfo: null,
         });
       },
-      setLoadingSalesinfo: (isloadingSalesinfo: boolean) => set({ isloadingSalesinfo }),
-
-      setSalesinfo: (Salesinfo: ResSalesinfo) => set({ Salesinfo }),
-
       fetchSalesinfo: async (user: string) => {
-        set({isloadingSalesinfo: true, errorSalesinfo: null });
- 
+        set({ isloadingSalesinfo: true, errorSalesinfo: null });
+
         try {
-          const data = await getSalesInfoAPI( API_CONFIG , user );
+          const data = await getSalesInfoAPI(API_CONFIG, user);
           set({
             Salesinfo: data,
             isloadingSalesinfo: false,
@@ -105,7 +105,8 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
           set({
             isloadingSalesinfo: false,
-            errorSalesinfo: error instanceof Error ? error.message : 'An error occurred',
+            errorSalesinfo:
+              error instanceof Error ? error.message : 'An error occurred',
             Salesinfo: null,
           });
         }
@@ -115,6 +116,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-storage',
+      storage: createJSONStorage(() => sessionStorage), // เพิ่มบรรทัดนี้เพื่อใช้ sessionStorage
       version: 1,
     }
   )

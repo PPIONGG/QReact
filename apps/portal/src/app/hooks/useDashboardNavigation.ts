@@ -9,9 +9,6 @@ export const useDashboardNavigation = (menuItems: MenuItem[]) => {
   // ฟังก์ชันเพื่อดึงข้อมูลแอปพลิเคชันปัจจุบันจาก URL
   const getCurrentApp = (): ActiveApp => {
     const pathname = location.pathname;
-    console.log("menuItems:", menuItems);
-    
-    console.log('Current pathname:', pathname);
     if (pathname === '/' || pathname === '') return { parentId: 'home' };
 
     const pathParts = pathname.split('/').filter((part) => part);
@@ -49,7 +46,6 @@ export const useDashboardNavigation = (menuItems: MenuItem[]) => {
   // ฟังก์ชันสำหรับจัดการการคลิกเมนู
   // และเปลี่ยนเส้นทางไปยัง URL ที่เกี่ยวข้อง
   const handleMenuClick = (key: string): void => {
-    console.log('Menu item clicked:', key);
     try {
       const menuItem = menuItems.find((item) => item.id === key);
       const subItem = menuItems
@@ -62,8 +58,6 @@ export const useDashboardNavigation = (menuItems: MenuItem[]) => {
           item.subItems?.some((sub) => sub.id === key)
         );
         if (parentItem) {
-          console.log("subItem.url:", subItem.url);
-          console.log('parentID:', parentItem.id + ' subID: ' + key);
           setActiveApp({ parentId: parentItem.id, subId: key });
           if (subItem.url) {
             navigate(subItem.url);
