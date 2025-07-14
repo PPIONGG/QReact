@@ -10,6 +10,7 @@ import AppHeader from '../components/AppHeader';
 import { LoadingComponents } from '../components/LoadingComponents';
 import { useTranslation } from '@qreact/i18n';
 import { User } from '../types/auth.types';
+import DashboardContent from '../components/DashboardContent';
 
 const { Content } = Layout;
 
@@ -149,23 +150,22 @@ export default function Dashboard() {
   // ใช้สำหรับกำหนด style ของ content ตาม activeApp
   const getContentStyle = () => {
     if (activeApp.parentId === 'home') {
-      // สำหรับแอพหลัก: ใช้ style ปกติ
-      return {
-        margin: '24px 16px',
-        padding: '24px',
-        background: colorBgContainer,
-        borderRadius: borderRadiusLG,
-        minHeight: '280px',
-        overflow: 'auto', // ให้ scroll ได้ปกติ
-      };
-    } else {
-      // สำหรับแอพอื่นๆ: ใช้ style พิเศษ
+      // styles สำหรับแอพ home
       return {
         margin: 0,
         padding: 0,
         background: 'transparent',
-        height: 'calc(100vh - 64px)', // ลบความสูง header
-        overflow: 'hidden', // 🔥 สำคัญ! ป้องกัน outer scroll
+        height: 'calc(100vh - 64px)',
+        overflow: 'hidden',
+      };
+    } else {
+      // สำหรับแอพอื่น ๆ
+      return {
+        margin: 0,
+        padding: 0,
+        background: 'transparent',
+        height: 'calc(100vh - 64px)',
+        overflow: 'hidden',
       };
     }
   };
@@ -199,12 +199,10 @@ export default function Dashboard() {
         />
 
         <Content className="dashboard-content" style={getContentStyle()}>
-          {/* <DashboardContent
-              activeApp={activeApp}
-              menuItems={menuItems}
-              onMenuClick={handleMenuClick}
-              getAppUrl={getAppUrl}
-            /> */}
+          <DashboardContent
+            activeApp={activeApp}
+            menuItems={filteredMenuItems}
+          />
         </Content>
       </Layout>
     </Layout>
