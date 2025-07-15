@@ -1,5 +1,5 @@
 import { Navigate } from 'react-router-dom';
-import { useAuthStore } from '../store/auth.store';
+import { useAuthStore } from '@qreact/store';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;

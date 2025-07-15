@@ -2,7 +2,10 @@
   "name": "@qreact/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "dev:portal": "nx serve portal --port=4200",
+    "dev:sales-visitor": "nx serve sales-visitor --port=4201"
+  },
   "private": true,
   "dependencies": {
     "@ant-design/v5-patch-for-react-19": "^1.0.3",

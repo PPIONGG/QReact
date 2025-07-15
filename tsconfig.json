@@ -26,6 +26,9 @@
     },
     {
       "path": "./libs/shared/constants"
+    },
+    {
+      "path": "./libs/shared/store"
     }
   ]
 }

@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import type { AuthState, User } from '../types/auth.types';
-import { getErrorMessage, getSalesInfoAPI, loginAPI } from '../api/auth.api';
-import { API_CONFIG } from '../api/config';
+import type { AuthState, User } from './auth.types';
+import { API_CONFIG } from './config';
+import { getErrorMessage, getSalesInfoAPI, loginAPI } from './auth.api';
 
 // Auth Store
 export const useAuthStore = create<AuthState>()(

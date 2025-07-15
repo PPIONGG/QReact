@@ -1,6 +1,6 @@
 import React from 'react';
 import { Alert, Card } from 'antd';
-import { useAuthStore } from '../store/auth.store';
+import { useAuthStore } from '@qreact/store';
 import { useTranslation } from '@qreact/i18n';
 import BackgroundOverlay from '../components/BackgroundOverlay';
 import LoginHeader from '../components/LoginHeader';

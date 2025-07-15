@@ -4,7 +4,7 @@ nx g @nx/react:lib i18n --directory=libs/shared/i18n --importPath=@qreact/shared
 
 # สร้าง TypeScript library สำหรับ store
 
-nx g @nx/js:lib store --directory=libs/shared/store --bundler=tsc
+nx g @nx/react:lib store --directory=libs/shared/store
 
 # สร้าง React library สำหรับ UI components
 

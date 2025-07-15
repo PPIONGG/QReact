@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../store/auth.store';
+import { useAuthStore } from '@qreact/store';
 import { Layout, theme } from 'antd';
 import { HomeOutlined, DollarOutlined, TeamOutlined } from '@ant-design/icons';
 import { useMemo, useState } from 'react';

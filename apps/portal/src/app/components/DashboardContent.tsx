@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ActiveApp, MenuItem } from '../types';
-import { useAuthStore } from '../store/auth.store';
+import { useAuthStore } from '@qreact/store';
 import { Card, Row, Col, Button, Typography, Space } from 'antd';
 import {
   LeftOutlined,
@@ -12,6 +12,8 @@ import {
 } from '@ant-design/icons';
 import slide1Image from '../assets/Q-ERPc_2.jpg';
 import slide2Image from '../assets/Q-ERPc.jpg';
+import NoPermissionOverlay from './NoPermissionOverlay';
+import { getAppUrl } from '../utils/getAppUrl';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -24,7 +26,8 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   activeApp,
   menuItems,
 }) => {
-  const { Salesinfo, user, fetchSalesinfo  } = useAuthStore();
+  const { Salesinfo, user, fetchSalesinfo, isloadingSalesinfo } =
+    useAuthStore();
   const [currentSlide, setCurrentSlide] = useState(0);
 
   // ฟังก์ชันสำหรับทำความสะอาดชื่อผู้ใช้ เบื้องต้น
@@ -32,17 +35,11 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
     return username.replace(/^QERP_/i, '');
   };
 
-useEffect(() => {
-  if (user && user.username && !Salesinfo) {
-    console.log('Fetching Salesinfo for user:', user.username);
-    fetchSalesinfo(cleanUsername(user.username));
-  }
-}, [user, Salesinfo]);
-
   useEffect(() => {
-    console.log("User:", user);
-    console.log("Salesinfo:", Salesinfo);
-  }, []);
+    if (user && user.username && !Salesinfo) {
+      fetchSalesinfo(cleanUsername(user.username));
+    }
+  }, [user, Salesinfo]);
 
   const slides = [
     {
@@ -75,6 +72,34 @@ useEffect(() => {
   const prevSlide = () => {
     setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
   };
+
+  const permissionStatus = useMemo(() => {
+    // หน้าหลักเข้าได้เสมอ
+    if (activeApp.parentId === 'home') {
+      return { hasPermission: true, showLoading: false };
+    }
+
+    // ถ้าไม่มี user ให้ไม่มีสิทธ
+    if (!user) {
+      return { hasPermission: false, showLoading: false };
+    }
+
+    // ถ้ายังโหลดข้อมูลอยู่
+    if (isloadingSalesinfo) {
+      return { hasPermission: false, showLoading: true };
+    }
+
+    // ถ้าไม่มี Salesinfo ให้ถือว่าไม่มีสิทธิ์
+    if (!Salesinfo) {
+      return { hasPermission: false, showLoading: false };
+    }
+
+    // เช็คจาก Salesinfo.status
+    return {
+      hasPermission: Salesinfo.status,
+      showLoading: false,
+    };
+  }, [activeApp.parentId, user, isloadingSalesinfo, Salesinfo]);
 
   const renderContent = useMemo(() => {
     if (activeApp.parentId === 'home') {
@@ -598,28 +623,118 @@ useEffect(() => {
       );
     }
 
+        // สำหรับ iframe apps
+    const currentMenuItem = menuItems.find(
+      (item) => item.id === activeApp.parentId
+    );
+
+    const currentSubItem = currentMenuItem?.subItems?.find(
+      (sub) => sub.id === activeApp.subId
+    );
+
     return (
-      <div
+      <iframe
+        src={getAppUrl(activeApp.parentId, activeApp.subId?.split('-')[1])}
         style={{
           width: '100%',
           height: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: '#f0f2f5',
+          border: 'none',
+          display: 'block',
+          margin: 0,
+          padding: 0,
         }}
-      >
-        <Card style={{ padding: '40px', textAlign: 'center' }}>
-          <h2>หน้าอื่นๆ</h2>
-          <p>เนื้อหาสำหรับหน้าอื่นจะแสดงที่นี่</p>
-        </Card>
-      </div>
+        title={`${
+          currentSubItem?.name || currentMenuItem?.name || 'Application'
+        } Application`}
+        onError={(e) => {
+          console.error('❌ Iframe loading error:', e);
+        }}
+        onLoad={() => {
+          console.log('✅ Iframe loaded successfully');
+        }}
+        frameBorder="0"
+        scrolling="auto"
+        allowFullScreen
+      />
     );
-  }, [activeApp, menuItems, Salesinfo, currentSlide]);
+  }, [activeApp, menuItems, getAppUrl, Salesinfo, isloadingSalesinfo]);
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       {renderContent}
+
+      {permissionStatus.showLoading && activeApp.parentId !== 'home' && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            backdropFilter: 'blur(2px)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000,
+          }}
+        >
+          <div style={{ textAlign: 'center' }}>
+            <div
+              style={{
+                width: '40px',
+                height: '40px',
+                border: '4px solid #f3f4f6',
+                borderTop: '4px solid #3b82f6',
+                borderRadius: '50%',
+                animation: 'spin 0.8s linear infinite',
+                margin: '0 auto 16px',
+              }}
+            />
+            <p
+              style={{
+                margin: 0,
+                color: '#64748b',
+                fontSize: '16px',
+                fontWeight: 500,
+              }}
+            >
+              กำลังตรวจสอบสิทธิ์...
+            </p>
+            <p
+              style={{
+                margin: '8px 0 0 0',
+                color: '#94a3b8',
+                fontSize: '14px',
+              }}
+            >
+              กรุณารอสักครู่
+            </p>
+          </div>
+        </div>
+      )}
+
+      {!permissionStatus.hasPermission &&
+        !permissionStatus.showLoading &&
+        activeApp.parentId !== 'home' && <NoPermissionOverlay />}
+
+      <style>
+        {`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+          
+          /* ✅ เพิ่ม transition สำหรับ smooth loading */
+          .dashboard-content iframe {
+            transition: opacity 0.2s ease-in-out;
+          }
+          
+          .dashboard-content iframe[src=""] {
+            opacity: 0;
+          }
+        `}
+      </style>
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useAuthStore } from '../store/auth.store';
+import { useAuthStore } from '@qreact/store';
 import {
   SESSION_CHECK_INTERVAL,
   SESSION_DURATION,
