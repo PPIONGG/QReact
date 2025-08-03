@@ -1,14 +1,14 @@
 import { useNavigate } from 'react-router-dom';
-import { Layout, theme } from 'antd';
+import { Layout, message, theme } from 'antd';
 import { HomeOutlined, DollarOutlined, TeamOutlined } from '@ant-design/icons';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { MenuItem, SubMenuItem } from '../types';
 import { useDashboardNavigation } from '../hooks/useDashboardNavigation';
-import Sidebar from '../components/Sidebar';
-import AppHeader from '../components/AppHeader';
-import { LoadingComponents } from '../components/LoadingComponents';
+import Sidebar from '../components/dashboard/Sidebar';
+import AppHeader from '../components/dashboard/AppHeader';
+import DashboardContent from '../components/dashboard/DashboardContent';
+import { LoadingComponents } from '../components/dashboard/LoadingComponents';
 import { User } from '../types/auth.types';
-import DashboardContent from '../components/DashboardContent';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/auth.store';
 
@@ -23,6 +23,21 @@ export default function Dashboard() {
     token: { colorBgContainer },
   } = theme.useToken();
   const [collapsed, setCollapsed] = useState<boolean>(false);
+
+  useEffect(() => {
+  if (user?.loginTime) {
+    const timeDiff = Date.now() - user.loginTime;
+    const isRecentLogin = timeDiff < 5000; // 5 วินาที
+    
+    if (isRecentLogin) {
+      message.success({
+        content: `ยินดีต้อนรับ ${user.username}! เข้าสู่ระบบสำเร็จ`,
+        duration: 3,
+        key: 'login-success',
+      });
+    }
+  }
+}, [user]);
 
   const allMenuItems: MenuItem[] = [
     {

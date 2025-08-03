@@ -35,6 +35,10 @@ export const loginAPI = async (
   });
 
   if (!response.ok) {
+    if (response.status === 400) {     
+    const errorData = (await response.json()) as ResLogin
+    return errorData;
+    }
     throw new Error(`HTTP ${response.status}`);
   }
 
@@ -56,9 +60,7 @@ export const getSalesInfoAPI = async (
   );
 
   if (!response.ok) {
-    if (response.status === 400) {
-      console.log('Bad Request - likely due to missing or invalid parameters');
-      
+    if (response.status === 400) {      
     const errorData = (await response.json()) as ResSalesinfo
     return errorData;
     }

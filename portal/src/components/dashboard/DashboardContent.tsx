@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState, Suspense } from "react";
 import { useLocation } from "react-router-dom";
-import { ActiveApp, MenuItem } from "../types";
-import { useAuthStore } from "../store/auth.store";
+import { ActiveApp, MenuItem } from "../../types";
+import { useAuthStore } from "../../store/auth.store";
 import { Card, Button, Typography, Spin, Alert } from "antd";
 import { RocketOutlined, LoadingOutlined } from "@ant-design/icons";
-import NoPermissionOverlay from "./NoPermissionOverlay";
+import NoPermissionOverlay from "../NoPermissionOverlay";
 import React from "react";
 
 const { Title, Paragraph, Text } = Typography;

@@ -16,8 +16,8 @@ import {
   MenuUnfoldOutlined,
 } from '@ant-design/icons';
 import { UserOutlined } from '@ant-design/icons';
-import type { MenuItem, ActiveApp } from '../types';
-import type { User } from '../types/auth.types';
+import type { MenuItem, ActiveApp } from '../../types';
+import type { User } from '../../types/auth.types';
 import { useTranslation } from 'react-i18next';
 
 const { Header } = Layout;

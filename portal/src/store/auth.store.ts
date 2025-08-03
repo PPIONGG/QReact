@@ -41,7 +41,8 @@ export const useAuthStore = create<AuthState>()(
             password,
             loginType
           );
-
+          console.log('Login response:', response);
+          
           if (response.code === 0 && response.result) {
             // Success
             const user: User = {
@@ -64,7 +65,7 @@ export const useAuthStore = create<AuthState>()(
             // Login failed
             set({
               isLoadingLogin: false,
-              errorLogin: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง',
+              errorLogin: response.msg,
             });
             return false;
           }

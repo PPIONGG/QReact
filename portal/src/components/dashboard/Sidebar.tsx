@@ -2,8 +2,8 @@ import React from 'react';
 import { Layout, Menu, Button, Tooltip, Dropdown, Typography } from 'antd';
 import { GlobalOutlined, LogoutOutlined } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
-import type { ActiveApp, MenuItem, SubMenuItem } from '../types';
-
+import type { ActiveApp, MenuItem, SubMenuItem } from '../../types';
+import logo from '../../assets/logo.svg'
 const { Sider } = Layout;
 const { Title, Text } = Typography;
 
@@ -147,13 +147,12 @@ const Sidebar: React.FC<SidebarProps> = ({
             title="ระบบจัดการองค์กร - Management System"
             placement="right"
           >
-            <GlobalOutlined
-              className="sidebar-logo-icon"
-              style={{
-                color: '#1890ff',
-                fontSize: '24px',
-              }}
-            />
+          <img src={logo} alt="logo" 
+          style={{
+            marginLeft:"5px",       
+            width: '30px',
+            height: '30px'
+          }} />
           </Tooltip>
         ) : (
           <div className={`sidebar-logo-text ${collapsed ? 'collapsed' : ''}`}>
@@ -167,19 +166,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                 whiteSpace: 'nowrap',
               }}
             >
-              ระบบจัดการองค์กร
+              QReact
             </Title>
-            <Text
-              style={{
-                color: '#8c8c8c',
-                fontSize: '11px',
-                display: 'block',
-                lineHeight: '1.2',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              Management System
-            </Text>
           </div>
         )}
       </div>
