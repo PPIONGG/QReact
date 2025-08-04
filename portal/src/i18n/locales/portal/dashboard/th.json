@@ -3,67 +3,52 @@
     "home": "หน้าหลัก",
     "sales": "การขาย",
     "salesVisitor": "Sales Visitor",
-    "salesOrder": "Sales Order",
-    "salesOrderCreate": "สร้าง Sales Order",
-    "salesOrderList": "รายการ Sales Order",
-    "inventory": "คลังสินค้า",
-    "inventoryManagement": "จัดการคลังสินค้า",
-    "stockIn": "รับสินค้าเข้า",
-    "stockOut": "เบิกสินค้าออก",
-    "inventoryReports": "รายงานคลังสินค้า",
-    "customerManagement": "จัดการลูกค้า",
-    "customerList": "รายชื่อลูกค้า",
-    "customerGroup": "กลุ่มลูกค้า",
-    "salesAnalytics": "วิเคราะห์การขาย",
-    "salesDashboard": "Dashboard การขาย",
-    "salesTrends": "แนวโน้มการขาย",
-    "directSales": "ขายโดยตรง"
+    "salesVisitor2": "Sales Visitor 2"
   },
-  "header": {
-    "systemTitle": "ระบบจัดการองค์กร",
-    "systemSubtitle": "Management System",
-    "selectCompany": "เลือกบริษัท",
-    "toggleSidebar": "เปิด/ปิดเมนู"
+  "welcome": {
+    "message": "ยินดีต้อนรับ {{username}}! เข้าสู่ระบบสำเร็จ"
   },
   "sidebar": {
+    "systemTitle": "ระบบจัดการองค์กร - Management System",
     "logout": "ออกจากระบบ",
-    "companySelector": "เลือกบริษัท"
+    "logoutTooltip": "ออกจากระบบ"
+  },
+  "header": {
+    "switchLanguage": "เปลี่ยนเป็น {{lang}}",
+    "selectCompany": "เลือกบริษัท"
   },
   "loading": {
-    "title": "QERP SYSTEM",
-    "message": "กำลังเตรียมระบบ...",
-    "pleaseWait": "กรุณารอสักครู่",
-    "preparingSystem": "กำลังเตรียมระบบ...",
-    "enteringSystem": "กำลังเข้าสู่ระบบ...",
-    "verifyingCredentials": "กำลังตรวจสอบสิทธิ์การเข้าใช้งาน..."
-  },
-  "common": {
+    "preparing": "กำลังเตรียมระบบ...",
     "loading": "กำลังโหลด...",
-    "error": "เกิดข้อผิดพลาด",
-    "success": "สำเร็จ",
-    "cancel": "ยกเลิก",
-    "confirm": "ยืนยัน",
-    "save": "บันทึก",
-    "delete": "ลบ",
-    "edit": "แก้ไข",
-    "add": "เพิ่ม",
-    "search": "ค้นหา",
-    "filter": "กรอง",
-    "export": "ส่งออก",
-    "import": "นำเข้า",
-    "refresh": "รีเฟรช",
-    "close": "ปิด"
+    "pleaseWait": "กรุณารอสักครู่",
+    "checkingPermission": "กำลังตรวจสอบสิทธิ์...",
+    "systemEntry": "กำลังเข้าสู่ระบบ...",
+    "checkingAccess": "กำลังตรวจสอบสิทธิ์การเข้าใช้งาน..."
   },
-  "messages": {
-    "welcomeMessage": "ยินดีต้อนรับสู่ระบบ QERP",
-    "selectMenuMessage": "กรุณาเลือกเมนูจากด้านซ้าย",
-    "logoutConfirm": "คุณต้องการออกจากระบบหรือไม่?",
-    "logoutSuccess": "ออกจากระบบเรียบร้อยแล้ว",
-    "logoutError": "เกิดข้อผิดพลาดในการออกจากระบบ"
+  "noPermission": {
+    "title": "ไม่มีสิทธิ์เข้าถึง",
+    "subtitle": "คุณไม่มีสิทธิ์เข้าถึงหน้านี้ กรุณาติดต่อผู้ดูแลระบบเพื่อขอสิทธิ์เข้าถึง",
+    "backToHome": "กลับหน้าหลัก"
   },
-  "breadcrumb": {
-    "home": "หน้าหลัก",
-    "sales": "การขาย",
-    "inventory": "คลังสินค้า"
+  "content": {
+    "portalDashboard": "🏠 Portal Dashboard",
+    "currentUrl": "📍 Current URL:",
+    "hash": "Hash:",
+    "activeApp": "ActiveApp:",
+    "testInstructions": "กดเมนู \"Sales Visitor\" เพื่อทดสอบ Micro Frontend",
+    "howToTest": "📋 วิธีทดสอบ:",
+    "applicationDeveloping": "Application \"{{appName}}\" กำลังพัฒนา",
+    "microfrontendDesc": "เรากำลังพัฒนา Application นี้ในรูปแบบ Microfrontend Architecture เพื่อประสิทธิภาพและความยืดหยุ่นที่ดีขึ้น",
+    "notifyWhenReady": "แจ้งเตือนเมื่อพร้อม",
+    "backToMain": "กลับหน้าหลัก"
+  },
+  "remote": {
+    "loading": "กำลังโหลด {{appName}}...",
+    "connecting": "กำลังเชื่อมต่อ Remote App ที่ port 3001",
+    "notAvailable": "{{appName}} ไม่พร้อมใช้งาน",
+    "cannotLoad": "ไม่สามารถโหลด {{appName}} ได้ในขณะนี้",
+    "reloadPage": "รีโหลดหน้า",
+    "contactSupport": "ติดต่อฝ่ายสนับสนุน",
+    "moduleNotReady": "Module ยังไม่พร้อมใช้งาน"
   }
 }

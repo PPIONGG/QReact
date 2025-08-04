@@ -6,10 +6,54 @@
   border-radius: 8px;
 }
 
+/* Override Ant Design Select focus and hover colors */
+.selectInput :global(.ant-select-selector) {
+  border-radius: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.selectInput:hover :global(.ant-select-selector) {
+  border-color: #b30000 !important;
+}
+
+.selectInput :global(.ant-select-focused .ant-select-selector) {
+  border-color: #b30000 !important;
+  box-shadow: 0 0 0 2px rgba(179, 0, 0, 0.1) !important;
+}
+
+.selectInput :global(.ant-select-open .ant-select-selector) {
+  border-color: #b30000 !important;
+  box-shadow: 0 0 0 2px rgba(179, 0, 0, 0.1) !important;
+}
+
 .inputField {
   border-radius: 8px;
-  height: 48px;
   background-color: white;
+}
+
+/* Override Ant Design Input focus and hover colors */
+.inputField:hover {
+  border-color: #b30000 !important;
+}
+
+.inputField:focus,
+.inputField:focus-within {
+  border-color: #b30000 !important;
+  box-shadow: 0 0 0 2px rgba(179, 0, 0, 0.1) !important;
+}
+
+/* Override Ant Design Input.Password focus and hover colors */
+.inputField :global(.ant-input) {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.inputField :global(.ant-input:focus) {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
 }
 
 .inputIcon {
@@ -19,14 +63,86 @@
 .loginButton {
   background: #b30000 !important;
   border: none !important;
-  height: 52px !important;
   font-size: 16px !important;
   font-weight: 500 !important;
   border-radius: 8px !important;
   box-shadow: 0 4px 12px rgba(179, 0, 0, 0.3) !important;
 }
 
+/* Button hover effect */
+.loginButton:hover {
+  background: #990000 !important;
+  box-shadow: 0 6px 16px rgba(179, 0, 0, 0.4) !important;
+  transform: translateY(-1px);
+  transition: all 0.2s ease;
+}
+
+/* Button active/pressed effect */
+.loginButton:active {
+  background: #800000 !important;
+  box-shadow: 0 2px 8px rgba(179, 0, 0, 0.3) !important;
+  transform: translateY(0);
+}
+
 .buttonFormItem {
   margin-bottom: 24px;
   margin-top: 32px;
+}
+
+/* Global overrides for dropdown options */
+:global(.ant-select-dropdown .ant-select-item-option-selected) {
+  background-color: rgba(179, 0, 0, 0.1) !important;
+  color: #b30000 !important;
+}
+
+:global(.ant-select-dropdown .ant-select-item-option-active) {
+  background-color: rgba(179, 0, 0, 0.05) !important;
+}
+
+/* Override dropdown hover effects */
+:global(.ant-select-dropdown .ant-select-item-option:hover) {
+  background-color: rgba(179, 0, 0, 0.08) !important;
+}
+
+/* Override selected item text color in closed dropdown */
+:global(.ant-select-selection-item) {
+  color: inherit !important;
+}
+
+/* Override arrow icon color and positioning */
+:global(.ant-select-arrow) {
+  color: #b30000 !important;
+}
+
+/* Override focused state border */
+:global(.ant-select:not(.ant-select-disabled):hover .ant-select-selector) {
+  border-color: #b30000 !important;
+}
+
+:global(.ant-select-focused .ant-select-selector) {
+  border-color: #b30000 !important;
+  box-shadow: 0 0 0 2px rgba(179, 0, 0, 0.1) !important;
+}
+
+:global(
+    .ant-select-focused:not(.ant-select-disabled).ant-select:not(
+        .ant-select-customize-input
+      )
+      .ant-select-selector
+  ) {
+  border-color: #b30000 !important;
+  box-shadow: 0 0 0 2px rgba(179, 0, 0, 0.1) !important;
+}
+
+/* Override when dropdown is open */
+:global(.ant-select-open .ant-select-selector) {
+  border-color: #b30000 !important;
+  box-shadow: 0 0 0 2px rgba(179, 0, 0, 0.1) !important;
+}
+
+/* Remove default blue outline on all form elements */
+:global(.ant-input:focus),
+:global(.ant-select-selector:focus),
+:global(.ant-select-focused .ant-select-selector) {
+  outline: none !important;
 }

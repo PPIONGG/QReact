@@ -1,0 +1,69 @@
+{
+  "menu": {
+    "home": "หน้าหลัก",
+    "sales": "การขาย",
+    "salesVisitor": "Sales Visitor",
+    "salesOrder": "Sales Order",
+    "salesOrderCreate": "สร้าง Sales Order",
+    "salesOrderList": "รายการ Sales Order",
+    "inventory": "คลังสินค้า",
+    "inventoryManagement": "จัดการคลังสินค้า",
+    "stockIn": "รับสินค้าเข้า",
+    "stockOut": "เบิกสินค้าออก",
+    "inventoryReports": "รายงานคลังสินค้า",
+    "customerManagement": "จัดการลูกค้า",
+    "customerList": "รายชื่อลูกค้า",
+    "customerGroup": "กลุ่มลูกค้า",
+    "salesAnalytics": "วิเคราะห์การขาย",
+    "salesDashboard": "Dashboard การขาย",
+    "salesTrends": "แนวโน้มการขาย",
+    "directSales": "ขายโดยตรง"
+  },
+  "header": {
+    "systemTitle": "ระบบจัดการองค์กร",
+    "systemSubtitle": "Management System",
+    "selectCompany": "เลือกบริษัท",
+    "toggleSidebar": "เปิด/ปิดเมนู"
+  },
+  "sidebar": {
+    "logout": "ออกจากระบบ",
+    "companySelector": "เลือกบริษัท"
+  },
+  "loading": {
+    "title": "QERP SYSTEM",
+    "message": "กำลังเตรียมระบบ...",
+    "pleaseWait": "กรุณารอสักครู่",
+    "preparingSystem": "กำลังเตรียมระบบ...",
+    "enteringSystem": "กำลังเข้าสู่ระบบ...",
+    "verifyingCredentials": "กำลังตรวจสอบสิทธิ์การเข้าใช้งาน..."
+  },
+  "common": {
+    "loading": "กำลังโหลด...",
+    "error": "เกิดข้อผิดพลาด",
+    "success": "สำเร็จ",
+    "cancel": "ยกเลิก",
+    "confirm": "ยืนยัน",
+    "save": "บันทึก",
+    "delete": "ลบ",
+    "edit": "แก้ไข",
+    "add": "เพิ่ม",
+    "search": "ค้นหา",
+    "filter": "กรอง",
+    "export": "ส่งออก",
+    "import": "นำเข้า",
+    "refresh": "รีเฟรช",
+    "close": "ปิด"
+  },
+  "messages": {
+    "welcomeMessage": "ยินดีต้อนรับสู่ระบบ QERP",
+    "selectMenuMessage": "กรุณาเลือกเมนูจากด้านซ้าย",
+    "logoutConfirm": "คุณต้องการออกจากระบบหรือไม่?",
+    "logoutSuccess": "ออกจากระบบเรียบร้อยแล้ว",
+    "logoutError": "เกิดข้อผิดพลาดในการออกจากระบบ"
+  },
+  "breadcrumb": {
+    "home": "หน้าหลัก",
+    "sales": "การขาย",
+    "inventory": "คลังสินค้า"
+  }
+}

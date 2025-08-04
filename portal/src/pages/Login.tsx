@@ -9,7 +9,7 @@ import styles from "./Login.module.css";
 
 export default function Login() {
   const { login, isLoadingLogin, errorLogin, clearErrorLogin } = useAuthStore();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation('portal-login');
   const [loginType, setLoginType] = React.useState<"Q" | "DB">("Q");
 
     // แสดง error message เมื่อมี error
@@ -55,9 +55,10 @@ export default function Login() {
           <div
             className={styles.languageToggle}
             onClick={toggleLanguage}
-            title={`Switch to ${i18n.language === "th" ? "English" : "ไทย"}`}
-          >
-            {i18n.language}
+            title={t('switchLanguage', { 
+              lang: i18n.language === "th" ? "English" : "ไทย" 
+            })}          >
+            {i18n.language === "th" ? "TH" : "EN"}
           </div>
 
           <LoginHeader />

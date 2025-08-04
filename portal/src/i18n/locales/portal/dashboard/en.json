@@ -3,67 +3,52 @@
     "home": "Home",
     "sales": "Sales",
     "salesVisitor": "Sales Visitor",
-    "salesOrder": "Sales Order",
-    "salesOrderCreate": "Create Sales Order",
-    "salesOrderList": "Sales Order List",
-    "inventory": "Inventory",
-    "inventoryManagement": "Inventory Management",
-    "stockIn": "Stock In",
-    "stockOut": "Stock Out",
-    "inventoryReports": "Inventory Reports",
-    "customerManagement": "Customer Management",
-    "customerList": "Customer List",
-    "customerGroup": "Customer Group",
-    "salesAnalytics": "Sales Analytics",
-    "salesDashboard": "Sales Dashboard",
-    "salesTrends": "Sales Trends",
-    "directSales": "Direct Sales"
+    "salesVisitor2": "Sales Visitor 2"
   },
-  "header": {
-    "systemTitle": "Organization Management System",
-    "systemSubtitle": "Management System",
-    "selectCompany": "Select Company",
-    "toggleSidebar": "Toggle Sidebar"
+  "welcome": {
+    "message": "Welcome {{username}}! Login successful"
   },
   "sidebar": {
+    "systemTitle": "Management System",
     "logout": "Logout",
-    "companySelector": "Select Company"
+    "logoutTooltip": "Logout"
+  },
+  "header": {
+    "switchLanguage": "Switch to {{lang}}",
+    "selectCompany": "Select Company"
   },
   "loading": {
-    "title": "QERP SYSTEM",
-    "message": "Preparing system...",
-    "pleaseWait": "Please wait a moment",
-    "preparingSystem": "Preparing system...",
-    "enteringSystem": "Entering system...",
-    "verifyingCredentials": "Verifying credentials..."
-  },
-  "common": {
+    "preparing": "Preparing system...",
     "loading": "Loading...",
-    "error": "Error",
-    "success": "Success",
-    "cancel": "Cancel",
-    "confirm": "Confirm",
-    "save": "Save",
-    "delete": "Delete",
-    "edit": "Edit",
-    "add": "Add",
-    "search": "Search",
-    "filter": "Filter",
-    "export": "Export",
-    "import": "Import",
-    "refresh": "Refresh",
-    "close": "Close"
+    "pleaseWait": "Please wait",
+    "checkingPermission": "Checking permissions...",
+    "systemEntry": "Entering system...",
+    "checkingAccess": "Checking access permissions..."
   },
-  "messages": {
-    "welcomeMessage": "Welcome to QERP System",
-    "selectMenuMessage": "Please select a menu from the left sidebar",
-    "logoutConfirm": "Do you want to logout?",
-    "logoutSuccess": "Logged out successfully",
-    "logoutError": "Error occurred during logout"
+  "noPermission": {
+    "title": "Access Denied",
+    "subtitle": "You don't have permission to access this page. Please contact the administrator for access.",
+    "backToHome": "Back to Home"
   },
-  "breadcrumb": {
-    "home": "Home",
-    "sales": "Sales",
-    "inventory": "Inventory"
+  "content": {
+    "portalDashboard": "🏠 Portal Dashboard",
+    "currentUrl": "📍 Current URL:",
+    "hash": "Hash:",
+    "activeApp": "ActiveApp:",
+    "testInstructions": "Click \"Sales Visitor\" menu to test Micro Frontend",
+    "howToTest": "📋 How to test:",
+    "applicationDeveloping": "Application \"{{appName}}\" is under development",
+    "microfrontendDesc": "We are developing this application in Microfrontend Architecture for better performance and flexibility",
+    "notifyWhenReady": "Notify when ready",
+    "backToMain": "Back to Main"
+  },
+  "remote": {
+    "loading": "Loading {{appName}}...",
+    "connecting": "Connecting to Remote App at port 3001",
+    "notAvailable": "{{appName}} is not available",
+    "cannotLoad": "Cannot load {{appName}} at this time",
+    "reloadPage": "Reload Page",
+    "contactSupport": "Contact Support",
+    "moduleNotReady": "Module is not ready yet"
   }
 }

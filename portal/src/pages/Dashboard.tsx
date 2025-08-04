@@ -9,8 +9,8 @@ import AppHeader from '../components/dashboard/AppHeader';
 import DashboardContent from '../components/dashboard/DashboardContent';
 import { LoadingComponents } from '../components/dashboard/LoadingComponents';
 import { User } from '../types/auth.types';
-import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/auth.store';
+import { useTranslation } from 'react-i18next';
 
 const { Content } = Layout;
 
@@ -18,7 +18,7 @@ export default function Dashboard() {
   const { user, logout, setSelectedCompany, selectedCompanyCode } =
     useAuthStore();
   const navigate = useNavigate();
-  const { t } = useTranslation('portal-dashboard');
+    const { t } = useTranslation('portal-dashboard');
   const {
     token: { colorBgContainer },
   } = theme.useToken();
@@ -31,15 +31,15 @@ export default function Dashboard() {
     
     if (isRecentLogin) {
       message.success({
-        content: `ยินดีต้อนรับ ${user.username}! เข้าสู่ระบบสำเร็จ`,
+          content: t('welcome.message', { username: user.username }),
         duration: 3,
         key: 'login-success',
       });
     }
   }
-}, [user]);
+}, [user , t]);
 
-  const allMenuItems: MenuItem[] = [
+  const allMenuItems: MenuItem[] = useMemo(() => [
     {
       id: 'home',
       name: t('menu.home'),
@@ -48,24 +48,24 @@ export default function Dashboard() {
     },
     {
       id: 'sales',
-      name: 'การขาย',
+      name: t('menu.sales'),
       icon: <DollarOutlined />,
       subItems: [
         {
           id: 'SalesVisit',
-          name: 'Sales Visitor',
+          name: t('menu.salesVisitor'),
           icon: <TeamOutlined />,
           url: '/sales/sales-visitor',
         },
         {
           id: 'SalesVisitor-2',
-          name: 'Sales Visitor 2',
+          name: t('menu.salesVisitor2'),
           icon: <TeamOutlined />,
           url: '/sales/sales-visitor-2',
         },
       ],
     },
-  ];
+  ], [t]);
 
   const filterMenuItemsByPermission = (
     menuItems: MenuItem[],
@@ -142,7 +142,9 @@ export default function Dashboard() {
   // ใช้ useMemo เพื่อป้องกันการ re-calculate ที่ไม่จำเป็น
   const filteredMenuItems = useMemo(() => {
     return filterMenuItemsByPermission(allMenuItems, user, selectedCompanyCode);
-  }, [user, selectedCompanyCode]);
+  // }, [user, selectedCompanyCode]);
+  }, [allMenuItems, user, selectedCompanyCode]); // ✅ เพิ่ม allMenuItems
+
 
   const {
     activeApp,

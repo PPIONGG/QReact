@@ -4,8 +4,9 @@ import { ActiveApp, MenuItem } from "../../types";
 import { useAuthStore } from "../../store/auth.store";
 import { Card, Button, Typography, Spin, Alert } from "antd";
 import { RocketOutlined, LoadingOutlined } from "@ant-design/icons";
-import NoPermissionOverlay from "../NoPermissionOverlay";
+import NoPermissionOverlay from "./NoPermissionOverlay";
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -51,6 +52,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   const [currentUrl, setCurrentUrl] = useState(window.location.href);
   const { Salesinfo, user, fetchSalesinfo, isloadingSalesinfo } =
     useAuthStore();
+  const {t} = useTranslation('portal-dashboard');
 
   const cleanUsername = (username: string): string => {
     return username.replace(/^QERP_/i, "");
@@ -121,11 +123,11 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
       />
       <div style={{ textAlign: "center" }}>
         <Text strong style={{ fontSize: "16px" }}>
-          กำลังโหลด {appName}...
+          {t('remote.loading', { appName })}
         </Text>
         <br />
         <Text type="secondary" style={{ fontSize: "14px" }}>
-          กำลังเชื่อมต่อ Remote App ที่ port 3001
+          {t('remote.connecting')}
         </Text>
       </div>
     </div>
@@ -145,10 +147,10 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
       }}
     >
       <Alert
-        message={`${appName} ไม่พร้อมใช้งาน`}
+        message={t('remote.notAvailable', { appName })}
         description={
           <div>
-            <p>ไม่สามารถโหลด {appName} ได้ในขณะนี้</p>
+            <p>{t('remote.cannotLoad', { appName })}</p>
             {error && (
               <p style={{ fontSize: "12px", color: "#999" }}>Error: {error}</p>
             )}
@@ -158,10 +160,10 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
                 onClick={() => window.location.reload()}
                 style={{ marginRight: "8px" }}
               >
-                รีโหลดหน้า
+                {t('remote.reloadPage')}
               </Button>
               <Button onClick={() => console.log("Contact support")}>
-                ติดต่อฝ่ายสนับสนุน
+                {t('remote.contactSupport')}
               </Button>
             </div>
           </div>
@@ -177,7 +179,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
     if (activeApp.parentId === "home") {
       return (
         <div style={{ padding: "40px", textAlign: "center" }}>
-          <h1>🏠 Portal Dashboard</h1>
+          <h1>{t('content.portalDashboard')}</h1>
 
           <div
             style={{
@@ -189,21 +191,21 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
               margin: "0 auto 20px auto",
             }}
           >
-            <strong>📍 Current URL:</strong>
+            <strong>{t('content.currentUrl')}</strong>
             <br />
             <code style={{ fontSize: "12px", wordBreak: "break-all" }}>
               {currentUrl}
             </code>
             <br />
             <br />
-            <strong>Hash:</strong>{" "}
+            <strong>{t('content.hash')}</strong>
             <code>{window.location.hash || "(none)"}</code>
             <br />
-            <strong>ActiveApp:</strong> <code>{activeApp.parentId}</code>
+            <strong>{t('content.activeApp')}</strong> <code>{activeApp.parentId}</code>
           </div>
 
           <p style={{ fontSize: "16px", marginBottom: "20px" }}>
-            กดเมนู <strong>"Sales Visitor"</strong> เพื่อทดสอบ Micro Frontend
+            {t('content.testInstructions')}
           </p>
 
           <div
@@ -215,7 +217,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
               margin: "0 auto",
             }}
           >
-            <strong>📋 วิธีทดสอบ:</strong>
+            <strong>{t('content.howToTest')}</strong>
             <ol style={{ textAlign: "left", marginTop: "10px" }}>
               <li>คลิกเมนู "การขาย" → "Sales Visitor"</li>
               <li>
@@ -259,7 +261,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
           return (
             <RemoteErrorFallback
               appName="WMS Application"
-              error="Module ยังไม่พร้อมใช้งาน"
+              error={t('remote.moduleNotReady')}
             />
           );
 
@@ -284,17 +286,16 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
                     }}
                   />
                   <Title level={3}>
-                    Application "{activeApp.parentId}" กำลังพัฒนา
+                    {t('content.applicationDeveloping', { appName: activeApp.parentId })}
                   </Title>
                   <Paragraph>
-                    เรากำลังพัฒนา Application นี้ในรูปแบบ Microfrontend
-                    Architecture เพื่อประสิทธิภาพและความยืดหยุ่นที่ดีขึ้น
+                    {t('content.microfrontendDesc')}
                   </Paragraph>
                   <div style={{ marginTop: "24px" }}>
                     <Button type="primary" style={{ marginRight: "12px" }}>
-                      แจ้งเตือนเมื่อพร้อม
+                      {t('content.notifyWhenReady')}
                     </Button>
-                    <Button>กลับหน้าหลัก</Button>
+                    <Button>{t('content.backToMain')}</Button>
                   </div>
                 </div>
               </Card>
@@ -341,7 +342,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
                 fontWeight: 500,
               }}
             >
-              กำลังตรวจสำมสิทธิ์...
+              {t('loading.checkingPermission')}
             </p>
             <p
               style={{
@@ -350,7 +351,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
                 fontSize: "14px",
               }}
             >
-              กรุณารอสักครู่
+              {t('loading.pleaseWait')}
             </p>
           </div>
         </div>
@@ -358,8 +359,12 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
 
       {!permissionStatus.hasPermission &&
         !permissionStatus.showLoading &&
-        activeApp.parentId !== "home" && <NoPermissionOverlay />}
-
+        activeApp.parentId !== "home" && (
+          <NoPermissionOverlay
+            title={t('noPermission.title')} 
+            subTitle={t('noPermission.subtitle')}
+          />
+        )}
     </div>
   );
 };

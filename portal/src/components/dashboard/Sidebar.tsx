@@ -1,11 +1,14 @@
-import React from 'react';
-import { Layout, Menu, Button, Tooltip, Dropdown, Typography } from 'antd';
-import { GlobalOutlined, LogoutOutlined } from '@ant-design/icons';
-import type { MenuProps } from 'antd';
-import type { ActiveApp, MenuItem, SubMenuItem } from '../../types';
-import logo from '../../assets/logo.svg'
+import React from "react";
+import { Layout, Menu, Button, Tooltip, Dropdown, Typography } from "antd";
+import { LogoutOutlined } from "@ant-design/icons";
+import type { MenuProps } from "antd";
+import type { ActiveApp, MenuItem, SubMenuItem } from "../../types";
+import logo from "../../assets/logo.svg";
+import { useTranslation } from "react-i18next";
+import styles from "./Sidebar.module.css";
+
 const { Sider } = Layout;
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 interface SidebarProps {
   collapsed: boolean;
@@ -21,17 +24,17 @@ interface SidebarProps {
 const createDropdownItems = (
   subItems: SubMenuItem[],
   onMenuClick: (key: string) => void
-): MenuProps['items'] => {
+): MenuProps["items"] => {
   return subItems.map((subItem) => ({
     key: subItem.id,
     label: (
       <div
         onClick={() => onMenuClick(subItem.id)}
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          padding: '4px 0',
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          padding: "4px 0",
         }}
       >
         {subItem.icon}
@@ -51,6 +54,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   onLogout,
   getSelectedKeys,
 }) => {
+  const { t } = useTranslation("portal-dashboard");
+
   const isParentActive = (itemId: string): boolean => {
     if (activeApp.parentId === itemId) {
       return true;
@@ -58,7 +63,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     return false;
   };
 
-  const antMenuItems: MenuProps['items'] = menuItems.map((item) => {
+  const antMenuItems: MenuProps["items"] = menuItems.map((item) => {
     const isActive = isParentActive(item.id);
 
     if (item.subItems && item.subItems.length > 0) {
@@ -69,16 +74,16 @@ const Sidebar: React.FC<SidebarProps> = ({
             <Dropdown
               menu={{ items: createDropdownItems(item.subItems, onMenuClick) }}
               placement="topRight"
-              trigger={['hover']}
-              overlayStyle={{ minWidth: '180px' }}
+              trigger={["hover"]}
+              overlayStyle={{ minWidth: "180px" }}
             >
               <div
                 style={{
-                  width: '100%',
-                  height: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  width: "100%",
+                  height: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
               >
                 {item.icon}
@@ -86,14 +91,11 @@ const Sidebar: React.FC<SidebarProps> = ({
             </Dropdown>
           ),
           label: (
-            <Tooltip
-              title={`${item.name}`}
-              placement="right"
-            >
-              <span style={{ marginLeft: '0px' }}>{item.name}</span>
+            <Tooltip title={`${item.name}`} placement="right">
+              <span style={{ marginLeft: "0px" }}>{item.name}</span>
             </Tooltip>
           ),
-          className: isActive ? 'parent-menu-active' : '',
+          className: isActive ? "parent-menu-active" : "",
         };
       } else {
         return {
@@ -119,10 +121,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       return {
         ...menuItem,
         label: (
-          <Tooltip
-            title={`${item.name}`}
-            placement="right"
-          >
+          <Tooltip title={`${item.name}`} placement="right">
             <span>{item.name}</span>
           </Tooltip>
         ),
@@ -137,41 +136,28 @@ const Sidebar: React.FC<SidebarProps> = ({
       trigger={null}
       collapsible
       collapsed={collapsed}
-      style={{
-        overflow: 'hidden',
-      }}
+      className={styles.sidebar}
     >
-      <div style={{ padding: '16px', textAlign: 'center' }}>
+      {/* Logo Section */}
+      <div className={styles.logoSection}>
         {collapsed ? (
-          <Tooltip
-            title="ระบบจัดการองค์กร - Management System"
-            placement="right"
-          >
-          <img src={logo} alt="logo" 
-          style={{
-            marginLeft:"5px",       
-            width: '30px',
-            height: '30px'
-          }} />
+          <Tooltip title={t("sidebar.systemTitle")} placement="right">
+            <img
+              src={logo}
+              alt="logo"
+              className={styles.logoImage}
+            />
           </Tooltip>
         ) : (
-          <div className={`sidebar-logo-text ${collapsed ? 'collapsed' : ''}`}>
-            <Title
-              level={5}
-              style={{
-                color: 'white',
-                margin: 0,
-                fontSize: '14px',
-                lineHeight: '1.2',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              QReact
+          <div className={`sidebar-logo-text ${collapsed ? "collapsed" : ""}`}>
+            <Title level={5} className={styles.logoText}>
+              <span className={styles.qLetter}>Q</span>React
             </Title>
           </div>
         )}
       </div>
 
+      {/* Menu Section */}
       <Menu
         theme="dark"
         mode="inline"
@@ -180,45 +166,27 @@ const Sidebar: React.FC<SidebarProps> = ({
         onOpenChange={onOpenChange}
         items={antMenuItems}
         onClick={({ key }) => onMenuClick(key)}
-        style={{
-          borderRight: 0,
-          flex: 1,
-        }}
+        className={`${styles.customMenu} custom-menu`}
       />
 
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          padding: '16px',
-          borderTop: '1px solid #303030',
-          background: '#001529',
-        }}
-      >
-        <Tooltip title={collapsed ? 'ออกจากระบบ' : ''} placement="right">
+      {/* Logout Section */}
+      <div className={styles.logoutSection}>
+        <Tooltip
+          title={collapsed ? t("sidebar.logoutTooltip") : ""}
+          placement="right"
+        >
           <Button
             type="primary"
             danger
             block={!collapsed}
             icon={<LogoutOutlined />}
             onClick={onLogout}
-            style={{
-              height: '44px',
-              borderRadius: '8px',
-              fontWeight: 500,
-              fontSize: '14px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              overflow: 'hidden',
-            }}
+            className={styles.logoutButton}
           >
             <span
-              className={`logout-button-text ${collapsed ? 'collapsed' : ''}`}
+              className={`logout-button-text ${collapsed ? "collapsed" : ""} ${styles.logoutButtonText}`}
             >
-              {!collapsed && 'ออกจากระบบ'}
+              {!collapsed && t("sidebar.logout")}
             </span>
           </Button>
         </Tooltip>

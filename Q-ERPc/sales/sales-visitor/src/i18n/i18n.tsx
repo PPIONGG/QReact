@@ -28,7 +28,7 @@ i18n
     resources,
     lng: 'th', // ภาษาเริ่มต้น
     fallbackLng: 'th',
-    defaultNS: 'common', // Namespace เริ่มต้น
+    defaultNS: 'common',
     ns: ['common', 'portal-login', 'portal-dashboard'],
 
     detection: {
