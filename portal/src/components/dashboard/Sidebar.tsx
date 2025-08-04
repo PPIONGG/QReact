@@ -151,7 +151,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         ) : (
           <div className={`sidebar-logo-text ${collapsed ? "collapsed" : ""}`}>
             <Title level={5} className={styles.logoText}>
-              <span className={styles.qLetter}>Q</span>React
+              <span className={styles.qLetter}>Q</span>-ERPc
             </Title>
           </div>
         )}

@@ -1,5 +1,6 @@
 import {
   ResCustomerDetails,
+  ResFileUpload,
   ResListAllCustomer,
   ResListVisited,
   ResUpdateVisit,
@@ -16,6 +17,18 @@ const createHeaders = (config: ApiConfig) => {
   };
   
   // เพิ่ม ngrok header เฉพาะตอน development
+  if (config.baseUrl.includes('ngrok')) {
+    headers['ngrok-skip-browser-warning'] = 'true';
+  }
+  
+  return headers;
+};
+const createFormDataHeaders = (config: ApiConfig) => {
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${config.token}`,
+    'X-PACKAGE': config.package,
+  };
+  
   if (config.baseUrl.includes('ngrok')) {
     headers['ngrok-skip-browser-warning'] = 'true';
   }
@@ -155,5 +168,30 @@ export const customerDetailsAPI = async (
   }
 
   const data = (await response.json()) as ResCustomerDetails;
+  return data;
+};
+
+export const uploadFile = async (
+  config: ApiConfig,
+  file: File,
+  oldFileName?: string
+): Promise<ResFileUpload> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  if (oldFileName) {
+    formData.append('oldFileName', oldFileName);
+  }
+
+  const response = await fetch(`${config.baseUrl}/api/FileDoc/file-upload`, {
+    method: 'POST',
+    headers: createFormDataHeaders(config),
+    body: formData,
+  });
+  if (!response.ok) {
+    console.error('❌ Response not ok:', response.status, response.statusText);
+    throw new Error(`Upload failed: HTTP ${response.status}`);
+  }
+  const data = (await response.json()) as ResFileUpload;
   return data;
 };

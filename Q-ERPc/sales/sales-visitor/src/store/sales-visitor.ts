@@ -6,14 +6,17 @@ import {
   listAllCustomerAPI,
   updateVisitReport,
   VisitDetailsAPI,
+  uploadFile, // เพิ่ม import
 } from "../api/api";
 import {
   ResCustomerDetails,
+  ResFileUpload, // เพิ่ม import
   ResListAllCustomer,
   ResListVisited,
   ResUpdateVisit,
   ResVisitDetail,
   UpdateVisitRequest,
+  UploadedImage,
 } from "../types/api";
 import { API_CONFIG } from "../api/config";
 
@@ -38,6 +41,12 @@ export interface SalesVisitorStore {
   customerDetailsLoading: boolean;
   customerDetailsError: string | null;
 
+  // File upload states
+  uploadLoading: boolean;
+  uploadError: string | null;
+  uploadedImage: UploadedImage | null; // เก็บรายการรูปที่อัปโหลดแล้ว
+  currentUploadProgress: number;
+
   setLoading: (loading: boolean) => void;
   setListVisited: (ListVisited: ResListVisited) => void;
   fetchListVisited: (salescode: string) => Promise<void>;
@@ -51,7 +60,6 @@ export interface SalesVisitorStore {
   clearDetailError: () => void;
 
   setSaveLoading: (loading: boolean) => void;
-  // เปลี่ยนชื่อและเพิ่ม mode parameter
   saveVisitReport: (
     requestBody: UpdateVisitRequest,
     mode: "create" | "update"
@@ -67,8 +75,17 @@ export interface SalesVisitorStore {
     typeInfo: string
   ) => Promise<void>;
   clearCustomerDetails: () => void;
+
+  // File upload functions
+  uploadSingleImage: (file: File) => Promise<UploadedImage>;
+  removeUploadedImage: () => void;
+  clearUploadedImage: () => void;
+  getFilenameForSave: () => string | null;// ได้ filename array สำหรับส่งไป API
+  clearUploadError: () => void;
+  setExistingImageAsUploaded: (imageData: UploadedImage) => void; 
 }
-export const useSalesVisitorStore = create<SalesVisitorStore>((set) => ({
+
+export const useSalesVisitorStore = create<SalesVisitorStore>((set, get) => ({
   ListVisited: null,
   loading: false,
   error: null,
@@ -88,6 +105,12 @@ export const useSalesVisitorStore = create<SalesVisitorStore>((set) => ({
   customerDetails: null,
   customerDetailsLoading: false,
   customerDetailsError: null,
+
+  // File upload initial states
+  uploadLoading: false,
+  uploadError: null,
+  uploadedImage: null,
+  currentUploadProgress: 0,
 
   setLoading: (loading: boolean) => set({ loading }),
 
@@ -111,6 +134,7 @@ export const useSalesVisitorStore = create<SalesVisitorStore>((set) => ({
       });
     }
   },
+
   clearListVisited: () => set({ ListVisited: null, error: null }),
   clearError: () => set({ error: null }),
 
@@ -160,12 +184,12 @@ export const useSalesVisitorStore = create<SalesVisitorStore>((set) => ({
       });
     }
   },
+
   clearListAllCustomer: () =>
     set({ listAllCustomer: null, listAllCustomerError: null }),
 
   setSaveLoading: (loading: boolean) => set({ saveLoading: loading }),
 
-  // ปรับ function ให้รับ mode parameter
   saveVisitReport: async (
     requestBody: UpdateVisitRequest,
     mode: "create" | "update"
@@ -173,7 +197,6 @@ export const useSalesVisitorStore = create<SalesVisitorStore>((set) => ({
     set({ saveLoading: true, saveError: null, saveResponse: null });
 
     try {
-      // เลือก API function ตาม mode
       const apiFunction =
         mode === "create" ? createVisitReport : updateVisitReport;
       const data = await apiFunction(API_CONFIG, requestBody);
@@ -218,6 +241,73 @@ export const useSalesVisitorStore = create<SalesVisitorStore>((set) => ({
       });
     }
   },
+
   clearCustomerDetails: () =>
     set({ customerDetails: null, customerDetailsError: null }),
+
+  // File upload implementations
+  uploadSingleImage: async (file: File) => {
+    set({ 
+      uploadLoading: true, 
+      uploadError: null,
+      currentUploadProgress: 0 
+    });
+
+    try {
+      set({ currentUploadProgress: 30 });
+      const result = await uploadFile(API_CONFIG, file);
+      set({ currentUploadProgress: 70 });
+      if (result.filename && result.url) {
+        const createFullUrl = (url: string): string => {
+          if (url.startsWith('http')) {
+            return url;
+          }
+          return `${API_CONFIG.baseUrl}${url}`;
+        };
+
+        const uploadedImage: UploadedImage = {
+          filename: result.filename,
+          url: createFullUrl(result.url),
+          originalName: file.name,
+          size: file.size,
+        };
+
+        set({
+          uploadedImage: uploadedImage, 
+          uploadLoading: false,
+          uploadError: null,
+          currentUploadProgress: 100,
+        });
+
+        return uploadedImage;
+      } else {
+        throw new Error('Invalid response: missing filename or url');
+      }
+    } catch (error) {
+      console.error('❌ Upload error:', error);
+      const errorMessage = error instanceof Error ? error.message : "Upload failed";
+      set({
+        uploadLoading: false,
+        uploadError: errorMessage,
+        currentUploadProgress: 0,
+      });
+      throw error;
+    }
+  },
+
+  // แก้ไขฟังก์ชันต่างๆ
+  removeUploadedImage: () => {
+    set({ uploadedImage: null });
+  },
+
+  clearUploadedImage: () => set({ uploadedImage: null }),
+
+  getFilenameForSave: () => {
+    const image = get().uploadedImage;
+    return image ? image.filename : null;
+  },
+setExistingImageAsUploaded: (imageData: UploadedImage) => {
+  set({ uploadedImage: imageData });
+},
+  clearUploadError: () => set({ uploadError: null }),
 }));

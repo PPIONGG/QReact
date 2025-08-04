@@ -70,6 +70,7 @@ export interface VisitRequestData {
   salesName: string;
   employeeCode: string;
   imageFilePatch: string;
+  imageFileName?: boolean;
   isUpdateImage: boolean;
 }
 
@@ -87,9 +88,13 @@ export interface ResListAllCustomer extends BaseApiResponse {
 }
 
 export interface CustomerDataItem {
-  noItem: number;
+  noItem: string;
   customerCode: string;
   customerName: string;
+  customerPrefix: string;
+  customerSuffix: string;
+  phone: string | null;
+  fax: null;
   typeInfo: string;
 }
 
@@ -104,4 +109,16 @@ export interface CustomerDetailItem {
 
 export interface ResCustomerDetails extends BaseApiResponse {
   data: CustomerDetailItem | null;
+}
+
+export interface ResFileUpload {
+  filename: string;
+  url: string;
+}
+
+export interface UploadedImage {
+  filename: string; // ชื่อไฟล์สำหรับส่งไป API
+  url: string; // URL สำหรับแสดงรูป
+  originalName?: string; // ชื่อเดิมของไฟล์
+  size?: number; // ขนาดไฟล์
 }

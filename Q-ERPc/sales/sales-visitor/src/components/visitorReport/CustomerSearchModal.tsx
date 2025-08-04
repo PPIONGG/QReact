@@ -30,7 +30,9 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
   onCustomerSelect,
 }) => {
   const [searchText, setSearchText] = useState("");
-  const [selectedCustomerCode, setSelectedCustomerCode] = useState<string | null>(null);
+  const [selectedCustomerCode, setSelectedCustomerCode] = useState<
+    string | null
+  >(null);
   const [isSelectingCustomer, setIsSelectingCustomer] = useState(false);
 
   const {
@@ -48,8 +50,19 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
   const filteredCustomers =
     listAllCustomer?.data?.filter(
       (customer) =>
-        customer.customerName.toLowerCase().includes(searchText.toLowerCase()) ||
-        customer.customerCode.toLowerCase().includes(searchText.toLowerCase())
+        customer.customerName
+          .toLowerCase()
+          .includes(searchText.toLowerCase()) ||
+        customer.customerCode
+          .toLowerCase()
+          .includes(searchText.toLowerCase()) ||
+        customer.phone?.toLowerCase().includes(searchText.toLowerCase()) ||
+        customer.customerPrefix
+          ?.toLowerCase()
+          .includes(searchText.toLowerCase()) ||
+        customer.customerSuffix
+          ?.toLowerCase()
+          .includes(searchText.toLowerCase())
     ) || [];
 
   useEffect(() => {
@@ -92,7 +105,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
     try {
       setSelectedCustomerCode(customerData.customerCode);
       setIsSelectingCustomer(true);
-      await fetchCustomerDetails(customerData.customerCode, customerData.typeInfo);
+      await fetchCustomerDetails(customerData.noItem, customerData.typeInfo);
     } catch (error) {
       message.error("ไม่สามารถโหลดรายละเอียดลูกค้าได้");
       setSelectedCustomerCode(null);
@@ -135,9 +148,19 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
             borderRadius: "8px",
           }}
         >
-          <Spin size="large" indicator={<LoadingOutlined style={{ fontSize: 40, color: "#1890ff" }} spin />} />
+          <Spin
+            size="large"
+            indicator={
+              <LoadingOutlined
+                style={{ fontSize: 40, color: "#1890ff" }}
+                spin
+              />
+            }
+          />
           <div style={{ marginTop: "20px", textAlign: "center" }}>
-            <Text style={{ fontSize: "16px", color: "#1890ff", fontWeight: "500" }}>
+            <Text
+              style={{ fontSize: "16px", color: "#1890ff", fontWeight: "500" }}
+            >
               กำลังโหลดข้อมูลลูกค้า...
             </Text>
             <div style={{ marginTop: "8px" }}>
@@ -177,12 +200,19 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
 
           {listAllCustomerError && (
             <div style={{ textAlign: "center", padding: "40px" }}>
-              <Alert message="เกิดข้อผิดพลาด" description={listAllCustomerError} type="error" showIcon />
+              <Alert
+                message="เกิดข้อผิดพลาด"
+                description={listAllCustomerError}
+                type="error"
+                showIcon
+              />
             </div>
           )}
 
           {!listAllCustomerLoading && !listAllCustomerError && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+            >
               {filteredCustomers.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "40px" }}>
                   <Text type="secondary">
@@ -191,8 +221,10 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
                 </div>
               ) : (
                 filteredCustomers.map((customer, index) => {
-                  const isCurrentlyLoading = selectedCustomerCode === customer.customerCode && isSelectingCustomer;
-                  
+                  const isCurrentlyLoading =
+                    selectedCustomerCode === customer.customerCode &&
+                    isSelectingCustomer;
+
                   return (
                     <Card
                       key={`${customer.customerCode}-${customer.typeInfo}-${index}`}
@@ -200,26 +232,55 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
                       hoverable={!isSelectingCustomer}
                       style={{
                         cursor: isSelectingCustomer ? "not-allowed" : "pointer",
-                        border: isCurrentlyLoading ? "2px solid #1890ff" : "1px solid #e1e5e9",
+                        border: isCurrentlyLoading
+                          ? "2px solid #1890ff"
+                          : "1px solid #e1e5e9",
                         borderRadius: "8px",
-                        opacity: isSelectingCustomer && !isCurrentlyLoading ? 0.6 : 1,
-                        transform: isCurrentlyLoading ? "scale(1.02)" : "scale(1)",
+                        opacity:
+                          isSelectingCustomer && !isCurrentlyLoading ? 0.6 : 1,
+                        transform: isCurrentlyLoading
+                          ? "scale(1.02)"
+                          : "scale(1)",
                         transition: "all 0.3s ease",
-                        background: isCurrentlyLoading ? "linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%)" : "#fff",
-                        boxShadow: isCurrentlyLoading ? "0 4px 12px rgba(24, 144, 255, 0.2)" : "none",
+                        background: isCurrentlyLoading
+                          ? "linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%)"
+                          : "#fff",
+                        boxShadow: isCurrentlyLoading
+                          ? "0 4px 12px rgba(24, 144, 255, 0.2)"
+                          : "none",
                       }}
-                      onClick={() => !isSelectingCustomer && handleCustomerSelect(customer)}
+                      onClick={() =>
+                        !isSelectingCustomer && handleCustomerSelect(customer)
+                      }
                     >
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }}
+                      >
                         <div style={{ flex: 1 }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                            <Text strong style={{ fontSize: "16px", color: "#1890ff" }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                            }}
+                          >
+                            <Text
+                              strong
+                              style={{ fontSize: "16px", color: "#1890ff" }}
+                            >
                               {customer.customerCode}
                             </Text>
                             <Text
                               style={{
                                 fontSize: "10px",
-                                background: customer.typeInfo === "SV" ? "#52c41a" : "#1890ff",
+                                background:
+                                  customer.typeInfo === "SV"
+                                    ? "#52c41a"
+                                    : "#1890ff",
                                 color: "white",
                                 padding: "2px 6px",
                                 borderRadius: "4px",
@@ -229,14 +290,35 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
                               {customer.typeInfo}
                             </Text>
                             {isCurrentlyLoading && (
-                              <div style={{ display: "flex", alignItems: "center", gap: "4px", marginLeft: "8px" }}>
-                                <LoadingOutlined style={{ color: "#1890ff", fontSize: "12px" }} />
-                                <Text style={{ fontSize: "11px", color: "#1890ff" }}>กำลังโหลด...</Text>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "4px",
+                                  marginLeft: "8px",
+                                }}
+                              >
+                                <LoadingOutlined
+                                  style={{ color: "#1890ff", fontSize: "12px" }}
+                                />
+                                <Text
+                                  style={{ fontSize: "11px", color: "#1890ff" }}
+                                >
+                                  กำลังโหลด...
+                                </Text>
                               </div>
                             )}
                           </div>
                           <div style={{ marginTop: "4px" }}>
-                            <Text style={{ fontSize: "14px" }}>{customer.customerName}</Text>
+                            <Text style={{ fontSize: "14px" }}>
+                              {customer.customerPrefix} {customer.customerName}{" "}
+                              {customer.customerSuffix}
+                            </Text>
+                          </div>
+                          <div style={{ marginTop: "4px" }}>
+                            <Text style={{ fontSize: "14px" }}>
+                              Tel: {customer.phone}
+                            </Text>
                           </div>
                         </div>
                         <Button
@@ -245,8 +327,12 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
                           style={{
                             borderRadius: "6px",
                             minWidth: "60px",
-                            background: isCurrentlyLoading ? "#f0f9ff" : undefined,
-                            borderColor: isCurrentlyLoading ? "#1890ff" : undefined,
+                            background: isCurrentlyLoading
+                              ? "#f0f9ff"
+                              : undefined,
+                            borderColor: isCurrentlyLoading
+                              ? "#1890ff"
+                              : undefined,
                             color: isCurrentlyLoading ? "#1890ff" : undefined,
                           }}
                           loading={isCurrentlyLoading}
@@ -256,13 +342,23 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
                         </Button>
                       </div>
                       {isCurrentlyLoading && (
-                        <div style={{ marginTop: "12px", height: "2px", background: "#f0f0f0", borderRadius: "1px", overflow: "hidden" }}>
+                        <div
+                          style={{
+                            marginTop: "12px",
+                            height: "2px",
+                            background: "#f0f0f0",
+                            borderRadius: "1px",
+                            overflow: "hidden",
+                          }}
+                        >
                           <div
                             style={{
                               height: "100%",
-                              background: "linear-gradient(90deg, #1890ff, #40a9ff, #1890ff)",
+                              background:
+                                "linear-gradient(90deg, #1890ff, #40a9ff, #1890ff)",
                               backgroundSize: "200% 100%",
-                              animation: "loading-bar 1.5s ease-in-out infinite",
+                              animation:
+                                "loading-bar 1.5s ease-in-out infinite",
                             }}
                           />
                         </div>

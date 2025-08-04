@@ -141,7 +141,9 @@ const VisitorReport: React.FC<VisitorReportProps> = ({ mode }) => {
             <CustomerInformationCard />
           </Col>
           <Col xs={24} xl={8}>
-            <PhotoUploadCard />
+            <PhotoUploadCard
+              mode={mode}
+            />
           </Col>
         </Row>
       </Form>

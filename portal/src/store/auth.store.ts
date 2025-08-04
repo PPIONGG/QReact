@@ -41,7 +41,6 @@ export const useAuthStore = create<AuthState>()(
             password,
             loginType
           );
-          console.log('Login response:', response);
           
           if (response.code === 0 && response.result) {
             // Success
@@ -93,13 +92,9 @@ export const useAuthStore = create<AuthState>()(
         });
       },
       fetchSalesinfo: async (user: string) => {
-        console.log('Fetching Salesinfo for user:', user);
         set({ isloadingSalesinfo: true, errorSalesinfo: null });
         try {
-          console.log('Calling getSalesInfoAPI with user:', user);
-          console.log('API_CONFIG:', API_CONFIG); // เพิ่มบรรทัดนี้
           const data = await getSalesInfoAPI(API_CONFIG, user); 
-          console.log('Salesinfo data:', data);    
           set({
             Salesinfo: data,
             isloadingSalesinfo: false,
