@@ -101,7 +101,8 @@ const LogVisited: React.FC = () => {
       dataIndex: "customerCode",
       key: "customerCode",
       width: 120,
-      render: (text: string) => <Tag color="blue">{text}</Tag>,
+      // render: (text: string) => <Tag color="blue">{text}</Tag>,
+      render: (text: string) => <Text strong>{text}</Text>,
     },
     {
       title: "Customer Name",
@@ -109,7 +110,7 @@ const LogVisited: React.FC = () => {
       key: "customerName",
       render: (text: string) => (
         <div style={{ display: "flex", alignItems: "center" }}>
-          <FileTextOutlined style={{ marginRight: "8px", color: "#1890ff" }} />
+          {/* <FileTextOutlined style={{ marginRight: "8px", color: "#1890ff" }} /> */}
           <Text strong>{text}</Text>
         </div>
       ),
@@ -143,7 +144,8 @@ const LogVisited: React.FC = () => {
       dataIndex: "salesCode",
       key: "salesCode",
       width: 100,
-      render: (salesCode: string) => <Tag color="green">{salesCode}</Tag>,
+      // render: (salesCode: string) => <Tag color="green">{salesCode}</Tag>,
+      render: (salesCode: string) => <Text strong>{salesCode}</Text>,
     },
     {
       title: "Employee Code",

@@ -3,14 +3,15 @@
   height: 100vh;
   min-height: 100dvh;
   height: 100dvh;
-  background: linear-gradient(to bottom, #fff 0%, #ffeaea 100%);
+  /* background: linear-gradient(to bottom, #2a323a 0%, #001529 100%); */
+  /* background: linear-gradient(to bottom, #fff 0%, #ffeaea 100%); */
+  background: linear-gradient(to bottom, #fff 0%, #ffcece 100%);
   position: relative;
   overflow: hidden;
 }
 
 @media (max-width: 640px) {
   .layout {
-    /* background: linear-gradient(to bottom, #ffeaea 0%, #fff 100%); */
     background: white;
   }
 }

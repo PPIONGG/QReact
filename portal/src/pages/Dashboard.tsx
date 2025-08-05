@@ -1,71 +1,101 @@
-import { useNavigate } from 'react-router-dom';
-import { Layout, message, theme } from 'antd';
-import { HomeOutlined, DollarOutlined, TeamOutlined } from '@ant-design/icons';
-import { useEffect, useMemo, useState } from 'react';
-import { MenuItem, SubMenuItem } from '../types';
-import { useDashboardNavigation } from '../hooks/useDashboardNavigation';
-import Sidebar from '../components/dashboard/Sidebar';
-import AppHeader from '../components/dashboard/AppHeader';
-import DashboardContent from '../components/dashboard/DashboardContent';
-import { LoadingComponents } from '../components/dashboard/LoadingComponents';
-import { User } from '../types/auth.types';
-import { useAuthStore } from '../store/auth.store';
-import { useTranslation } from 'react-i18next';
+import { useNavigate } from "react-router-dom";
+import { Layout, message, theme } from "antd";
+import { HomeOutlined, DollarOutlined, TeamOutlined } from "@ant-design/icons";
+import { useEffect, useMemo, useState } from "react";
+import { MenuItem, SubMenuItem } from "../types";
+import { useDashboardNavigation } from "../hooks/useDashboardNavigation";
+import Sidebar from "../components/dashboard/Sidebar";
+import AppHeader from "../components/dashboard/AppHeader";
+import DashboardContent from "../components/dashboard/DashboardContent";
+import { LoadingComponents } from "../components/dashboard/LoadingComponents";
+import { User } from "../types/auth.types";
+import { useAuthStore } from "../store/auth.store";
+import { useTranslation } from "react-i18next";
 
 const { Content } = Layout;
+
+const useWindowSize = () => {
+  const [windowSize, setWindowSize] = useState({
+    width: typeof window !== "undefined" ? window.innerWidth : 1200,
+    height: typeof window !== "undefined" ? window.innerHeight : 800,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return windowSize;
+};
 
 export default function Dashboard() {
   const { user, logout, setSelectedCompany, selectedCompanyCode } =
     useAuthStore();
   const navigate = useNavigate();
-    const { t } = useTranslation('portal-dashboard');
+  const { t } = useTranslation("portal-dashboard");
   const {
     token: { colorBgContainer },
   } = theme.useToken();
   const [collapsed, setCollapsed] = useState<boolean>(false);
+  const [mobileDrawerVisible, setMobileDrawerVisible] =
+    useState<boolean>(false);
+  const { width } = useWindowSize();
+
+  // กำหนดจุดเปลี่ยนเป็น mobile
+  const isMobile = width <= 768;
 
   useEffect(() => {
-  if (user?.loginTime) {
-    const timeDiff = Date.now() - user.loginTime;
-    const isRecentLogin = timeDiff < 5000; // 5 วินาที
-    
-    if (isRecentLogin) {
-      message.success({
-          content: t('welcome.message', { username: user.username }),
-        duration: 3,
-        key: 'login-success',
-      });
-    }
-  }
-}, [user , t]);
+    if (user?.loginTime) {
+      const timeDiff = Date.now() - user.loginTime;
+      const isRecentLogin = timeDiff < 5000; // 5 วินาที
 
-  const allMenuItems: MenuItem[] = useMemo(() => [
-    {
-      id: 'home',
-      name: t('menu.home'),
-      icon: <HomeOutlined />,
-      url: '/',
-    },
-    {
-      id: 'sales',
-      name: t('menu.sales'),
-      icon: <DollarOutlined />,
-      subItems: [
-        {
-          id: 'SalesVisit',
-          name: t('menu.salesVisitor'),
-          icon: <TeamOutlined />,
-          url: '/sales/sales-visitor',
-        },
-        {
-          id: 'SalesVisitor-2',
-          name: t('menu.salesVisitor2'),
-          icon: <TeamOutlined />,
-          url: '/sales/sales-visitor-2',
-        },
-      ],
-    },
-  ], [t]);
+      if (isRecentLogin) {
+        message.success({
+          content: t("welcome.message", { username: user.username }),
+          duration: 3,
+          key: "login-success",
+        });
+      }
+    }
+  }, [user, t]);
+
+  const allMenuItems: MenuItem[] = useMemo(
+    () => [
+      {
+        id: "home",
+        name: t("menu.home"),
+        icon: <HomeOutlined />,
+        url: "/",
+      },
+      {
+        id: "sales",
+        name: t("menu.sales"),
+        icon: <DollarOutlined />,
+        subItems: [
+          {
+            id: "SalesVisit",
+            name: t("menu.salesVisitor"),
+            icon: <TeamOutlined />,
+            url: "/sales/sales-visitor",
+          },
+          {
+            id: "SalesVisitor-2",
+            name: t("menu.salesVisitor2"),
+            icon: <TeamOutlined />,
+            url: "/sales/sales-visitor-2",
+          },
+        ],
+      },
+    ],
+    [t]
+  );
 
   const filterMenuItemsByPermission = (
     menuItems: MenuItem[],
@@ -125,7 +155,7 @@ export default function Dashboard() {
 
         // ถ้าเป็น single item ให้เช็คว่ามี permission หรือไม่
         // สำหรับ home หรือ menu หลักๆ ที่ไม่ต้องเช็ค permission
-        if (item.id === 'home') {
+        if (item.id === "home") {
           return item;
         }
 
@@ -142,9 +172,7 @@ export default function Dashboard() {
   // ใช้ useMemo เพื่อป้องกันการ re-calculate ที่ไม่จำเป็น
   const filteredMenuItems = useMemo(() => {
     return filterMenuItemsByPermission(allMenuItems, user, selectedCompanyCode);
-  // }, [user, selectedCompanyCode]);
-  }, [allMenuItems, user, selectedCompanyCode]); // ✅ เพิ่ม allMenuItems
-
+  }, [allMenuItems, user, selectedCompanyCode]);
 
   const {
     activeApp,
@@ -157,62 +185,92 @@ export default function Dashboard() {
   const handleLogout = (): void => {
     try {
       logout();
-      navigate('/login', { replace: true });
+      navigate("/login", { replace: true });
     } catch (error) {
-      console.error('Logout error:', error);
-      navigate('/login', { replace: true });
+      console.error("Logout error:", error);
+      navigate("/login", { replace: true });
     }
+  };
+
+  // Handle mobile menu toggle
+  const handleMobileMenuClick = () => {
+    setMobileDrawerVisible(true);
+  };
+
+  const handleMobileDrawerClose = () => {
+    setMobileDrawerVisible(false);
   };
 
   // ใช้สำหรับกำหนด style ของ content ตาม activeApp
   const getContentStyle = () => {
-    if (activeApp.parentId === 'home') {
+    const baseStyle = {
+      margin: 0,
+      padding: 0,
+      background: "transparent",
+      height: "calc(100vh - 64px)",
+    };
+
+    if (activeApp.parentId === "home") {
       // styles สำหรับแอพ home
       return {
-        margin: 0,
-        padding: 0,
-        background: 'transparent',
-        height: 'calc(100vh - 64px)',
-        overflow: 'hidden',
+        ...baseStyle,
+        overflow: "hidden",
       };
     } else {
       // สำหรับแอพอื่น ๆ
       return {
-        margin: 0,
-        padding: 0,
-        background: 'transparent',
-        height: 'calc(100vh - 64px)',
-        overflow: 'auto',
+        ...baseStyle,
+        overflow: "auto",
       };
     }
   };
 
+  // ปรับ layout style สำหรับ mobile
+  const getLayoutStyle = () => {
+    if (isMobile) {
+      return {
+        minHeight: "100vh",
+        overflow: "hidden",
+      };
+    }
+    return {
+      minHeight: "100vh",
+      overflow: "hidden",
+    };
+  };
+
   if (!user) {
-    return <LoadingComponents.Branded />; // เลือกแบบที่ต้องการ
+    return <LoadingComponents.Branded />;
   }
 
   return (
-    <Layout style={{ minHeight: '100vh', overflow: 'hidden' }}>
+    <Layout style={getLayoutStyle()}>
       <Sidebar
-        collapsed={collapsed} // สถานะ collapsed ของ sidebar
-        menuItems={filteredMenuItems} // เมนูทั้งหมด
-        activeApp={activeApp} // แอพที่เปิดอยู่
-        openKeys={openKeys} // คีย์ที่เปิดอยู่ใน sidebar
-        onMenuClick={handleMenuClick} // ฟังก์ชันจัดการเมื่อคลิกเมนู
-        onOpenChange={handleOpenChange} // ฟังก์ชันจัดการเมื่อเปิด/ปิดเมนู
-        onLogout={handleLogout} // ฟังก์ชันจัดการ logout
-        getSelectedKeys={getSelectedKeys} // ฟังก์ชันเพื่อรับคีย์ที่ถูกเลือก
+        collapsed={collapsed}
+        menuItems={filteredMenuItems}
+        activeApp={activeApp}
+        openKeys={openKeys}
+        onMenuClick={handleMenuClick}
+        onOpenChange={handleOpenChange}
+        onLogout={handleLogout}
+        getSelectedKeys={getSelectedKeys}
+        // Props สำหรับ mobile drawer
+        mobileDrawerVisible={mobileDrawerVisible}
+        onMobileDrawerClose={handleMobileDrawerClose}
       />
-      <Layout style={{ overflow: 'hidden' }}>
+
+      <Layout style={{ overflow: "hidden" }}>
         <AppHeader
-          collapsed={collapsed} // สถานะ collapsed ของ sidebar
-          onToggle={() => setCollapsed(!collapsed)} // ฟังก์ชัน toggle sidebar
-          menuItems={filteredMenuItems} // เมนูทั้งหมด
-          activeApp={activeApp} // แอพที่เปิดอยู่
-          colorBgContainer={colorBgContainer} // สีพื้นหลัง
-          user={user} // ข้อมูลผู้ใช้
-          selectedCompanyCode={selectedCompanyCode} // ส่งค่า company ที่เลือก
-          onChangeCompany={setSelectedCompany} // ฟังก์ชันเปลี่ยนบริษัท
+          collapsed={collapsed}
+          onToggle={() => setCollapsed(!collapsed)}
+          menuItems={filteredMenuItems}
+          activeApp={activeApp}
+          colorBgContainer={colorBgContainer}
+          user={user}
+          selectedCompanyCode={selectedCompanyCode}
+          onChangeCompany={setSelectedCompany}
+          // Props สำหรับ mobile
+          onMobileMenuClick={handleMobileMenuClick}
         />
 
         <Content className="dashboard-content" style={getContentStyle()}>
