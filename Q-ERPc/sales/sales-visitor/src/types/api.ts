@@ -72,6 +72,7 @@ export interface VisitRequestData {
   imageFilePatch: string;
   imageFileName?: boolean;
   isUpdateImage: boolean;
+  isDeleteImage: boolean;
 }
 
 export interface UpdateVisitRequest {

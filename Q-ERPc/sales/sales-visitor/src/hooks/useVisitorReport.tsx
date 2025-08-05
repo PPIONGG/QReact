@@ -305,20 +305,6 @@ export const useVisitorReport = (mode: "new" | "edit") => {
           >
             {content}
           </p>
-          {/* 🔧 แสดงจำนวนรูปที่จะส่ง */}
-          {/* {uploadedImages.length > 0 && (
-            <p style={{ 
-              margin: "8px 0 0 0", 
-              color: "#059669", 
-              fontSize: "12px",
-              background: "#f0fdf4",
-              padding: "4px 8px",
-              borderRadius: "4px",
-              border: "1px solid #bbf7d0"
-            }}>
-              📸 จะส่งรูปภาพ {uploadedImages.length} ภาพด้วย
-            </p>
-          )} */}
         </div>
       ),
       okText: mode === "new" ? "Create Report" : "Update Report",
@@ -404,6 +390,7 @@ export const useVisitorReport = (mode: "new" | "edit") => {
         // 🔧 ส่ง photos ไปด้วย
         imageFilePatch: photoFilenames || "", // หรือตาม format ที่ API ต้องการ
         isUpdateImage: mode === "edit" || photoFilenames ? true : false,
+        isDeleteImage: mode === "edit" && !photoFilenames ? true : false, 
       },
     };
 

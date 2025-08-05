@@ -19,7 +19,7 @@ const CustomerInformationCard: React.FC = () => {
           <Form.Item
             label="Customer Code"
             name="customerCode"
-            rules={[{ required: true, message: "Please enter Customer Code" }]}
+            // rules={[{ required: true, message: "Please enter Customer Code" }]}
           >
             <Input placeholder="Enter customer code" prefix={<UserOutlined />} />
           </Form.Item>
@@ -31,7 +31,7 @@ const CustomerInformationCard: React.FC = () => {
           <Form.Item
             label="Customer Name"
             name="customerName"
-            rules={[{ required: true, message: "Please enter Customer Name" }]}
+            // rules={[{ required: true, message: "Please enter Customer Name" }]}
           >
             <Input prefix={<UserOutlined />} placeholder="Enter company name" />
           </Form.Item>
@@ -45,7 +45,10 @@ const CustomerInformationCard: React.FC = () => {
 
       <Row gutter={24}>
         <Col xs={24} md={12}>
-          <Form.Item label="Tel" name="tel">
+          <Form.Item 
+          label="Tel" 
+          name="tel"
+          rules={[{ required: true, message: "Please enter phone number" }]}>
             <Input prefix={<PhoneOutlined />} placeholder="Enter phone number" />
           </Form.Item>
         </Col>
