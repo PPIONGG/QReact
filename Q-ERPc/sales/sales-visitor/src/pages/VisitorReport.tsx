@@ -6,7 +6,6 @@ import CustomerSearchModal from "../components/visitorReport/CustomerSearchModal
 import VisitInformationCard from "../components/visitorReport/VisitInformationCard";
 import CustomerInformationCard from "../components/visitorReport/CustomerInformationCard";
 import PhotoUploadCard from "../components/visitorReport/PhotoUploadCard";
-import CustomerSearchButton from "../components/visitorReport/CustomerSearchButton";
 import { useVisitorReport } from "../hooks/useVisitorReport";
 
 const { Title, Text } = Typography;
@@ -111,20 +110,19 @@ const VisitorReport: React.FC<VisitorReportProps> = ({ mode }) => {
           </Col>
           <Col>
             <Space size="middle">
-              <Button size="large" onClick={handleGoBack}>
+              <Button
+                onClick={handleGoBack}
+              >
                 Cancel
               </Button>
               <Button
                 type="primary"
-                size="large"
                 icon={<SaveOutlined />}
                 onClick={handleSave}
                 loading={saveLoading}
                 disabled={saveLoading}
                 style={{
                   borderRadius: "6px",
-                  background: "#52c41a",
-                  borderColor: "#52c41a",
                 }}
               >
                 {mode === "new" ? "Save Report" : "Update Report"}
@@ -137,13 +135,12 @@ const VisitorReport: React.FC<VisitorReportProps> = ({ mode }) => {
         <Row gutter={16}>
           <Col xs={24} xl={16}>
             <VisitInformationCard mode={mode} />
-            <CustomerSearchButton onClick={handleCustomerModalOpen} />
-            <CustomerInformationCard />
+            <CustomerInformationCard
+              onCustomerSearch={handleCustomerModalOpen}
+            />
           </Col>
           <Col xs={24} xl={8}>
-            <PhotoUploadCard
-              mode={mode}
-            />
+            <PhotoUploadCard mode={mode} />
           </Col>
         </Row>
       </Form>

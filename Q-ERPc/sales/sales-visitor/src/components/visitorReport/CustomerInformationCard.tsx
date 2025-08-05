@@ -1,14 +1,42 @@
 import React from "react";
-import { Card, Form, Row, Col, Input } from "antd";
-import { UserOutlined, PhoneOutlined, MailOutlined } from "@ant-design/icons";
+import { Card, Form, Row, Col, Input, Button } from "antd";
+import {
+  UserOutlined,
+  PhoneOutlined,
+  MailOutlined,
+  TeamOutlined,
+} from "@ant-design/icons";
 
-const CustomerInformationCard: React.FC = () => {
+interface CustomerSearchButtonProps {
+  onCustomerSearch: () => void;
+}
+
+const CustomerInformationCard: React.FC<CustomerSearchButtonProps> = ({
+  onCustomerSearch,
+}) => {
   return (
     <Card
       title={
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <UserOutlined style={{ marginRight: "8px", color: "#1890ff" }} />
-          Customer Information
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <UserOutlined style={{ marginRight: "8px", color: "#1890ff" }} />
+            Customer Information
+          </div>
+          <Button
+            type="primary"
+            size="small"
+            icon={<TeamOutlined />}
+            onClick={onCustomerSearch}
+            style={{ height: "32px" }}
+          >
+            ลูกค้าในระบบ
+          </Button>
         </div>
       }
       style={{ marginBottom: "24px" }}
@@ -16,23 +44,18 @@ const CustomerInformationCard: React.FC = () => {
     >
       <Row gutter={24}>
         <Col xs={24} md={24}>
-          <Form.Item
-            label="Customer Code"
-            name="customerCode"
-            // rules={[{ required: true, message: "Please enter Customer Code" }]}
-          >
-            <Input placeholder="Enter customer code" prefix={<UserOutlined />} />
+          <Form.Item label="Customer Code" name="customerCode">
+            <Input
+              placeholder="Enter customer code"
+              prefix={<UserOutlined />}
+            />
           </Form.Item>
         </Col>
       </Row>
-      
+
       <Row gutter={24}>
         <Col xs={24} md={12}>
-          <Form.Item
-            label="Customer Name"
-            name="customerName"
-            // rules={[{ required: true, message: "Please enter Customer Name" }]}
-          >
+          <Form.Item label="Customer Name" name="customerName">
             <Input prefix={<UserOutlined />} placeholder="Enter company name" />
           </Form.Item>
         </Col>
@@ -45,11 +68,15 @@ const CustomerInformationCard: React.FC = () => {
 
       <Row gutter={24}>
         <Col xs={24} md={12}>
-          <Form.Item 
-          label="Tel" 
-          name="tel"
-          rules={[{ required: true, message: "Please enter phone number" }]}>
-            <Input prefix={<PhoneOutlined />} placeholder="Enter phone number" />
+          <Form.Item
+            label="Tel"
+            name="tel"
+            rules={[{ required: true, message: "Please enter phone number" }]}
+          >
+            <Input
+              prefix={<PhoneOutlined />}
+              placeholder="Enter phone number"
+            />
           </Form.Item>
         </Col>
         <Col xs={24} md={12}>
@@ -58,7 +85,10 @@ const CustomerInformationCard: React.FC = () => {
             name="email"
             rules={[{ type: "email", message: "Please enter valid email" }]}
           >
-            <Input prefix={<MailOutlined />} placeholder="Enter email address" />
+            <Input
+              prefix={<MailOutlined />}
+              placeholder="Enter email address"
+            />
           </Form.Item>
         </Col>
       </Row>
@@ -75,7 +105,7 @@ const CustomerInformationCard: React.FC = () => {
           </Form.Item>
         </Col>
       </Row>
-      
+
       <Row gutter={24}>
         <Col xs={24} md={12}>
           <Form.Item label="Note" name="note">
@@ -88,7 +118,7 @@ const CustomerInformationCard: React.FC = () => {
           </Form.Item>
         </Col>
       </Row>
-      
+
       <Row gutter={24}>
         <Col xs={24} md={12}>
           <Form.Item label="Status" name="status">

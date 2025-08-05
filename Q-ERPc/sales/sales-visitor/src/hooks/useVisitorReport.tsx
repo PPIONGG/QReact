@@ -36,7 +36,7 @@ export const useVisitorReport = (mode: "new" | "edit") => {
     clearUploadedImage,
     clearUploadError,
     getFilenameForSave,
-    setExistingImageAsUploaded
+    setExistingImageAsUploaded,
   } = useSalesVisitorStore();
 
   // Initial data loading และ cleanup
@@ -75,8 +75,15 @@ export const useVisitorReport = (mode: "new" | "edit") => {
         visitDate: data.dateVisit ? dayjs(data.dateVisit) : null,
         visitor: data.visitorName,
         customerCode: data.customerCode,
-        customerName: data.companyName,
-        contactPerson: data.contactPerson,
+        // 🔧 ปรับส่วนนี้ให้รวม prefix + companyName + suffix
+        customerName: [
+          data.customerPrefix,
+          data.companyName,
+          data.customerSuffix,
+        ]
+          .filter(Boolean) // กรองค่า null, undefined, หรือ empty string ออก
+          .join(" ") // รวมด้วยช่องว่าง
+          .trim(), // ตัดช่องว่างหน้า-หลังออก        contactPerson: data.contactPerson,
         tel: data.tel,
         email: data.email,
         address: data.address,
@@ -390,7 +397,12 @@ export const useVisitorReport = (mode: "new" | "edit") => {
         // 🔧 ส่ง photos ไปด้วย
         imageFilePatch: photoFilenames || "", // หรือตาม format ที่ API ต้องการ
         isUpdateImage: mode === "edit" || photoFilenames ? true : false,
-        isDeleteImage: mode === "edit" && !photoFilenames ? true : false, 
+        isDeleteImage: mode === "edit" && !photoFilenames ? true : false,
+
+        customerPrefix: null,
+        customerSuffix: null,
+        salesPrefix: null,
+        salesSuffix: null,
       },
     };
 

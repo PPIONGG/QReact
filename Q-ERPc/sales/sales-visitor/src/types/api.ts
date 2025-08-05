@@ -11,6 +11,11 @@ export interface ListVisitedItem {
   salesCode: string;
   employeeCode: string | null;
   dateVisit: string;
+  customerPrefix: string | null;
+  customerSuffix: string | null;
+  lastUpdated: string | Date | null;
+  createdDate: string | Date | null;
+  recStatus: 0 | 1; // 0 = Active, 1 = Inactive
 }
 
 export interface ResListVisited extends BaseApiResponse {
@@ -41,6 +46,11 @@ export interface VisitDetailItem {
   employeeCode: string | null;
   imageFilePatch: string | null;
   isUpdateImage: boolean;
+  customerPrefix: string | null;
+  customerSuffix: string | null;
+  salesPrefix: string | null;
+  salesSuffix: string | null;
+  isDeleteImage: boolean;
 }
 
 export interface ResVisitDetail extends BaseApiResponse {
@@ -73,6 +83,11 @@ export interface VisitRequestData {
   imageFileName?: boolean;
   isUpdateImage: boolean;
   isDeleteImage: boolean;
+
+  customerPrefix: string | null;
+  customerSuffix: string | null;
+  salesPrefix: string | null;
+  salesSuffix: string | null;
 }
 
 export interface UpdateVisitRequest {

@@ -19,6 +19,7 @@ import {
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useSalesVisitorStore } from "../store/sales-visitor";
+import { useWindowSize } from "../hooks/useWindowSize";
 
 interface TableDataItem {
   key: string;
@@ -34,8 +35,14 @@ interface TableDataItem {
 const { Title, Text } = Typography;
 const { Search } = Input;
 
+const portalHeaderHeight = 64
+const headervisorHeight = 316
+
 const LogVisited: React.FC = () => {
   const navigate = useNavigate();
+  const windowSize = useWindowSize();
+  const testHeight = windowSize.height - (headervisorHeight + portalHeaderHeight); 
+
   const { fetchListVisited, ListVisited, loading, error, clearError } =
     useSalesVisitorStore();
   const [searchText, setSearchText] = useState("");
@@ -44,7 +51,11 @@ const LogVisited: React.FC = () => {
     const authStorage = sessionStorage.getItem("auth-storage");
     if (authStorage) {
       const parsedAuth = JSON.parse(authStorage);
-      fetchListVisited(parsedAuth.state.Salesinfo.data.salesCode);
+
+      const salesCode = parsedAuth?.state?.Salesinfo?.data?.salesCode;
+      if (salesCode) {
+        fetchListVisited(salesCode);
+      }
     }
   }, [fetchListVisited]);
 
@@ -110,7 +121,6 @@ const LogVisited: React.FC = () => {
       key: "customerName",
       render: (text: string) => (
         <div style={{ display: "flex", alignItems: "center" }}>
-          {/* <FileTextOutlined style={{ marginRight: "8px", color: "#1890ff" }} /> */}
           <Text strong>{text}</Text>
         </div>
       ),
@@ -154,7 +164,7 @@ const LogVisited: React.FC = () => {
       width: 120,
       render: (employeeCode: string | null) =>
         employeeCode ? (
-          <Tag color="orange">{employeeCode}</Tag>
+          <Text strong>{employeeCode}</Text>
         ) : (
           <Text type="secondary">-</Text>
         ),
@@ -191,13 +201,10 @@ const LogVisited: React.FC = () => {
           <Col>
             <Button
               type="primary"
-              size="large"
               icon={<PlusOutlined />}
               onClick={() => navigateToPage()}
               style={{
                 borderRadius: "6px",
-                height: "40px",
-                fontSize: "14px",
               }}
             >
               New Visit Report
@@ -205,7 +212,6 @@ const LogVisited: React.FC = () => {
           </Col>
         </Row>
       </div>
-
       {error && (
         <Alert
           message="Error loading data"
@@ -225,7 +231,6 @@ const LogVisited: React.FC = () => {
                 placeholder="Search customer name, code, visitor, sales..."
                 allowClear
                 enterButton={<SearchOutlined />}
-                size="large"
                 value={searchText}
                 onChange={handleSearchChange}
                 onSearch={handleSearch}
@@ -247,7 +252,8 @@ const LogVisited: React.FC = () => {
                 searchText ? ` (filtered from ${allTableData.length})` : ""
               }`,
           }}
-          scroll={{ x: 1200 }}
+          scroll={{ x: 1200, y: testHeight }}
+          loading={loading}
         />
       </Card>
     </div>

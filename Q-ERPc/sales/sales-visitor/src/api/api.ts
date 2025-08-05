@@ -84,6 +84,29 @@ export const VisitDetailsAPI = async (
   return data;
 };
 
+export const listAllCustomerAPI = async (
+  config: ApiConfig,
+): Promise<ResListAllCustomer> => {
+  const response = await fetch(
+    `${config.baseUrl}/api/SalesVisitor/Customer`,
+    {
+      method: 'GET',
+      headers: createHeaders(config),
+    }
+  );
+
+  if (!response.ok) {
+    if (response.status === 400) {
+      const errorData = (await response.json()) as ResListAllCustomer;
+      return errorData;
+    }
+    throw new Error(`HTTP ${response.status}`);
+  }
+
+  const data = (await response.json()) as ResListAllCustomer;
+  return data;
+};
+
 // Generic function สำหรับ Create และ Update
 const saveVisitReport = async (
   config: ApiConfig,
@@ -121,29 +144,6 @@ export const updateVisitReport = async (
   requestBody: UpdateVisitRequest
 ): Promise<ResUpdateVisit> => {
   return saveVisitReport(config, requestBody, 'Update');
-};
-
-export const listAllCustomerAPI = async (
-  config: ApiConfig,
-): Promise<ResListAllCustomer> => {
-  const response = await fetch(
-    `${config.baseUrl}/api/SalesVisitor/Customer`,
-    {
-      method: 'GET',
-      headers: createHeaders(config),
-    }
-  );
-
-  if (!response.ok) {
-    if (response.status === 400) {
-      const errorData = (await response.json()) as ResListAllCustomer;
-      return errorData;
-    }
-    throw new Error(`HTTP ${response.status}`);
-  }
-
-  const data = (await response.json()) as ResListAllCustomer;
-  return data;
 };
 
 export const customerDetailsAPI = async (
