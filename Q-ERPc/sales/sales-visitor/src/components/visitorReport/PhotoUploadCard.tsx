@@ -85,7 +85,6 @@ const PhotoUploadCard: React.FC<PhotoUploadCardProps> = ({ mode }) => {
       }
 
       const result = await uploadSingleImage(file);
-      console.log("✅ Upload result:", result);
       message.success(`${file.name} อัปโหลดสำเร็จ!`);
       return false;
     } catch (error) {
@@ -109,18 +108,8 @@ const PhotoUploadCard: React.FC<PhotoUploadCardProps> = ({ mode }) => {
   const [previewImage, setPreviewImage] = useState("");
 
   const handlePreview = (url: string) => {
-    // window.open(url, "_blank");
     setPreviewImage(url);
     setPreviewVisible(true);
-  };
-
-  // Format file size
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
   };
 
   return (
@@ -353,7 +342,11 @@ const PhotoUploadCard: React.FC<PhotoUploadCardProps> = ({ mode }) => {
                   fontSize: "10px",
                   color: "#999",
                   fontFamily: "monospace",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
                 }}
+                title={uploadedImage.filename}
               >
                 {uploadedImage.filename}
               </div>
@@ -427,34 +420,34 @@ const PhotoUploadCard: React.FC<PhotoUploadCardProps> = ({ mode }) => {
           </Upload.Dragger>
         </Form.Item>
       )}
-<Modal
-  open={previewVisible}
-  footer={null}
-  onCancel={() => setPreviewVisible(false)}
-  centered
-  width="80%"
-  styles={{
-    body: { 
-      padding: '20px',
-      textAlign: 'center',
-      maxHeight: '80vh',
-      overflow: 'auto'
-    }
-  }}
->
-  <img 
-    src={previewImage} 
-    style={{ 
-      maxWidth: "100%", 
-      maxHeight: "70vh", // จำกัดความสูงไม่ให้เกิน 70% ของหน้าจอ
-      height: "auto",
-      width: "auto",
-      objectFit: "contain", // รักษาสัดส่วนไม่ให้บิดเบี้ยว
-      display: "block",
-      margin: "0 auto"
-    }} 
-  />
-</Modal>
+      <Modal
+        open={previewVisible}
+        footer={null}
+        onCancel={() => setPreviewVisible(false)}
+        centered
+        width="80%"
+        styles={{
+          body: {
+            padding: "20px",
+            textAlign: "center",
+            maxHeight: "80vh",
+            overflow: "auto",
+          },
+        }}
+      >
+        <img
+          src={previewImage}
+          style={{
+            maxWidth: "100%",
+            maxHeight: "70vh", // จำกัดความสูงไม่ให้เกิน 70% ของหน้าจอ
+            height: "auto",
+            width: "auto",
+            objectFit: "contain", // รักษาสัดส่วนไม่ให้บิดเบี้ยว
+            display: "block",
+            margin: "0 auto",
+          }}
+        />
+      </Modal>
     </Card>
   );
 };

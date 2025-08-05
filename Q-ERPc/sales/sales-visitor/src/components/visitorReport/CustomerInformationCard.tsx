@@ -42,6 +42,12 @@ const CustomerInformationCard: React.FC<CustomerSearchButtonProps> = ({
       style={{ marginBottom: "24px" }}
       styles={{ header: { background: "#fafafa" } }}
     >
+      <Form.Item name="customerPrefix" hidden>
+        <Input />
+      </Form.Item>
+      <Form.Item name="customerSuffix" hidden>
+        <Input />
+      </Form.Item>
       <Row gutter={24}>
         <Col xs={24} md={24}>
           <Form.Item label="Customer Code" name="customerCode">

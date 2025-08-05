@@ -39,4 +39,6 @@ export interface VisitorFormData {
   businessDetails?: string;
   status?: string;
   photos?: any[];
+  customerPrefix: string;
+  customerSuffix: string;
 }

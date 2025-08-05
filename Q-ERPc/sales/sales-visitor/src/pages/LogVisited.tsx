@@ -13,35 +13,29 @@ import {
 } from "antd";
 import {
   PlusOutlined,
-  FileTextOutlined,
   SearchOutlined,
   EditOutlined,
 } from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
 import { useSalesVisitorStore } from "../store/sales-visitor";
 import { useWindowSize } from "../hooks/useWindowSize";
+import { ColumnsType } from "antd/es/table";
+import { ListVisitedItem } from "../types/api";
+import { compareDates, formatDate, formatDateTime } from "../utils/dateUtils";
 
-interface TableDataItem {
+interface TableDataItem extends ListVisitedItem {
   key: string;
-  customerCode: string;
-  customerName: string;
-  dateVisit: string;
-  visitorName: string;
-  salesCode: string;
-  employeeCode: string | null;
-  noItem: number;
 }
 
 const { Title, Text } = Typography;
 const { Search } = Input;
 
-const portalHeaderHeight = 64
-const headervisorHeight = 316
+const portalHeaderHeight = 64;
+const headervisorHeight = 316;
 
 const LogVisited: React.FC = () => {
-  const navigate = useNavigate();
   const windowSize = useWindowSize();
-  const testHeight = windowSize.height - (headervisorHeight + portalHeaderHeight); 
+  const testHeight =
+    windowSize.height - (headervisorHeight + portalHeaderHeight);
 
   const { fetchListVisited, ListVisited, loading, error, clearError } =
     useSalesVisitorStore();
@@ -85,9 +79,13 @@ const LogVisited: React.FC = () => {
       salesCode: item.salesCode,
       employeeCode: item.employeeCode,
       noItem: item.noItem,
+      lastUpdated: item.lastUpdated,
+      createdDate: item.createdDate,
+      customerPrefix: item.customerPrefix,
+      customerSuffix: item.customerSuffix,
+      recStatus: item.recStatus,
     })) || [];
 
-  // Filter data based on search text
   const tableData = allTableData.filter(
     (item) =>
       item.customerName.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -106,14 +104,14 @@ const LogVisited: React.FC = () => {
     setSearchText(e.target.value);
   };
 
-  const columns: any[] = [
+  const columns: ColumnsType<TableDataItem> = [
     {
       title: "Customer Code",
       dataIndex: "customerCode",
       key: "customerCode",
       width: 120,
       // render: (text: string) => <Tag color="blue">{text}</Tag>,
-      render: (text: string) => <Text strong>{text}</Text>,
+      render: (text: string) => <Text strong>{text || "-"}</Text>,
     },
     {
       title: "Customer Name",
@@ -121,7 +119,7 @@ const LogVisited: React.FC = () => {
       key: "customerName",
       render: (text: string) => (
         <div style={{ display: "flex", alignItems: "center" }}>
-          <Text strong>{text}</Text>
+          <Text>{text}</Text>
         </div>
       ),
     },
@@ -131,14 +129,36 @@ const LogVisited: React.FC = () => {
       key: "dateVisit",
       width: 150,
       sorter: (a: TableDataItem, b: TableDataItem) =>
-        new Date(a.dateVisit).getTime() - new Date(b.dateVisit).getTime(),
-      render: (date: string) => (
-        <Text>
-          {new Date(date).toLocaleDateString("th-TH")}{" "}
-          {new Date(date).toLocaleTimeString("th-TH", {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
+        compareDates(a.lastUpdated, b.lastUpdated),
+      render: (date: string | Date | null) => (
+        <Text type={date ? undefined : "secondary"}>{formatDate(date)}</Text>
+      ),
+    },
+    {
+      title: "Last Updated",
+      dataIndex: "lastUpdated",
+      key: "lastUpdated",
+      width: 150,
+      align: "center",
+      sorter: (a: TableDataItem, b: TableDataItem) =>
+        compareDates(a.lastUpdated, b.lastUpdated),
+      render: (date: string | Date | null) => (
+        <Text type={date ? undefined : "secondary"}>
+          {formatDateTime(date)}
+        </Text>
+      ),
+    },
+    {
+      title: "Created Date",
+      dataIndex: "createdDate",
+      key: "createdDate",
+      width: 150,
+      align: "center",
+      sorter: (a: TableDataItem, b: TableDataItem) =>
+        compareDates(a.createdDate, b.createdDate),
+      render: (date: string | Date | null) => (
+        <Text type={date ? undefined : "secondary"}>
+          {formatDateTime(date)}
         </Text>
       ),
     },
@@ -155,7 +175,7 @@ const LogVisited: React.FC = () => {
       key: "salesCode",
       width: 100,
       // render: (salesCode: string) => <Tag color="green">{salesCode}</Tag>,
-      render: (salesCode: string) => <Text strong>{salesCode}</Text>,
+      render: (salesCode: string) => <Text>{salesCode}</Text>,
     },
     {
       title: "Employee Code",
@@ -164,7 +184,7 @@ const LogVisited: React.FC = () => {
       width: 120,
       render: (employeeCode: string | null) =>
         employeeCode ? (
-          <Text strong>{employeeCode}</Text>
+          <Text>{employeeCode}</Text>
         ) : (
           <Text type="secondary">-</Text>
         ),

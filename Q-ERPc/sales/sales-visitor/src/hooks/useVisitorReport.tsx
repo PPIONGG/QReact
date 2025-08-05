@@ -31,13 +31,33 @@ export const useVisitorReport = (mode: "new" | "edit") => {
     clearSaveError,
     clearCustomerDetails,
     clearListAllCustomer,
-    // 🔧 เพิ่ม photo functions
     uploadedImage,
     clearUploadedImage,
     clearUploadError,
     getFilenameForSave,
     setExistingImageAsUploaded,
   } = useSalesVisitorStore();
+
+  // ⭐ เพิ่ม useEffect สำหรับ set default visitor name
+  useEffect(() => {
+    if (mode === "new") {
+      const authStorage = sessionStorage.getItem("auth-storage");
+      if (authStorage) {
+        try {
+          const parsedAuth = JSON.parse(authStorage);
+          const visitorName = parsedAuth?.state?.Salesinfo?.data?.nameThai;
+
+          if (visitorName) {
+            form.setFieldsValue({
+              visitor: visitorName,
+            });
+          }
+        } catch (error) {
+          console.error("Error parsing auth storage:", error);
+        }
+      }
+    }
+  }, [mode, form]);
 
   // Initial data loading และ cleanup
   useEffect(() => {
@@ -91,6 +111,8 @@ export const useVisitorReport = (mode: "new" | "edit") => {
         note: data.note,
         businessDetails: data.note2,
         status: data.status,
+        customerPrefix : data.customerPrefix || null,
+        customerSuffix : data.customerSuffix || null,
       };
 
       form.setFieldsValue(formData);
@@ -105,8 +127,8 @@ export const useVisitorReport = (mode: "new" | "edit") => {
 
       if (data.imageFilePatch) {
         const existingImageObj = {
-          filename: data.imageFilePatch.split("/").pop() || "", // Extract filename
-          url: data.imageFilePatch, // จะเป็น "/uploads/xxx.png"
+          filename: data.imageFilePatch.split("/").pop() || "",
+          url: data.imageFilePatch,
           originalName: "รูปจากฐานข้อมูล",
           size: 0,
         };
@@ -148,7 +170,10 @@ export const useVisitorReport = (mode: "new" | "edit") => {
       note: "",
       businessDetails: "",
       status: "",
+      customerPrefix: customerData.customerPrefix,
+      customerSuffix: customerData.customerSuffix,
     });
+
     // 🔧 เพิ่ม 2 บรรทัดนี้
     clearUploadedImage();
     clearUploadError();
@@ -290,13 +315,6 @@ export const useVisitorReport = (mode: "new" | "edit") => {
     Modal.confirm({
       title: (
         <div style={{ display: "flex", alignItems: "center" }}>
-          <SaveOutlined
-            style={{
-              color: "#52c41a",
-              marginRight: "8px",
-              fontSize: "16px",
-            }}
-          />
           <span style={{ color: "#1f2937", fontWeight: "600" }}>{title}</span>
         </div>
       ),
@@ -398,9 +416,8 @@ export const useVisitorReport = (mode: "new" | "edit") => {
         imageFilePatch: photoFilenames || "", // หรือตาม format ที่ API ต้องการ
         isUpdateImage: mode === "edit" || photoFilenames ? true : false,
         isDeleteImage: mode === "edit" && !photoFilenames ? true : false,
-
-        customerPrefix: null,
-        customerSuffix: null,
+        customerPrefix: values.customerPrefix || null,
+        customerSuffix: values.customerSuffix || null,
         salesPrefix: null,
         salesSuffix: null,
       },
@@ -413,7 +430,7 @@ export const useVisitorReport = (mode: "new" | "edit") => {
       if (response.status) {
         if (mode === "new") {
           form.resetFields();
-          clearUploadedImage(); // 🔧 ล้างรูปหลัง save สำเร็จ
+          clearUploadedImage();
           message.success({
             content: "New visit report created successfully!",
             icon: <CheckCircleOutlined style={{ color: "#52c41a" }} />,
@@ -436,15 +453,14 @@ export const useVisitorReport = (mode: "new" | "edit") => {
                 : currentFormData.visitDate
               : null,
           };
-
           // 🔧 ล้างรูปหลัง save สำเร็จ (edit mode)
           clearUploadedImage();
+          form.resetFields();
         }
 
         // Smooth transition กลับหน้าหลัก
-        setTimeout(() => {
-          navigate("/sales/sales-visitor");
-        }, 1200);
+        navigate("/sales/sales-visitor");
+
       } else {
         message.error({
           content: response.message || "Failed to save visit report",

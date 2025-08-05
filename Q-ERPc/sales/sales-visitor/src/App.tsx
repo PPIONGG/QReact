@@ -2,8 +2,6 @@ import React from "react";
 import { HashRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "antd";
 import { AppRoutes } from "./routes/AppRoutes";
-import HomePage from "./components/HomePage";
-import EditPage from "./components/EditPage";
 
 const { Content } = Layout;
 

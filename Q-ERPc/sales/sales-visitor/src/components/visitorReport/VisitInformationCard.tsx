@@ -6,7 +6,9 @@ interface VisitInformationCardProps {
   mode: "new" | "edit";
 }
 
-const VisitInformationCard: React.FC<VisitInformationCardProps> = ({ mode }) => {
+const VisitInformationCard: React.FC<VisitInformationCardProps> = ({
+  mode,
+}) => {
   return (
     <Card
       title={
@@ -34,13 +36,12 @@ const VisitInformationCard: React.FC<VisitInformationCardProps> = ({ mode }) => 
           </Form.Item>
         </Col>
         <Col xs={24} md={12}>
-          <Form.Item label="VISITOR" name="visitor"
-            rules={[{ required: true, message: "Please enter visitor name" }]}>
-            <Input
-              placeholder="Enter visitor name"
-              
-              readOnly={mode === "edit"}
-            />
+          <Form.Item
+            label="VISITOR"
+            name="visitor"
+            rules={[{ required: true, message: "Please enter visitor name" }]}
+          >
+            <Input placeholder="Enter visitor name" readOnly />
           </Form.Item>
         </Col>
       </Row>
