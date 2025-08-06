@@ -14,6 +14,7 @@ import {
   SearchOutlined,
   LoadingOutlined,
 } from "@ant-design/icons";
+import { useTranslation } from "react-i18next"; // ⭐ เพิ่ม import
 import { useSalesVisitorStore } from "../../store/sales-visitor";
 
 const { Text } = Typography;
@@ -29,6 +30,9 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
   onClose,
   onCustomerSelect,
 }) => {
+  // ⭐ เพิ่ม useTranslation hook
+  const { t } = useTranslation('sales-visitor');
+
   const [searchText, setSearchText] = useState("");
   const [selectedCustomerCode, setSelectedCustomerCode] = useState<
     string | null
@@ -68,29 +72,29 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
   useEffect(() => {
     if (isVisible) {
       fetchlistAllCustomerAPI().catch(() => {
-        message.error("ไม่สามารถโหลดข้อมูลลูกค้าได้");
+        message.error(t('cannotLoadCustomerData'));
       });
     }
-  }, [isVisible, fetchlistAllCustomerAPI]);
+  }, [isVisible, fetchlistAllCustomerAPI, t]);
 
   useEffect(() => {
     if (customerDetails?.status && customerDetails.data) {
       onCustomerSelect(customerDetails.data);
       handleClose();
     } else if (customerDetails?.status === false) {
-      message.error("ไม่พบข้อมูลลูกค้า");
+      message.error(t('customerNotFound'));
       setSelectedCustomerCode(null);
       setIsSelectingCustomer(false);
     }
-  }, [customerDetails, onCustomerSelect]);
+  }, [customerDetails, onCustomerSelect, t]);
 
   useEffect(() => {
     if (customerDetailsError) {
-      message.error("เกิดข้อผิดพลาดในการโหลดข้อมูลลูกค้า");
+      message.error(t('errorLoadingCustomerData'));
       setSelectedCustomerCode(null);
       setIsSelectingCustomer(false);
     }
-  }, [customerDetailsError]);
+  }, [customerDetailsError, t]);
 
   const handleClose = () => {
     setSearchText("");
@@ -107,7 +111,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
       setIsSelectingCustomer(true);
       await fetchCustomerDetails(customerData.noItem, customerData.typeInfo);
     } catch (error) {
-      message.error("ไม่สามารถโหลดรายละเอียดลูกค้าได้");
+      message.error(t('cannotLoadCustomerDetails'));
       setSelectedCustomerCode(null);
       setIsSelectingCustomer(false);
     }
@@ -119,7 +123,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
         <div style={{ display: "flex", alignItems: "center" }}>
           <TeamOutlined style={{ marginRight: "8px", color: "#1890ff" }} />
           <span style={{ fontSize: "18px", fontWeight: "600" }}>
-            เลือกลูกค้าในระบบ
+            {t('selectSystemCustomer')}
           </span>
         </div>
       }
@@ -161,11 +165,11 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
             <Text
               style={{ fontSize: "16px", color: "#1890ff", fontWeight: "500" }}
             >
-              กำลังโหลดข้อมูลลูกค้า...
+              {t('loadingCustomerData')}...
             </Text>
             <div style={{ marginTop: "8px" }}>
               <Text type="secondary" style={{ fontSize: "14px" }}>
-                รหัสลูกค้า: {selectedCustomerCode}
+                {t('customerCode')}: {selectedCustomerCode}
               </Text>
             </div>
           </div>
@@ -177,7 +181,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
         <div style={{ marginBottom: "20px" }}>
           <Input
             size="large"
-            placeholder="ค้นหาชื่อลูกค้า, รหัสลูกค้า..."
+            placeholder={t('searchCustomerPlaceholder')}
             prefix={<SearchOutlined />}
             allowClear
             value={searchText}
@@ -193,7 +197,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
             <div style={{ textAlign: "center", padding: "40px" }}>
               <Spin size="large" />
               <div style={{ marginTop: "16px" }}>
-                <Text>กำลังโหลดข้อมูลลูกค้า...</Text>
+                <Text>{t('loadingCustomerData')}...</Text>
               </div>
             </div>
           )}
@@ -201,7 +205,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
           {listAllCustomerError && (
             <div style={{ textAlign: "center", padding: "40px" }}>
               <Alert
-                message="เกิดข้อผิดพลาด"
+                message={t('error')}
                 description={listAllCustomerError}
                 type="error"
                 showIcon
@@ -216,7 +220,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
               {filteredCustomers.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "40px" }}>
                   <Text type="secondary">
-                    {searchText ? "ไม่พบลูกค้าที่ค้นหา" : "ไม่มีข้อมูลลูกค้า"}
+                    {searchText ? t('noCustomerFound') : t('noCustomerData')}
                   </Text>
                 </div>
               ) : (
@@ -304,7 +308,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
                                 <Text
                                   style={{ fontSize: "11px", color: "#1890ff" }}
                                 >
-                                  กำลังโหลด...
+                                  {t('loading')}...
                                 </Text>
                               </div>
                             )}
@@ -317,7 +321,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
                           </div>
                           <div style={{ marginTop: "4px" }}>
                             <Text style={{ fontSize: "14px" }}>
-                              Tel: {customer.phone}
+                              {t('tel')}: {customer.phone}
                             </Text>
                           </div>
                         </div>
@@ -338,7 +342,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
                           loading={isCurrentlyLoading}
                           disabled={isSelectingCustomer}
                         >
-                          {isCurrentlyLoading ? "กำลังโหลด" : "เลือก"}
+                          {isCurrentlyLoading ? t('loading') : t('select')}
                         </Button>
                       </div>
                       {isCurrentlyLoading && (

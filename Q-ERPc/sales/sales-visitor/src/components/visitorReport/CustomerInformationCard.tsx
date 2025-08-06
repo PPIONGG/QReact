@@ -6,6 +6,7 @@ import {
   MailOutlined,
   TeamOutlined,
 } from "@ant-design/icons";
+import { useTranslation } from "react-i18next"; // ⭐ เพิ่ม import
 
 interface CustomerSearchButtonProps {
   onCustomerSearch: () => void;
@@ -14,6 +15,9 @@ interface CustomerSearchButtonProps {
 const CustomerInformationCard: React.FC<CustomerSearchButtonProps> = ({
   onCustomerSearch,
 }) => {
+  // ⭐ เพิ่ม useTranslation hook
+  const { t } = useTranslation('sales-visitor');
+
   return (
     <Card
       title={
@@ -26,7 +30,7 @@ const CustomerInformationCard: React.FC<CustomerSearchButtonProps> = ({
         >
           <div style={{ display: "flex", alignItems: "center" }}>
             <UserOutlined style={{ marginRight: "8px", color: "#1890ff" }} />
-            Customer Information
+            {t('customerInformation')}
           </div>
           <Button
             type="primary"
@@ -35,7 +39,7 @@ const CustomerInformationCard: React.FC<CustomerSearchButtonProps> = ({
             onClick={onCustomerSearch}
             style={{ height: "32px" }}
           >
-            ลูกค้าในระบบ
+            {t('systemCustomers')}
           </Button>
         </div>
       }
@@ -50,9 +54,9 @@ const CustomerInformationCard: React.FC<CustomerSearchButtonProps> = ({
       </Form.Item>
       <Row gutter={24}>
         <Col xs={24} md={24}>
-          <Form.Item label="Customer Code" name="customerCode">
+          <Form.Item label={t('customerCode')} name="customerCode">
             <Input
-              placeholder="Enter customer code"
+              placeholder={t('enterCustomerCode')}
               prefix={<UserOutlined />}
             />
           </Form.Item>
@@ -61,13 +65,13 @@ const CustomerInformationCard: React.FC<CustomerSearchButtonProps> = ({
 
       <Row gutter={24}>
         <Col xs={24} md={12}>
-          <Form.Item label="Customer Name" name="customerName">
-            <Input prefix={<UserOutlined />} placeholder="Enter company name" />
+          <Form.Item label={t('customerName')} name="customerName">
+            <Input prefix={<UserOutlined />} placeholder={t('enterCompanyName')} />
           </Form.Item>
         </Col>
         <Col xs={24} md={12}>
-          <Form.Item label="Contact Person" name="contactPerson">
-            <Input placeholder="Enter contact person name" />
+          <Form.Item label={t('contactPerson')} name="contactPerson">
+            <Input placeholder={t('enterContactPersonName')} />
           </Form.Item>
         </Col>
       </Row>
@@ -75,25 +79,25 @@ const CustomerInformationCard: React.FC<CustomerSearchButtonProps> = ({
       <Row gutter={24}>
         <Col xs={24} md={12}>
           <Form.Item
-            label="Tel"
+            label={t('tel')}
             name="tel"
-            rules={[{ required: true, message: "Please enter phone number" }]}
+            rules={[{ required: true, message: t('pleaseEnterPhoneNumber') }]}
           >
             <Input
               prefix={<PhoneOutlined />}
-              placeholder="Enter phone number"
+              placeholder={t('enterPhoneNumber')}
             />
           </Form.Item>
         </Col>
         <Col xs={24} md={12}>
           <Form.Item
-            label="Email"
+            label={t('email')}
             name="email"
-            rules={[{ type: "email", message: "Please enter valid email" }]}
+            rules={[{ type: "email", message: t('pleaseEnterValidEmail') }]}
           >
             <Input
               prefix={<MailOutlined />}
-              placeholder="Enter email address"
+              placeholder={t('enterEmailAddress')}
             />
           </Form.Item>
         </Col>
@@ -101,34 +105,34 @@ const CustomerInformationCard: React.FC<CustomerSearchButtonProps> = ({
 
       <Row gutter={24}>
         <Col xs={24} md={12}>
-          <Form.Item label="Address" name="address">
-            <Input placeholder="Enter address" />
+          <Form.Item label={t('address')} name="address">
+            <Input placeholder={t('enterAddress')} />
           </Form.Item>
         </Col>
         <Col xs={24} md={12}>
-          <Form.Item label="Sales Close (ปิดการขาย %)" name="salesClose">
-            <Input placeholder="Enter sales close percentage" />
-          </Form.Item>
-        </Col>
-      </Row>
-
-      <Row gutter={24}>
-        <Col xs={24} md={12}>
-          <Form.Item label="Note" name="note">
-            <Input placeholder="Enter note" />
-          </Form.Item>
-        </Col>
-        <Col xs={24} md={12}>
-          <Form.Item label="รายละเอียดธุรกิจลูกค้า" name="businessDetails">
-            <Input placeholder="Enter business details" />
+          <Form.Item label={t('salesClose')} name="salesClose">
+            <Input placeholder={t('enterSalesClosePercentage')} />
           </Form.Item>
         </Col>
       </Row>
 
       <Row gutter={24}>
         <Col xs={24} md={12}>
-          <Form.Item label="Status" name="status">
-            <Input placeholder="Enter status" />
+          <Form.Item label={t('note')} name="note">
+            <Input placeholder={t('enterNote')} />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={12}>
+          <Form.Item label={t('businessDetails')} name="businessDetails">
+            <Input placeholder={t('enterBusinessDetails')} />
+          </Form.Item>
+        </Col>
+      </Row>
+
+      <Row gutter={24}>
+        <Col xs={24} md={12}>
+          <Form.Item label={t('status')} name="status">
+            <Input placeholder={t('enterStatus')} />
           </Form.Item>
         </Col>
       </Row>

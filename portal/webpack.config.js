@@ -1,37 +1,37 @@
 const loadEnvironment = (mode) => {
-  if (mode === 'production') {
-    require('dotenv').config({ path: './.env.production' });
+  if (mode === "production") {
+    require("dotenv").config({ path: "./.env.production" });
   } else {
-    require('dotenv').config({ path: './.env.development' });
+    require("dotenv").config({ path: "./.env.development" });
   }
-  require('dotenv').config({ path: './.env.local' });
-  require('dotenv').config({ path: './.env' });
+  require("dotenv").config({ path: "./.env.local" });
+  require("dotenv").config({ path: "./.env" });
 };
 
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const ModuleFederationPlugin = require('webpack/lib/container/ModuleFederationPlugin');
-const webpack = require('webpack');
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+const ModuleFederationPlugin = require("webpack/lib/container/ModuleFederationPlugin");
+const webpack = require("webpack");
 
 module.exports = (env, argv) => {
-  const mode = argv.mode || 'development';
+  const mode = argv.mode || "development";
   loadEnvironment(mode);
 
   return {
     mode: mode,
-    entry: './src/index.tsx',
+    entry: "./src/index.tsx",
     devServer: {
       port: 3000,
       historyApiFallback: true,
       hot: true,
-      allowedHosts: 'all',
+      allowedHosts: "all",
       headers: {
-        'Access-Control-Allow-Origin': '*',
+        "Access-Control-Allow-Origin": "*",
       },
     },
     resolve: {
-      extensions: ['.tsx', '.ts', '.js', '.jsx'],
+      extensions: [".tsx", ".ts", ".js", ".jsx"],
       fallback: {
-        "process": require.resolve("process/browser"),
+        process: require.resolve("process/browser"),
       },
     },
     module: {
@@ -40,27 +40,30 @@ module.exports = (env, argv) => {
           test: /\.(ts|tsx|js|jsx)$/,
           exclude: /node_modules/,
           use: {
-            loader: 'babel-loader',
+            loader: "babel-loader",
             options: {
               presets: [
-                ['@babel/preset-react', { 
-                  runtime: 'automatic'
-                }],
-                '@babel/preset-typescript'
+                [
+                  "@babel/preset-react",
+                  {
+                    runtime: "automatic",
+                  },
+                ],
+                "@babel/preset-typescript",
               ],
             },
           },
         },
         {
           test: /\.css$/,
-          use: ['style-loader', 'css-loader'],
+          use: ["style-loader", "css-loader"],
         },
         {
           test: /\.(png|jpe?g|gif|svg|ico)$/i,
-          type: 'asset/resource',
+          type: "asset/resource",
           generator: {
-            filename: 'assets/images/[name][ext]'
-          }
+            filename: "assets/images/[name][ext]",
+          },
         },
       ],
     },
@@ -71,30 +74,38 @@ module.exports = (env, argv) => {
         __API_PACKAGE__: JSON.stringify(process.env.REACT_APP_API_PACKAGE),
       }),
       new webpack.ProvidePlugin({
-        process: 'process/browser',
+        process: "process/browser",
       }),
       new ModuleFederationPlugin({
-        name: 'portal',
+        name: "portal",
         remotes: {
-          sales_visitor: 'sales_visitor@http://localhost:3001/remoteEntry.js',
+          sales_visitor: "sales_visitor@http://localhost:3001/remoteEntry.js",
         },
         shared: {
-          react: { 
+          react: {
             singleton: true,
-            requiredVersion: '^18.2.0',
+            requiredVersion: "^18.2.0",
           },
-          'react-dom': { 
+          "react-dom": {
             singleton: true,
-            requiredVersion: '^18.2.0',
+            requiredVersion: "^18.2.0",
           },
           antd: {
             singleton: true,
-            requiredVersion: '^5.8.0',
+            requiredVersion: "^5.8.0",
+          },
+          i18next: {
+            singleton: true,
+            requiredVersion: "^25.3.1",
+          },
+          "react-i18next": {
+            singleton: true,
+            requiredVersion: "^15.6.0",
           },
         },
       }),
       new HtmlWebpackPlugin({
-        template: './public/index.html',
+        template: "./public/index.html",
       }),
     ],
   };

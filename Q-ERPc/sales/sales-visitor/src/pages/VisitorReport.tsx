@@ -7,6 +7,7 @@ import VisitInformationCard from "../components/visitorReport/VisitInformationCa
 import CustomerInformationCard from "../components/visitorReport/CustomerInformationCard";
 import PhotoUploadCard from "../components/visitorReport/PhotoUploadCard";
 import { useVisitorReport } from "../hooks/useVisitorReport";
+import { useTranslation } from "react-i18next";
 
 const { Title, Text } = Typography;
 
@@ -15,6 +16,9 @@ interface VisitorReportProps {
 }
 
 const VisitorReport: React.FC<VisitorReportProps> = ({ mode }) => {
+
+  const { t } = useTranslation('sales-visitor');
+
   const { id } = useParams();
   const {
     form,
@@ -32,7 +36,7 @@ const VisitorReport: React.FC<VisitorReportProps> = ({ mode }) => {
     fetchVisitDetail,
   } = useVisitorReport(mode);
 
-  const pageTitle = mode === "new" ? "NEW VISIT REPORT" : "EDIT VISIT REPORT";
+  const pageTitle = mode === "new" ? t('newVisitReport') : t('editVisitReport');
 
   // Loading states
   if (mode === "edit" && detailLoading) {
@@ -40,7 +44,7 @@ const VisitorReport: React.FC<VisitorReportProps> = ({ mode }) => {
       <div style={{ padding: "10px", textAlign: "center", marginTop: "50px" }}>
         <Spin size="large" />
         <div style={{ marginTop: "16px" }}>
-          <Text>Loading visit details...</Text>
+          <Text>{t('loadingVisitDetails')}</Text>
         </div>
       </div>
     );
@@ -51,7 +55,7 @@ const VisitorReport: React.FC<VisitorReportProps> = ({ mode }) => {
     return (
       <div style={{ padding: "10px" }}>
         <Alert
-          message="Error loading visit details"
+          message={t('errorLoadingVisitDetails')}
           description={detailError}
           type="error"
           closable
@@ -59,14 +63,14 @@ const VisitorReport: React.FC<VisitorReportProps> = ({ mode }) => {
           action={
             <Space>
               <Button size="small" onClick={handleGoBack}>
-                Go Back
+                {t('goBack')}
               </Button>
               <Button
                 size="small"
                 type="primary"
                 onClick={() => id && fetchVisitDetail(id)}
               >
-                Retry
+                {t('retry')}
               </Button>
             </Space>
           }
@@ -79,12 +83,12 @@ const VisitorReport: React.FC<VisitorReportProps> = ({ mode }) => {
     return (
       <div style={{ padding: "10px" }}>
         <Alert
-          message="Visit not found"
-          description="The requested visit details could not be found."
+          message={t('visitNotFound')}
+          description={t('visitNotFoundDescription')}
           type="warning"
           action={
             <Button type="primary" onClick={handleGoBack}>
-              Go Back
+              {t('goBack')}
             </Button>
           }
         />
@@ -103,7 +107,7 @@ const VisitorReport: React.FC<VisitorReportProps> = ({ mode }) => {
               {mode === "edit" && id && (
                 <span style={{ fontSize: "16px", color: "#666" }}>
                   {" "}
-                  (ID: {id})
+                  ({t('id')}: {id})
                 </span>
               )}
             </Title>
@@ -113,7 +117,7 @@ const VisitorReport: React.FC<VisitorReportProps> = ({ mode }) => {
               <Button
                 onClick={handleGoBack}
               >
-                Cancel
+                {t('cancel')}
               </Button>
               <Button
                 type="primary"
@@ -125,7 +129,7 @@ const VisitorReport: React.FC<VisitorReportProps> = ({ mode }) => {
                   borderRadius: "6px",
                 }}
               >
-                {mode === "new" ? "Save Report" : "Update Report"}
+                {mode === "new" ? t('saveReport') : t('updateReport')}
               </Button>
             </Space>
           </Col>

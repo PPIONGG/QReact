@@ -5,17 +5,13 @@ import {
   Typography,
   Table,
   Space,
-  Tag,
   Row,
   Col,
   Input,
   Alert,
 } from "antd";
-import {
-  PlusOutlined,
-  SearchOutlined,
-  EditOutlined,
-} from "@ant-design/icons";
+import { PlusOutlined, SearchOutlined, EditOutlined } from "@ant-design/icons";
+import { useTranslation } from "react-i18next"; // ⭐ เพิ่ม import
 import { useSalesVisitorStore } from "../store/sales-visitor";
 import { useWindowSize } from "../hooks/useWindowSize";
 import { ColumnsType } from "antd/es/table";
@@ -33,6 +29,8 @@ const portalHeaderHeight = 64;
 const headervisorHeight = 316;
 
 const LogVisited: React.FC = () => {
+  const { t } = useTranslation("sales-visitor");
+
   const windowSize = useWindowSize();
   const testHeight =
     windowSize.height - (headervisorHeight + portalHeaderHeight);
@@ -55,20 +53,15 @@ const LogVisited: React.FC = () => {
 
   const navigateToPage = (id?: number) => {
     if (!id) {
-      // new visit report
       const hostUrl = `${window.location.origin}${window.location.pathname}#/sales/sales-visitor/new`;
       window.location.hash = `/sales/sales-visitor/new`;
       return;
     } else {
-      // edit visit report
-      // เปลี่ยน URL ของ Host App
       const hostUrl = `${window.location.origin}${window.location.pathname}#/sales/sales-visitor/edit/${id}`;
-      // เปลี่ยน hash ของ browser
       window.location.hash = `/sales/sales-visitor/edit/${id}`;
     }
   };
 
-  // Use API data directly
   const allTableData: TableDataItem[] =
     ListVisited?.data?.map((item, index) => ({
       key: item.noItem ? `item-${item.noItem}` : `item-${index}`,
@@ -104,17 +97,17 @@ const LogVisited: React.FC = () => {
     setSearchText(e.target.value);
   };
 
+  // ⭐ แก้ไข columns ให้ใช้ translation
   const columns: ColumnsType<TableDataItem> = [
     {
-      title: "Customer Code",
+      title: t("customerCode"),
       dataIndex: "customerCode",
       key: "customerCode",
       width: 120,
-      // render: (text: string) => <Tag color="blue">{text}</Tag>,
       render: (text: string) => <Text strong>{text || "-"}</Text>,
     },
     {
-      title: "Customer Name",
+      title: t("customerName"),
       dataIndex: "customerName",
       key: "customerName",
       render: (text: string) => (
@@ -124,18 +117,18 @@ const LogVisited: React.FC = () => {
       ),
     },
     {
-      title: "Visit Date",
+      title: t("visitDate"),
       dataIndex: "dateVisit",
       key: "dateVisit",
       width: 150,
       sorter: (a: TableDataItem, b: TableDataItem) =>
-        compareDates(a.lastUpdated, b.lastUpdated),
+        compareDates(a.dateVisit, b.dateVisit),
       render: (date: string | Date | null) => (
         <Text type={date ? undefined : "secondary"}>{formatDate(date)}</Text>
       ),
     },
     {
-      title: "Last Updated",
+      title: t("lastUpdated"),
       dataIndex: "lastUpdated",
       key: "lastUpdated",
       width: 150,
@@ -149,7 +142,7 @@ const LogVisited: React.FC = () => {
       ),
     },
     {
-      title: "Created Date",
+      title: t("createdDate"),
       dataIndex: "createdDate",
       key: "createdDate",
       width: 150,
@@ -163,22 +156,23 @@ const LogVisited: React.FC = () => {
       ),
     },
     {
-      title: "Visitor Name",
+      title: t("visitorName"),
       dataIndex: "visitorName",
       key: "visitorName",
       width: 150,
-      render: (visitorName: string) => <Text>{visitorName || "Unknown"}</Text>,
+      render: (visitorName: string) => (
+        <Text>{visitorName || t("unknown")}</Text>
+      ),
     },
     {
-      title: "Sales Code",
+      title: t("salesCode"),
       dataIndex: "salesCode",
       key: "salesCode",
       width: 100,
-      // render: (salesCode: string) => <Tag color="green">{salesCode}</Tag>,
       render: (salesCode: string) => <Text>{salesCode}</Text>,
     },
     {
-      title: "Employee Code",
+      title: t("employeeCode"),
       dataIndex: "employeeCode",
       key: "employeeCode",
       width: 120,
@@ -190,7 +184,7 @@ const LogVisited: React.FC = () => {
         ),
     },
     {
-      title: "Actions",
+      title: t("actions"),
       key: "actions",
       width: 100,
       fixed: "right",
@@ -202,7 +196,7 @@ const LogVisited: React.FC = () => {
             size="small"
             onClick={() => navigateToPage(record.noItem)}
           >
-            Edit
+            {t("edit")}
           </Button>
         </Space>
       ),
@@ -215,7 +209,7 @@ const LogVisited: React.FC = () => {
         <Row justify="space-between" align="middle">
           <Col>
             <Title level={2} style={{ margin: 0 }}>
-              VISITOR LOGS
+              {t("visitorLogs")}
             </Title>
           </Col>
           <Col>
@@ -227,14 +221,14 @@ const LogVisited: React.FC = () => {
                 borderRadius: "6px",
               }}
             >
-              New Visit Report
+              {t("newVisitReport")}
             </Button>
           </Col>
         </Row>
       </div>
       {error && (
         <Alert
-          message="Error loading data"
+          message={t("errorLoadingData")}
           description={error}
           type="error"
           closable
@@ -248,7 +242,7 @@ const LogVisited: React.FC = () => {
           <Row gutter={16}>
             <Col xs={24} sm={12} lg={8}>
               <Search
-                placeholder="Search customer name, code, visitor, sales..."
+                placeholder={t("search")}
                 allowClear
                 enterButton={<SearchOutlined />}
                 value={searchText}
@@ -268,8 +262,10 @@ const LogVisited: React.FC = () => {
             showSizeChanger: true,
             showQuickJumper: true,
             showTotal: (total, range) =>
-              `${range[0]}-${range[1]} of ${total} items${
-                searchText ? ` (filtered from ${allTableData.length})` : ""
+              `${range[0]}-${range[1]} ${t("totalItems")} ${total} ${t(
+                "items"
+              )}${
+                searchText ? ` (${t("filtered")} ${allTableData.length})` : ""
               }`,
           }}
           scroll={{ x: 1200, y: testHeight }}

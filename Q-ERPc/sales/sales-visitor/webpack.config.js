@@ -92,6 +92,15 @@ module.exports = (env, argv) => {
             singleton: true,
             requiredVersion: '^5.8.0',
           },
+              // เพิ่ม i18next เข้าไปใน shared
+    'i18next': {
+      singleton: true,
+      requiredVersion: '^23.0.0',
+    },
+    'react-i18next': {
+      singleton: true,
+      requiredVersion: '^13.0.0',
+    },
         },
       }),
       new HtmlWebpackPlugin({

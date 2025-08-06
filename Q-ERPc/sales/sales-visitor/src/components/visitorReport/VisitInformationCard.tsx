@@ -1,6 +1,7 @@
 import React from "react";
 import { Card, Form, Row, Col, DatePicker, Input } from "antd";
 import { CalendarOutlined } from "@ant-design/icons";
+import { useTranslation } from "react-i18next"; // ⭐ เพิ่ม import
 
 interface VisitInformationCardProps {
   mode: "new" | "edit";
@@ -9,12 +10,15 @@ interface VisitInformationCardProps {
 const VisitInformationCard: React.FC<VisitInformationCardProps> = ({
   mode,
 }) => {
+  // ⭐ เพิ่ม useTranslation hook
+  const { t } = useTranslation('sales-visitor');
+
   return (
     <Card
       title={
         <div style={{ display: "flex", alignItems: "center" }}>
           <CalendarOutlined style={{ marginRight: "8px", color: "#1890ff" }} />
-          Visit Information
+          {t('visitInformation')}
         </div>
       }
       style={{ marginBottom: "24px" }}
@@ -23,13 +27,13 @@ const VisitInformationCard: React.FC<VisitInformationCardProps> = ({
       <Row gutter={24}>
         <Col xs={24} md={12}>
           <Form.Item
-            label="DATE OF VISIT"
+            label={t('dateOfVisit')}
             name="visitDate"
-            rules={[{ required: true, message: "Please select visit date" }]}
+            rules={[{ required: true, message: t('pleaseSelectVisitDate') }]}
           >
             <DatePicker
               style={{ width: "100%" }}
-              placeholder="Select date"
+              placeholder={t('selectDate')}
               format="DD/MM/YYYY"
               disabled={mode === "edit"}
             />
@@ -37,11 +41,11 @@ const VisitInformationCard: React.FC<VisitInformationCardProps> = ({
         </Col>
         <Col xs={24} md={12}>
           <Form.Item
-            label="VISITOR"
+            label={t('visitor')}
             name="visitor"
-            rules={[{ required: true, message: "Please enter visitor name" }]}
+            rules={[{ required: true, message: t('pleaseEnterVisitorName') }]}
           >
-            <Input placeholder="Enter visitor name" readOnly />
+            <Input placeholder={t('enterVisitorName')} readOnly />
           </Form.Item>
         </Col>
       </Row>

@@ -10,6 +10,7 @@ import {
   Modal,
 } from "antd";
 import { CameraOutlined, DeleteOutlined, EyeOutlined } from "@ant-design/icons";
+import { useTranslation } from "react-i18next"; // ⭐ เพิ่ม import
 import { useSalesVisitorStore } from "../../store/sales-visitor";
 import { RcFile } from "antd/es/upload";
 import { API_CONFIG } from "../../api/config";
@@ -21,6 +22,9 @@ interface PhotoUploadCardProps {
 }
 
 const PhotoUploadCard: React.FC<PhotoUploadCardProps> = ({ mode }) => {
+  // ⭐ เพิ่ม useTranslation hook
+  const { t } = useTranslation('sales-visitor');
+
   const {
     uploadSingleImage,
     removeUploadedImage,
@@ -45,7 +49,8 @@ const PhotoUploadCard: React.FC<PhotoUploadCardProps> = ({ mode }) => {
     const baseUrl = API_CONFIG.baseUrl;
     return `${baseUrl}${url}`;
   };
-  // ตั้งค่ารูпภาพเดิมเมื่อเข้าโหมด edit
+
+  // ตั้งค่ารูปภาพเดิมเมื่อเข้าโหมด edit
   React.useEffect(() => {
     if (mode === "edit") {
       setExistingImageUrl(createFullUrl(uploadedImage?.url || ""));
@@ -64,7 +69,7 @@ const PhotoUploadCard: React.FC<PhotoUploadCardProps> = ({ mode }) => {
   const handleUpload = async (file: RcFile): Promise<boolean> => {
     const isLt5M = file.size / 1024 / 1024 < 5;
     if (!isLt5M) {
-      message.error("รูปภาพต้องมีขนาดไม่เกิน 5MB!");
+      message.error(t('imageSizeError'));
       return false;
     }
 
@@ -73,7 +78,7 @@ const PhotoUploadCard: React.FC<PhotoUploadCardProps> = ({ mode }) => {
       file.type === "image/png" ||
       file.type === "image/jpg";
     if (!isJpgOrPng) {
-      message.error("รองรับเฉพาะไฟล์ JPG และ PNG เท่านั้น!");
+      message.error(t('imageFormatError'));
       return false;
     }
 
@@ -85,23 +90,23 @@ const PhotoUploadCard: React.FC<PhotoUploadCardProps> = ({ mode }) => {
       }
 
       const result = await uploadSingleImage(file);
-      message.success(`${file.name} อัปโหลดสำเร็จ!`);
+      message.success(`${file.name} ${t('uploadSuccess')}`);
       return false;
     } catch (error) {
       console.error("❌ Upload error:", error);
-      message.error(`อัปโหลด ${file.name} ล้มเหลว`);
+      message.error(`${t('uploadFailed')} ${file.name}`);
       return false;
     }
   };
 
   const handleRemove = () => {
     removeUploadedImage();
-    message.success("ลบรูปภาพแล้ว");
+    message.success(t('imageRemoved'));
   };
 
   const handleRemoveExisting = () => {
     setExistingImageUrl(null);
-    message.success("ลบรูปภาพเดิมแล้ว");
+    message.success(t('existingImageRemoved'));
   };
 
   const [previewVisible, setPreviewVisible] = useState(false);
@@ -124,7 +129,7 @@ const PhotoUploadCard: React.FC<PhotoUploadCardProps> = ({ mode }) => {
         >
           <div style={{ display: "flex", alignItems: "center" }}>
             <CameraOutlined style={{ marginRight: "8px", color: "#1890ff" }} />
-            Visit Photos
+            {t('visitPhotos')}
           </div>
         </div>
       }
@@ -143,7 +148,7 @@ const PhotoUploadCard: React.FC<PhotoUploadCardProps> = ({ mode }) => {
             color: "#cf1322",
           }}
         >
-          <Text type="danger">Error: {uploadError}</Text>
+          <Text type="danger">{t('error')}: {uploadError}</Text>
         </div>
       )}
 
@@ -159,7 +164,7 @@ const PhotoUploadCard: React.FC<PhotoUploadCardProps> = ({ mode }) => {
             color: "#1890ff",
           }}
         >
-          <Text>กำลังอัपโหลด... {currentUploadProgress}%</Text>
+          <Text>{t('uploading')} {currentUploadProgress}%</Text>
         </div>
       )}
 
@@ -170,7 +175,7 @@ const PhotoUploadCard: React.FC<PhotoUploadCardProps> = ({ mode }) => {
             strong
             style={{ display: "block", marginBottom: "12px", color: "#1890ff" }}
           >
-            รูปภาพจากข้อมูลเดิม:
+            {t('existingImage')}:
           </Text>
           <div
             style={{
@@ -227,7 +232,7 @@ const PhotoUploadCard: React.FC<PhotoUploadCardProps> = ({ mode }) => {
                   marginBottom: "4px",
                 }}
               >
-                รูปภาพจากฐานข้อมูล
+                {t('imageFromDatabase')}
               </div>
               <div
                 style={{
@@ -236,7 +241,7 @@ const PhotoUploadCard: React.FC<PhotoUploadCardProps> = ({ mode }) => {
                   marginBottom: "2px",
                 }}
               >
-                <span style={{ color: "#1890ff" }}>📁 จากข้อมูลเดิม</span>
+                <span style={{ color: "#1890ff" }}>📁 {t('fromExistingData')}</span>
               </div>
             </div>
 
@@ -248,7 +253,7 @@ const PhotoUploadCard: React.FC<PhotoUploadCardProps> = ({ mode }) => {
                 icon={<EyeOutlined />}
                 onClick={() => handlePreview(existingImageUrl)}
                 style={{ color: "#1890ff" }}
-                title="ดูรูปภาพ"
+                title={t('viewImage')}
               />
               <Button
                 type="text"
@@ -256,7 +261,7 @@ const PhotoUploadCard: React.FC<PhotoUploadCardProps> = ({ mode }) => {
                 icon={<DeleteOutlined />}
                 onClick={handleRemoveExisting}
                 danger
-                title="ลบรูปภาพเดิม"
+                title={t('removeExistingImage')}
                 disabled={uploadLoading}
               />
             </Space>
@@ -271,7 +276,7 @@ const PhotoUploadCard: React.FC<PhotoUploadCardProps> = ({ mode }) => {
             strong
             style={{ display: "block", marginBottom: "12px", color: "#52c41a" }}
           >
-            รูปภาพที่อัปโหลดแล้ว:
+            {t('uploadedImages')}:
           </Text>
 
           <div
@@ -335,7 +340,7 @@ const PhotoUploadCard: React.FC<PhotoUploadCardProps> = ({ mode }) => {
               <div
                 style={{ fontSize: "12px", color: "#666", marginBottom: "2px" }}
               >
-                <span style={{ color: "#52c41a" }}>✅ อัปโหลดสำเร็จ</span>
+                <span style={{ color: "#52c41a" }}>✅ {t('uploadSuccessStatus')}</span>
               </div>
               <div
                 style={{
@@ -360,7 +365,7 @@ const PhotoUploadCard: React.FC<PhotoUploadCardProps> = ({ mode }) => {
                 icon={<DeleteOutlined />}
                 onClick={handleRemove}
                 danger
-                title="ลบรูปภาพ"
+                title={t('removeImage')}
                 disabled={uploadLoading}
               />
             </Space>
@@ -400,7 +405,7 @@ const PhotoUploadCard: React.FC<PhotoUploadCardProps> = ({ mode }) => {
                     marginBottom: "4px",
                   }}
                 >
-                  {uploadLoading ? "กำลังอัปโหลด..." : "เพิ่มรูปภาพ"}
+                  {uploadLoading ? t('uploading') : t('addPhoto')}
                 </Text>
                 <Text
                   style={{
@@ -408,12 +413,12 @@ const PhotoUploadCard: React.FC<PhotoUploadCardProps> = ({ mode }) => {
                     color: uploadLoading ? "#999" : "#666",
                   }}
                 >
-                  Click or drag photo here
+                  {t('clickOrDragPhoto')}
                 </Text>
               </div>
               <div style={{ marginTop: "8px" }}>
                 <Text type="secondary" style={{ fontSize: "12px" }}>
-                  Support: JPG, PNG • Max 5MB • One photo only
+                  {t('supportedFormats')}
                 </Text>
               </div>
             </div>
