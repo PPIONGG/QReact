@@ -1,24 +1,26 @@
 import { useEffect, useRef, useState } from "react";
-import { Form, message, Modal, notification } from "antd";
+import { Form, message, notification } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
-import { useTranslation } from "react-i18next"; // ⭐ เพิ่ม import
+import { useTranslation } from "react-i18next";
 import { useSalesVisitorStore } from "../store/sales-visitor";
 import { VisitorFormData } from "../types";
 import dayjs from "dayjs";
 import {
   CheckCircleOutlined,
-  ExclamationCircleOutlined,
-  SaveOutlined,
 } from "@ant-design/icons";
 
 export const useVisitorReport = (mode: "new" | "edit") => {
-  // ⭐ เพิ่ม useTranslation hook
   const { t } = useTranslation('sales-visitor');
   
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const { id } = useParams();
   const [isCustomerModalVisible, setIsCustomerModalVisible] = useState(false);
+
+  // ⭐ เพิ่ม state สำหรับ custom modals
+  const [isBackConfirmVisible, setIsBackConfirmVisible] = useState(false);
+  const [isSaveConfirmVisible, setIsSaveConfirmVisible] = useState(false);
+  const [pendingSaveData, setPendingSaveData] = useState<VisitorFormData | null>(null);
 
   const originalFormData = useRef<any>(null);
 
@@ -42,7 +44,7 @@ export const useVisitorReport = (mode: "new" | "edit") => {
     setExistingImageAsUploaded,
   } = useSalesVisitorStore();
 
-  // ⭐ เพิ่ม useEffect สำหรับ set default visitor name
+  // ⭐ useEffect สำหรับ set default visitor name
   useEffect(() => {
     if (mode === "new") {
       const authStorage = sessionStorage.getItem("auth-storage");
@@ -69,14 +71,13 @@ export const useVisitorReport = (mode: "new" | "edit") => {
       fetchVisitDetail(id);
     }
 
-    // 🔧 Cleanup function - เพิ่ม photos cleanup
+    // Cleanup function
     return () => {
       if (mode === "edit") {
         clearVisitDetail();
       }
       clearCustomerDetails();
       clearListAllCustomer();
-      // ⭐ สำคัญ: ล้างรูปภาพเมื่อออกจากหน้า
       clearUploadedImage();
       clearUploadError();
     };
@@ -99,15 +100,14 @@ export const useVisitorReport = (mode: "new" | "edit") => {
         visitDate: data.dateVisit ? dayjs(data.dateVisit) : null,
         visitor: data.visitorName,
         customerCode: data.customerCode,
-        // 🔧 ปรับส่วนนี้ให้รวม prefix + companyName + suffix
         customerName: [
           data.customerPrefix,
           data.companyName,
           data.customerSuffix,
         ]
-          .filter(Boolean) // กรองค่า null, undefined, หรือ empty string ออก
-          .join(" ") // รวมด้วยช่องว่าง
-          .trim(), // ตัดช่องว่างหน้า-หลังออก        
+          .filter(Boolean)
+          .join(" ")
+          .trim(),        
         contactPerson: data.contactPerson,
         tel: data.tel,
         email: data.email,
@@ -140,7 +140,7 @@ export const useVisitorReport = (mode: "new" | "edit") => {
         setExistingImageAsUploaded(existingImageObj);
       }
     }
-  }, [visitDetail, mode, form, t]);
+  }, [visitDetail, mode, form, t, setExistingImageAsUploaded]);
 
   // Handle save errors
   useEffect(() => {
@@ -179,7 +179,6 @@ export const useVisitorReport = (mode: "new" | "edit") => {
       customerSuffix: customerData.customerSuffix,
     });
 
-    // 🔧 เพิ่ม 2 บรรทัดนี้
     clearUploadedImage();
     clearUploadError();
 
@@ -189,7 +188,6 @@ export const useVisitorReport = (mode: "new" | "edit") => {
     });
   };
 
-  // 🔧 เพิ่มการเช็ครูปภาพด้วย
   const hasFormChanges = () => {
     const currentFormData = form.getFieldsValue();
 
@@ -260,37 +258,19 @@ export const useVisitorReport = (mode: "new" | "edit") => {
         (field) => field.current !== field.original
       );
 
-      // 🔧 เช็ครูปภาพด้วย (สำหรับ edit mode อาจจะต้องเปรียบเทียบกับรูปเก่า)
-      const hasPhotoChanges = uploadedImage !== null; // ถ้ามีรูปใหม่ถือว่ามีการเปลี่ยนแปลง
+      const hasPhotoChanges = uploadedImage !== null;
 
       return hasFormChanges || hasPhotoChanges;
     }
   };
 
+  // ⭐ ปรับปรุง handleGoBack ให้ใช้ custom modal
   const handleGoBack = () => {
     const hasChanges = hasFormChanges();
 
     if (hasChanges) {
-      Modal.confirm({
-        title: mode === "new" ? t('discardChanges') : t('discardChanges'),
-        icon: <ExclamationCircleOutlined />,
-        content:
-          mode === "new"
-            ? t('unsavedChangesNewWarning')
-            : t('unsavedChangesEditWarning'),
-        okText: t('yesLeave'),
-        okType: "danger",
-        cancelText: t('stay'),
-        onOk() {
-          // 🔧 ล้างข้อมูลทั้งหมดก่อนออก
-          form.resetFields();
-          clearUploadedImage();
-          clearUploadError();
-          navigate("/sales/sales-visitor");
-        },
-      });
+      setIsBackConfirmVisible(true);
     } else {
-      // 🔧 ล้างข้อมูลก่อนออกเสมอ
       form.resetFields();
       clearUploadedImage();
       clearUploadError();
@@ -298,10 +278,25 @@ export const useVisitorReport = (mode: "new" | "edit") => {
     }
   };
 
+  // ⭐ handler สำหรับ back confirm modal
+  const handleBackConfirm = () => {
+    form.resetFields();
+    clearUploadedImage();
+    clearUploadError();
+    navigate("/sales/sales-visitor");
+    setIsBackConfirmVisible(false);
+  };
+
+  const handleBackCancel = () => {
+    setIsBackConfirmVisible(false);
+  };
+
+  // ⭐ ปรับปรุง handleSave ให้ใช้ custom modal
   const handleSave = async () => {
     try {
       const values: VisitorFormData = await form.validateFields();
-      showSaveConfirmation(values);
+      setPendingSaveData(values);
+      setIsSaveConfirmVisible(true);
     } catch (validationError) {
       message.warning({
         content: t('pleaseCompleteAllFields'),
@@ -310,72 +305,24 @@ export const useVisitorReport = (mode: "new" | "edit") => {
     }
   };
 
-  const showSaveConfirmation = (values: VisitorFormData) => {
-    const title = mode === "new" ? t('createNewReport') : t('updateReport');
-    const content =
-      mode === "new"
-        ? t('createNewReportConfirm')
-        : t('updateReportConfirm');
+  // ⭐ handler สำหรับ save confirm modal
+  const handleSaveConfirm = async () => {
+    if (pendingSaveData) {
+      setIsSaveConfirmVisible(false);
+      await performSave(pendingSaveData);
+      setPendingSaveData(null);
+    }
+  };
 
-    Modal.confirm({
-      title: (
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <span style={{ color: "#1f2937", fontWeight: "600" }}>{title}</span>
-        </div>
-      ),
-      content: (
-        <div style={{ padding: "8px 0" }}>
-          <p
-            style={{
-              margin: 0,
-              color: "#6b7280",
-              fontSize: "14px",
-              lineHeight: "1.5",
-            }}
-          >
-            {content}
-          </p>
-        </div>
-      ),
-      okText: mode === "new" ? t('save') : t('update'),
-      okType: "primary",
-      cancelText: t('cancel'),
-      centered: true,
-      width: 420,
-      okButtonProps: {
-        style: {
-          background: "#52c41a",
-          borderColor: "#52c41a",
-          height: "36px",
-          borderRadius: "6px",
-          fontWeight: "500",
-        },
-        icon: <SaveOutlined />,
-      },
-      cancelButtonProps: {
-        style: {
-          height: "36px",
-          borderRadius: "6px",
-        },
-      },
-      styles: {
-        header: {
-          borderBottom: "1px solid #f0f0f0",
-          paddingBottom: "16px",
-        },
-      },
-      onOk() {
-        return performSave(values);
-      },
-    });
-    
+  const handleSaveCancel = () => {
+    setIsSaveConfirmVisible(false);
+    setPendingSaveData(null);
   };
 
   const performSave = async (values: VisitorFormData) => {
     const authStorage = sessionStorage.getItem("auth-storage");
     const parsedAuth = authStorage ? JSON.parse(authStorage) : null;
 
-    // 🔧 เพิ่ม photos ใน request body
     const photoFilenames = getFilenameForSave();
 
     const requestBody = {
@@ -418,8 +365,7 @@ export const useVisitorReport = (mode: "new" | "edit") => {
           mode === "edit" && visitDetail?.data?.employeeCode
             ? visitDetail.data.employeeCode
             : parsedAuth?.state?.Salesinfo?.data?.employeeCode || "",
-        // 🔧 ส่ง photos ไปด้วย
-        imageFilePatch: photoFilenames || "", // หรือตาม format ที่ API ต้องการ
+        imageFilePatch: photoFilenames || "",
         isUpdateImage: mode === "edit" || photoFilenames ? true : false,
         isDeleteImage: mode === "edit" && !photoFilenames ? true : false,
         customerPrefix: values.customerPrefix || null,
@@ -459,12 +405,10 @@ export const useVisitorReport = (mode: "new" | "edit") => {
                 : currentFormData.visitDate
               : null,
           };
-          // 🔧 ล้างรูปหลัง save สำเร็จ (edit mode)
           clearUploadedImage();
           form.resetFields();
         }
 
-        // Smooth transition กลับหน้าหลัก
         navigate("/sales/sales-visitor");
 
       } else {
@@ -489,14 +433,22 @@ export const useVisitorReport = (mode: "new" | "edit") => {
     detailLoading,
     detailError,
     saveLoading,
-    // 🔧 เพิ่ม photo states
     uploadedImage,
     hasUnsavedPhotos: uploadedImage !== null,
+    
+    // ⭐ เพิ่ม states และ handlers สำหรับ custom modals
+    isBackConfirmVisible,
+    isSaveConfirmVisible,
+    
     handleCustomerModalOpen,
     handleCustomerModalClose,
     handleCustomerSelect,
     handleGoBack,
     handleSave,
+    handleBackConfirm,
+    handleBackCancel,
+    handleSaveConfirm,
+    handleSaveCancel,
     clearDetailError,
     fetchVisitDetail,
   };

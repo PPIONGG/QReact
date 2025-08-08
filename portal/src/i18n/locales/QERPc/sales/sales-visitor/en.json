@@ -1,6 +1,6 @@
 {
   "customerCode": "Customer Code",
-  "customerName": "Customer Name", 
+  "customerName": "Customer Name",
   "visitDate": "Visit Date",
   "lastUpdated": "Last Updated",
   "createdDate": "Created Date",
@@ -16,7 +16,7 @@
   "search": "Search customer name, code, visitor, sales...",
   "unknown": "Unknown",
   "totalItems": "total items",
-  "filtered": "filtered from", 
+  "filtered": "filtered from",
   "items": "items",
   "loadingVisitDetails": "Loading visit details...",
   "errorLoadingVisitDetails": "Error loading visit details",
@@ -34,7 +34,7 @@
   "selectDate": "Select date",
   "pleaseEnterVisitorName": "Please enter visitor name",
   "enterVisitorName": "Enter visitor name",
-  
+
   "customerInformation": "Customer Information",
   "searchCustomer": "Search customer",
   "enterCustomerCode": "Enter customer code",
@@ -98,11 +98,11 @@
   "stay": "Stay",
   "pleaseCompleteAllFields": "Please fill in all required fields",
   "createNewReport": "Create New Report?",
+  "updateReport": "Update Visit Report ?",
   "createNewReportConfirm": "Do you want to create a new visit report?",
   "updateReportConfirm": "Do you want to update this visit report?",
   "newReportCreatedSuccess": "New visit report created successfully!",
   "reportUpdatedSuccess": "Visit report updated successfully!",
   "saveReportFailed": "Failed to save visit report",
   "saveReportFailedTryAgain": "Failed to save visit report. Please try again."
-  
 }

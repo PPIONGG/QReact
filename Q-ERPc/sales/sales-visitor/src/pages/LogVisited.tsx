@@ -106,15 +106,36 @@ const LogVisited: React.FC = () => {
       width: 120,
       render: (text: string) => <Text strong>{text || "-"}</Text>,
     },
+    // {
+    //   title: t("customerName"),
+    //   dataIndex: "customerName",
+    //   key: "customerName",
+    //   render: (text: string) => (
+    //     <div style={{ display: "flex", alignItems: "center" }}>
+    //       <Text>{text}</Text>
+    //     </div>
+    //   ),
+    // },
     {
       title: t("customerName"),
       dataIndex: "customerName",
       key: "customerName",
-      render: (text: string) => (
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <Text>{text}</Text>
-        </div>
-      ),
+      render: (text: string, record: TableDataItem) => {
+        // สร้างชื่อลูกค้าแบบเต็ม
+        const prefix = record.customerPrefix || "";
+        const name = record.customerName || text || "";
+        const suffix = record.customerSuffix || "";
+
+        const fullCustomerName = `${prefix} ${name} ${suffix}`
+          .trim()
+          .replace(/\s+/g, " ");
+
+        return (
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <Text>{fullCustomerName}</Text>
+          </div>
+        );
+      },
     },
     {
       title: t("visitDate"),
