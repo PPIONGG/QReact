@@ -16,8 +16,7 @@ interface VisitorReportProps {
 }
 
 const VisitorReport: React.FC<VisitorReportProps> = ({ mode }) => {
-
-  const { t } = useTranslation('sales-visitor');
+  const { t } = useTranslation("sales-visitor");
 
   const { id } = useParams();
   const {
@@ -36,7 +35,8 @@ const VisitorReport: React.FC<VisitorReportProps> = ({ mode }) => {
     fetchVisitDetail,
   } = useVisitorReport(mode);
 
-  const pageTitle = mode === "new" ? t('newVisitReport') : t('editVisitReport');
+  const pageTitle =
+    mode === "new" ? t("createVisitReport") : t("editVisitReport");
 
   // Loading states
   if (mode === "edit" && detailLoading) {
@@ -44,7 +44,7 @@ const VisitorReport: React.FC<VisitorReportProps> = ({ mode }) => {
       <div style={{ padding: "10px", textAlign: "center", marginTop: "50px" }}>
         <Spin size="large" />
         <div style={{ marginTop: "16px" }}>
-          <Text>{t('loadingVisitDetails')}</Text>
+          <Text>{t("loadingVisitDetails")}</Text>
         </div>
       </div>
     );
@@ -55,7 +55,7 @@ const VisitorReport: React.FC<VisitorReportProps> = ({ mode }) => {
     return (
       <div style={{ padding: "10px" }}>
         <Alert
-          message={t('errorLoadingVisitDetails')}
+          message={t("errorLoadingVisitDetails")}
           description={detailError}
           type="error"
           closable
@@ -63,14 +63,14 @@ const VisitorReport: React.FC<VisitorReportProps> = ({ mode }) => {
           action={
             <Space>
               <Button size="small" onClick={handleGoBack}>
-                {t('goBack')}
+                {t("goBack")}
               </Button>
               <Button
                 size="small"
                 type="primary"
                 onClick={() => id && fetchVisitDetail(id)}
               >
-                {t('retry')}
+                {t("retry")}
               </Button>
             </Space>
           }
@@ -83,12 +83,12 @@ const VisitorReport: React.FC<VisitorReportProps> = ({ mode }) => {
     return (
       <div style={{ padding: "10px" }}>
         <Alert
-          message={t('visitNotFound')}
-          description={t('visitNotFoundDescription')}
+          message={t("visitNotFound")}
+          description={t("visitNotFoundDescription")}
           type="warning"
           action={
             <Button type="primary" onClick={handleGoBack}>
-              {t('goBack')}
+              {t("goBack")}
             </Button>
           }
         />
@@ -99,7 +99,18 @@ const VisitorReport: React.FC<VisitorReportProps> = ({ mode }) => {
   return (
     <div style={{ padding: "10px" }}>
       {/* Header */}
-      <div style={{ marginBottom: "14px" }}>
+      <div
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 100,
+          marginBottom: "14px",
+          background: "#fff",
+          padding: "10px 10px 14px 10px",
+          borderRadius: "6px",
+          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
+        }}
+      >
         <Row justify="space-between" align="middle">
           <Col>
             <Title level={2} style={{ margin: 0, color: "#1890ff" }}>
@@ -107,18 +118,13 @@ const VisitorReport: React.FC<VisitorReportProps> = ({ mode }) => {
               {mode === "edit" && id && (
                 <span style={{ fontSize: "16px", color: "#666" }}>
                   {" "}
-                  ({t('id')}: {id})
+                  ({visitDetail?.data.visitorName})
                 </span>
               )}
             </Title>
           </Col>
           <Col>
             <Space size="middle">
-              <Button
-                onClick={handleGoBack}
-              >
-                {t('cancel')}
-              </Button>
               <Button
                 type="primary"
                 icon={<SaveOutlined />}
@@ -129,8 +135,9 @@ const VisitorReport: React.FC<VisitorReportProps> = ({ mode }) => {
                   borderRadius: "6px",
                 }}
               >
-                {mode === "new" ? t('saveReport') : t('updateReport')}
+                {mode === "new" ? t("save") : t("update")}
               </Button>
+              <Button onClick={handleGoBack}>{t("cancel")}</Button>
             </Space>
           </Col>
         </Row>

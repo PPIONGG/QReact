@@ -221,7 +221,7 @@ const LogVisited: React.FC = () => {
                 borderRadius: "6px",
               }}
             >
-              {t("newVisitReport")}
+              {t("createVisitReport")}
             </Button>
           </Col>
         </Row>

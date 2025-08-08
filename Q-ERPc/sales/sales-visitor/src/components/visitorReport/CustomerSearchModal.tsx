@@ -31,7 +31,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
   onCustomerSelect,
 }) => {
   // ⭐ เพิ่ม useTranslation hook
-  const { t } = useTranslation('sales-visitor');
+  const { t } = useTranslation("sales-visitor");
 
   const [searchText, setSearchText] = useState("");
   const [selectedCustomerCode, setSelectedCustomerCode] = useState<
@@ -72,7 +72,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
   useEffect(() => {
     if (isVisible) {
       fetchlistAllCustomerAPI().catch(() => {
-        message.error(t('cannotLoadCustomerData'));
+        message.error(t("cannotLoadCustomerData"));
       });
     }
   }, [isVisible, fetchlistAllCustomerAPI, t]);
@@ -82,7 +82,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
       onCustomerSelect(customerDetails.data);
       handleClose();
     } else if (customerDetails?.status === false) {
-      message.error(t('customerNotFound'));
+      message.error(t("customerNotFound"));
       setSelectedCustomerCode(null);
       setIsSelectingCustomer(false);
     }
@@ -90,7 +90,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
 
   useEffect(() => {
     if (customerDetailsError) {
-      message.error(t('errorLoadingCustomerData'));
+      message.error(t("errorLoadingCustomerData"));
       setSelectedCustomerCode(null);
       setIsSelectingCustomer(false);
     }
@@ -111,9 +111,31 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
       setIsSelectingCustomer(true);
       await fetchCustomerDetails(customerData.noItem, customerData.typeInfo);
     } catch (error) {
-      message.error(t('cannotLoadCustomerDetails'));
+      message.error(t("cannotLoadCustomerDetails"));
       setSelectedCustomerCode(null);
       setIsSelectingCustomer(false);
+    }
+  };
+
+  const getTypeInfoDisplay = (typeInfo: string) => {
+    switch (typeInfo?.toLowerCase()) {
+      case "sv":
+        return "Sales-Visitor";
+      case "cm":
+        return "Customer";
+      default:
+        return typeInfo;
+    }
+  };
+
+  const getTypeInfoColor = (typeInfo: string) => {
+    switch (typeInfo?.toLowerCase()) {
+      case "sv":
+        return "#52c41a";
+      case "cm":
+        return "#1890ff";
+      default:
+        return "#999999";
     }
   };
 
@@ -123,7 +145,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
         <div style={{ display: "flex", alignItems: "center" }}>
           <TeamOutlined style={{ marginRight: "8px", color: "#1890ff" }} />
           <span style={{ fontSize: "18px", fontWeight: "600" }}>
-            {t('selectSystemCustomer')}
+            {t("selectSystemCustomer")}
           </span>
         </div>
       }
@@ -165,11 +187,11 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
             <Text
               style={{ fontSize: "16px", color: "#1890ff", fontWeight: "500" }}
             >
-              {t('loadingCustomerData')}...
+              {t("loadingCustomerData")}...
             </Text>
             <div style={{ marginTop: "8px" }}>
               <Text type="secondary" style={{ fontSize: "14px" }}>
-                {t('customerCode')}: {selectedCustomerCode}
+                {t("customerCode")}: {selectedCustomerCode}
               </Text>
             </div>
           </div>
@@ -181,7 +203,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
         <div style={{ marginBottom: "20px" }}>
           <Input
             size="large"
-            placeholder={t('searchCustomerPlaceholder')}
+            placeholder={t("searchCustomerPlaceholder")}
             prefix={<SearchOutlined />}
             allowClear
             value={searchText}
@@ -197,7 +219,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
             <div style={{ textAlign: "center", padding: "40px" }}>
               <Spin size="large" />
               <div style={{ marginTop: "16px" }}>
-                <Text>{t('loadingCustomerData')}...</Text>
+                <Text>{t("loadingCustomerData")}...</Text>
               </div>
             </div>
           )}
@@ -205,7 +227,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
           {listAllCustomerError && (
             <div style={{ textAlign: "center", padding: "40px" }}>
               <Alert
-                message={t('error')}
+                message={t("error")}
                 description={listAllCustomerError}
                 type="error"
                 showIcon
@@ -220,7 +242,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
               {filteredCustomers.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "40px" }}>
                   <Text type="secondary">
-                    {searchText ? t('noCustomerFound') : t('noCustomerData')}
+                    {searchText ? t("noCustomerFound") : t("noCustomerData")}
                   </Text>
                 </div>
               ) : (
@@ -281,17 +303,14 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
                             <Text
                               style={{
                                 fontSize: "10px",
-                                background:
-                                  customer.typeInfo === "SV"
-                                    ? "#52c41a"
-                                    : "#1890ff",
+                                background: getTypeInfoColor(customer.typeInfo),
                                 color: "white",
                                 padding: "2px 6px",
                                 borderRadius: "4px",
                                 fontWeight: "bold",
                               }}
                             >
-                              {customer.typeInfo}
+                              {getTypeInfoDisplay(customer.typeInfo)}
                             </Text>
                             {isCurrentlyLoading && (
                               <div
@@ -308,7 +327,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
                                 <Text
                                   style={{ fontSize: "11px", color: "#1890ff" }}
                                 >
-                                  {t('loading')}...
+                                  {t("loading")}...
                                 </Text>
                               </div>
                             )}
@@ -321,7 +340,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
                           </div>
                           <div style={{ marginTop: "4px" }}>
                             <Text style={{ fontSize: "14px" }}>
-                              {t('tel')}: {customer.phone}
+                              {t("tel")}: {customer.phone}
                             </Text>
                           </div>
                         </div>
@@ -342,7 +361,7 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
                           loading={isCurrentlyLoading}
                           disabled={isSelectingCustomer}
                         >
-                          {isCurrentlyLoading ? t('loading') : t('select')}
+                          {isCurrentlyLoading ? t("loading") : t("select")}
                         </Button>
                       </div>
                       {isCurrentlyLoading && (

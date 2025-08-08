@@ -5,6 +5,7 @@ import {
   PhoneOutlined,
   MailOutlined,
   TeamOutlined,
+  SearchOutlined,
 } from "@ant-design/icons";
 import { useTranslation } from "react-i18next"; // ⭐ เพิ่ม import
 
@@ -35,11 +36,11 @@ const CustomerInformationCard: React.FC<CustomerSearchButtonProps> = ({
           <Button
             type="primary"
             size="small"
-            icon={<TeamOutlined />}
+            icon={<SearchOutlined />}
             onClick={onCustomerSearch}
             style={{ height: "32px" }}
           >
-            {t('systemCustomers')}
+            {t('searchCustomer')}
           </Button>
         </div>
       }
