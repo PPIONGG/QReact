@@ -31,12 +31,6 @@
     "backToHome": "กลับหน้าหลัก"
   },
   "content": {
-    "portalDashboard": "🏠 Portal Dashboard",
-    "currentUrl": "📍 Current URL:",
-    "hash": "Hash:",
-    "activeApp": "ActiveApp:",
-    "testInstructions": "กดเมนู \"Sales Visitor\" เพื่อทดสอบ Micro Frontend",
-    "howToTest": "📋 วิธีทดสอบ:",
     "applicationDeveloping": "Application \"{{appName}}\" กำลังพัฒนา",
     "microfrontendDesc": "เรากำลังพัฒนา Application นี้ในรูปแบบ Microfrontend Architecture เพื่อประสิทธิภาพและความยืดหยุ่นที่ดีขึ้น",
     "notifyWhenReady": "แจ้งเตือนเมื่อพร้อม",

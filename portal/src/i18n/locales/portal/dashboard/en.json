@@ -31,12 +31,6 @@
     "backToHome": "Back to Home"
   },
   "content": {
-    "portalDashboard": "🏠 Portal Dashboard",
-    "currentUrl": "📍 Current URL:",
-    "hash": "Hash:",
-    "activeApp": "ActiveApp:",
-    "testInstructions": "Click \"Sales Visitor\" menu to test Micro Frontend",
-    "howToTest": "📋 How to test:",
     "applicationDeveloping": "Application \"{{appName}}\" is under development",
     "microfrontendDesc": "We are developing this application in Microfrontend Architecture for better performance and flexibility",
     "notifyWhenReady": "Notify when ready",

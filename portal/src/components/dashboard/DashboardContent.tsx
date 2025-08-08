@@ -3,10 +3,17 @@ import { useLocation } from "react-router-dom";
 import { ActiveApp, MenuItem } from "../../types";
 import { useAuthStore } from "../../store/auth.store";
 import { Card, Button, Typography, Spin, Alert } from "antd";
-import { RocketOutlined, LoadingOutlined } from "@ant-design/icons";
+import {
+  RocketOutlined,
+  LoadingOutlined,
+  LeftOutlined,
+  RightOutlined,
+} from "@ant-design/icons";
 import NoPermissionOverlay from "./NoPermissionOverlay";
 import React from "react";
 import { useTranslation } from "react-i18next";
+import logo1 from "../../assets/Q-ERPc.jpg";
+import logo2 from "../../assets/Q-ERPc_2.jpg";
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -50,13 +57,29 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
 }) => {
   const location = useLocation();
   const [currentUrl, setCurrentUrl] = useState(window.location.href);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
   const { Salesinfo, user, fetchSalesinfo, isloadingSalesinfo } =
     useAuthStore();
-  const {t} = useTranslation('portal-dashboard');
+  const { t } = useTranslation("portal-dashboard");
+
+  // ⭐ เพิ่ม array ของรูปภาพ
+  const images = [logo1, logo2];
 
   const cleanUsername = (username: string): string => {
     return username.replace(/^QERP_/i, "");
   };
+
+  // ⭐ เพิ่ม Auto slide effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) =>
+        prevIndex === images.length - 1 ? 0 : prevIndex + 1
+      );
+    }, 4000); // เปลี่ยนทุก 4 วินาที
+
+    return () => clearInterval(interval);
+  }, [images.length]);
 
   useEffect(() => {
     if (user && user.username && !Salesinfo) {
@@ -69,7 +92,6 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
       const newUrl = window.location.href;
       setCurrentUrl(newUrl);
     };
-    // Initial call
     handleUrlChange();
 
     window.addEventListener("hashchange", handleUrlChange);
@@ -104,6 +126,23 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
     };
   }, [activeApp.parentId, user, isloadingSalesinfo, Salesinfo]);
 
+  // ⭐ เพิ่ม functions สำหรับควบคุม slider
+  const goToPrevious = () => {
+    setCurrentImageIndex(
+      currentImageIndex === 0 ? images.length - 1 : currentImageIndex - 1
+    );
+  };
+
+  const goToNext = () => {
+    setCurrentImageIndex(
+      currentImageIndex === images.length - 1 ? 0 : currentImageIndex + 1
+    );
+  };
+
+  const goToSlide = (index: number) => {
+    setCurrentImageIndex(index);
+  };
+
   const RemoteLoadingFallback: React.FC<{ appName: string }> = ({
     appName,
   }) => (
@@ -123,11 +162,11 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
       />
       <div style={{ textAlign: "center" }}>
         <Text strong style={{ fontSize: "16px" }}>
-          {t('remote.loading', { appName })}
+          {t("remote.loading", { appName })}
         </Text>
         <br />
         <Text type="secondary" style={{ fontSize: "14px" }}>
-          {t('remote.connecting')}
+          {t("remote.connecting")}
         </Text>
       </div>
     </div>
@@ -147,10 +186,10 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
       }}
     >
       <Alert
-        message={t('remote.notAvailable', { appName })}
+        message={t("remote.notAvailable", { appName })}
         description={
           <div>
-            <p>{t('remote.cannotLoad', { appName })}</p>
+            <p>{t("remote.cannotLoad", { appName })}</p>
             {error && (
               <p style={{ fontSize: "12px", color: "#999" }}>Error: {error}</p>
             )}
@@ -160,10 +199,10 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
                 onClick={() => window.location.reload()}
                 style={{ marginRight: "8px" }}
               >
-                {t('remote.reloadPage')}
+                {t("remote.reloadPage")}
               </Button>
               <Button onClick={() => console.log("Contact support")}>
-                {t('remote.contactSupport')}
+                {t("remote.contactSupport")}
               </Button>
             </div>
           </div>
@@ -178,64 +217,171 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   const renderContent = useMemo(() => {
     if (activeApp.parentId === "home") {
       return (
-        <div style={{ padding: "40px", textAlign: "center" }}>
-          <h1>{t('content.portalDashboard')}</h1>
-
+        <div style={{ padding: "20px", textAlign: "center" }}>
           <div
             style={{
-              padding: "20px",
-              backgroundColor: "#f0f8ff",
-              borderRadius: "8px",
-              marginBottom: "20px",
-              maxWidth: "600px",
-              margin: "0 auto 20px auto",
-            }}
-          >
-            <strong>{t('content.currentUrl')}</strong>
-            <br />
-            <code style={{ fontSize: "12px", wordBreak: "break-all" }}>
-              {currentUrl}
-            </code>
-            <br />
-            <br />
-            <strong>{t('content.hash')}</strong>
-            <code>{window.location.hash || "(none)"}</code>
-            <br />
-            <strong>{t('content.activeApp')}</strong> <code>{activeApp.parentId}</code>
-          </div>
-
-          <p style={{ fontSize: "16px", marginBottom: "20px" }}>
-            {t('content.testInstructions')}
-          </p>
-
-          <div
-            style={{
-              padding: "15px",
-              backgroundColor: "#fff7e6",
-              borderRadius: "8px",
-              maxWidth: "500px",
+              position: "relative",
+              width: "100%",
               margin: "0 auto",
+              borderRadius: "12px",
+              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+              backgroundColor: "#fff",
             }}
           >
-            <strong>{t('content.howToTest')}</strong>
-            <ol style={{ textAlign: "left", marginTop: "10px" }}>
-              <li>คลิกเมนู "การขาย" → "Sales Visitor"</li>
-              <li>
-                ดู URL เปลี่ยนเป็น <code>/#/sales/sales-visitor</code>
-              </li>
-              <li>ใน Remote App คลิก "New Visit Report"</li>
-              <li>
-                ดู URL เปลี่ยนเป็น <code>/#/sales/sales-visitor/new</code>
-              </li>
-              <li>คลิก "Edit" ใน table</li>
-              <li>
-                ดู URL เปลี่ยนเป็น <code>/#/sales/sales-visitor/edit/001</code>
-              </li>
-            </ol>
+            <div
+              style={{
+                position: "relative",
+                width: "100%",
+                height: "50vh",
+                minHeight: "300px",
+                maxHeight: "600px",
+                overflow: "hidden",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: "#f8fafc",
+              }}
+            >
+              <img
+                src={images[currentImageIndex]}
+                alt={`Logo ${currentImageIndex + 1}`}
+                style={{
+                  maxWidth: "100%",
+                  maxHeight: "100%",
+                  width: "auto",
+                  height: "auto",
+                  objectFit: "contain",
+                  transition: "transform 0.5s ease-in-out",
+                }}
+              />
+              <div
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "0 20px",
+                  background:
+                    "linear-gradient(90deg, rgba(0,0,0,0.1) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.1) 100%)",
+                }}
+              >
+                {/* Left Arrow */}
+                <Button
+                  type="text"
+                  icon={<LeftOutlined />}
+                  onClick={goToPrevious}
+                  style={{
+                    width: "48px",
+                    height: "48px",
+                    borderRadius: "50%",
+                    backgroundColor: "rgba(255, 255, 255, 0.9)",
+                    border: "none",
+                    fontSize: "18px",
+                    color: "#1890ff",
+                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    transition: "all 0.3s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor =
+                      "rgba(255, 255, 255, 1)";
+                    e.currentTarget.style.transform = "scale(1.1)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor =
+                      "rgba(255, 255, 255, 0.9)";
+                    e.currentTarget.style.transform = "scale(1)";
+                  }}
+                />
+                {/* Right Arrow */}
+                <Button
+                  type="text"
+                  icon={<RightOutlined />}
+                  onClick={goToNext}
+                  style={{
+                    width: "48px",
+                    height: "48px",
+                    borderRadius: "50%",
+                    backgroundColor: "rgba(255, 255, 255, 0.9)",
+                    border: "none",
+                    fontSize: "18px",
+                    color: "#1890ff",
+                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    transition: "all 0.3s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor =
+                      "rgba(255, 255, 255, 1)";
+                    e.currentTarget.style.transform = "scale(1.1)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor =
+                      "rgba(255, 255, 255, 0.9)";
+                    e.currentTarget.style.transform = "scale(1)";
+                  }}
+                />
+              </div>
+            </div>
+            {/* Dots Indicator */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                gap: "8px",
+                padding: "20px",
+                backgroundColor: "rgba(248, 250, 252, 0.8)",
+              }}
+            >
+              {images.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => goToSlide(index)}
+                  style={{
+                    width: "12px",
+                    height: "12px",
+                    borderRadius: "50%",
+                    border: "none",
+                    backgroundColor:
+                      index === currentImageIndex ? "#1890ff" : "#d1d5db",
+                    cursor: "pointer",
+                    transition: "all 0.3s ease",
+                    transform:
+                      index === currentImageIndex ? "scale(1.2)" : "scale(1)",
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+          {/* Title และ Description */}
+          <div style={{ marginTop: "40px" }}>
+            <Title level={2} style={{ color: "#1890ff", marginBottom: "16px" }}>
+              ยินดีต้อนรับสู่ Q-ERPc Dashboard
+            </Title>
+            <Paragraph
+              style={{
+                fontSize: "16px",
+                color: "#64748b",
+                maxWidth: "600px",
+                margin: "0 auto",
+              }}
+            >
+              ระบบจัดการองค์กรแบบครบวงจร
+              เพื่อเพิ่มประสิทธิภาพในการดำเนินงานของธุรกิจ
+            </Paragraph>
           </div>
         </div>
       );
     }
+
     // ตรวจสอบว่าเป็น Sales App หรือไม่
     const isSalesApp =
       activeApp.parentId === "sales" ||
@@ -261,7 +407,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
           return (
             <RemoteErrorFallback
               appName="WMS Application"
-              error={t('remote.moduleNotReady')}
+              error={t("remote.moduleNotReady")}
             />
           );
 
@@ -286,16 +432,16 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
                     }}
                   />
                   <Title level={3}>
-                    {t('content.applicationDeveloping', { appName: activeApp.parentId })}
+                    {t("content.applicationDeveloping", {
+                      appName: activeApp.parentId,
+                    })}
                   </Title>
-                  <Paragraph>
-                    {t('content.microfrontendDesc')}
-                  </Paragraph>
+                  <Paragraph>{t("content.microfrontendDesc")}</Paragraph>
                   <div style={{ marginTop: "24px" }}>
                     <Button type="primary" style={{ marginRight: "12px" }}>
-                      {t('content.notifyWhenReady')}
+                      {t("content.notifyWhenReady")}
                     </Button>
-                    <Button>{t('content.backToMain')}</Button>
+                    <Button>{t("content.backToMain")}</Button>
                   </div>
                 </div>
               </Card>
@@ -307,7 +453,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
     return (
       <div style={{ width: "100%", height: "100%" }}>{renderRemoteApp()}</div>
     );
-  }, [activeApp, menuItems, location, currentUrl]);
+  }, [activeApp, menuItems, location, currentUrl, currentImageIndex, images]);
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
@@ -342,7 +488,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
                 fontWeight: 500,
               }}
             >
-              {t('loading.checkingPermission')}
+              {t("loading.checkingPermission")}
             </p>
             <p
               style={{
@@ -351,7 +497,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
                 fontSize: "14px",
               }}
             >
-              {t('loading.pleaseWait')}
+              {t("loading.pleaseWait")}
             </p>
           </div>
         </div>
@@ -361,8 +507,8 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
         !permissionStatus.showLoading &&
         activeApp.parentId !== "home" && (
           <NoPermissionOverlay
-            title={t('noPermission.title')} 
-            subTitle={t('noPermission.subtitle')}
+            title={t("noPermission.title")}
+            subTitle={t("noPermission.subtitle")}
           />
         )}
     </div>
