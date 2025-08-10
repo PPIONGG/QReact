@@ -364,9 +364,9 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
           {/* Title และ Description */}
           <div style={{ marginTop: "40px" }}>
             <Title level={2} style={{ color: "#1890ff", marginBottom: "16px" }}>
-              ยินดีต้อนรับสู่ Q-ERPc Dashboard
+              ยินดีต้อนรับสู่ Q-ERPc
             </Title>
-            <Paragraph
+            {/* <Paragraph
               style={{
                 fontSize: "16px",
                 color: "#64748b",
@@ -376,7 +376,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
             >
               ระบบจัดการองค์กรแบบครบวงจร
               เพื่อเพิ่มประสิทธิภาพในการดำเนินงานของธุรกิจ
-            </Paragraph>
+            </Paragraph> */}
           </div>
         </div>
       );

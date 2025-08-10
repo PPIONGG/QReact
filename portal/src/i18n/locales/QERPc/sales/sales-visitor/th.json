@@ -36,7 +36,7 @@
   "enterVisitorName": "กรอกชื่อผู้เยี่ยม",
 
   "customerInformation": "ข้อมูลลูกค้า",
-"searchCustomer": "ค้นหาข้อมูลลูกค้า",
+  "searchCustomer": "ค้นหาข้อมูลลูกค้า",
   "enterCustomerCode": "กรอกรหัสลูกค้า",
   "enterCompanyName": "กรอกชื่อบริษัท",
   "contactPerson": "ผู้ติดต่อ",
@@ -105,5 +105,7 @@
   "newReportCreatedSuccess": "สร้าง Visit Report สำเร็จ!",
   "reportUpdatedSuccess": "อัปเดต Visit Report สำเร็จ!",
   "saveReportFailed": "บันทึก Visit Report ล้มเหลว",
-  "saveReportFailedTryAgain": "บันทึก Visit Report ล้มเหลว กรุณาลองใหม่อีกครั้ง"
+  "saveReportFailedTryAgain": "บันทึก Visit Report ล้มเหลว กรุณาลองใหม่อีกครั้ง",
+  "sv": "ข้อมูลประวัติการเยี่ยม",
+  "cm": "ข้อมูลลูกค้าในระบบ"
 }

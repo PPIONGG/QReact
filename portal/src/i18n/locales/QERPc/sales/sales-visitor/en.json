@@ -104,5 +104,7 @@
   "newReportCreatedSuccess": "New visit report created successfully!",
   "reportUpdatedSuccess": "Visit report updated successfully!",
   "saveReportFailed": "Failed to save visit report",
-  "saveReportFailedTryAgain": "Failed to save visit report. Please try again."
+  "saveReportFailedTryAgain": "Failed to save visit report. Please try again.",
+  "sv" : "from visit history",
+  "cm" : "Customer Information System"
 }

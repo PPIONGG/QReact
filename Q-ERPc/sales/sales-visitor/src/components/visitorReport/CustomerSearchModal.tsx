@@ -120,9 +120,9 @@ const CustomerSearchModal: React.FC<CustomerSearchModalProps> = ({
   const getTypeInfoDisplay = (typeInfo: string) => {
     switch (typeInfo?.toLowerCase()) {
       case "sv":
-        return "Sales-Visitor";
+        return t("sv");
       case "cm":
-        return "Customer";
+        return t("cm");
       default:
         return typeInfo;
     }
