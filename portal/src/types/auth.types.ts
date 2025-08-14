@@ -13,6 +13,10 @@ export interface User {
   company: CompanyPermission[];
 }
 
+export interface AccessPermission {
+  programName: string[];
+}
+
 export interface ResLogin {
   code: number;
   msg?: string;
@@ -47,6 +51,3 @@ export interface AuthState {
 
 export type LoginType = 'Q' | 'DB';
 
-export interface AccessPermission {
-  programName: string[];
-}

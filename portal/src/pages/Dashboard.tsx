@@ -1,5 +1,5 @@
-import { useNavigate } from "react-router-dom";
-import { Layout, message, theme } from "antd";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Layout, message, theme, Modal } from "antd";
 import { HomeOutlined, DollarOutlined, TeamOutlined } from "@ant-design/icons";
 import { useEffect, useMemo, useState } from "react";
 import { MenuItem, SubMenuItem } from "../types";
@@ -39,6 +39,8 @@ export default function Dashboard() {
   const { user, logout, setSelectedCompany, selectedCompanyCode } =
     useAuthStore();
   const navigate = useNavigate();
+  const location = useLocation();
+
   const { t } = useTranslation("portal-dashboard");
   const {
     token: { colorBgContainer },
@@ -50,6 +52,11 @@ export default function Dashboard() {
 
   // กำหนดจุดเปลี่ยนเป็น mobile
   const isMobile = width <= 768;
+
+  const getCompanyName = (code: string) => {
+    const comp = user?.company?.find((c) => c.companyCode === code);
+    return comp?.companyName ?? code;
+  };
 
   useEffect(() => {
     if (user?.loginTime) {
@@ -201,6 +208,41 @@ export default function Dashboard() {
     setMobileDrawerVisible(false);
   };
 
+  //   const handleChangeCompany = (code: string) => {
+  //   setSelectedCompany(code);
+  //   if (location.pathname !== "/") {
+  //     setMobileDrawerVisible(false); // ปิด drawer บนมือถือ (ถ้าเปิดอยู่)
+  //     navigate("/", { replace: true });
+  //   }
+  // };
+
+  const handleChangeCompany = (code: string) => {
+    // ถ้าเลือกบริษัทเดิม ก็ไม่ต้องทำอะไร
+    if (code === selectedCompanyCode) return;
+
+    Modal.confirm({
+      title: t("confirm.changeCompanyTitle", "เปลี่ยนบริษัทใช่ไหม?"),
+      content: t(
+        "confirm.changeCompanyContent",
+        { company: getCompanyName(code) } // โชว์ชื่อบริษัทที่กำลังจะเปลี่ยน
+      ),
+      okText: t("common.confirm", "ยืนยัน"),
+      cancelText: t("common.cancel", "ยกเลิก"),
+      onOk: () => {
+        setSelectedCompany(code); // เปลี่ยนบริษัทใน store
+        if (location.pathname !== "/") {
+          // ถ้าไม่ได้อยู่หน้าแรก ให้เด้งกลับ
+          setMobileDrawerVisible(false); // ปิด drawer บนมือถือ (ถ้ามี)
+          navigate("/", { replace: true });
+        }
+        message.success(
+          t("confirm.changedCompanySuccess", "เปลี่ยนบริษัทเรียบร้อย")
+        );
+      },
+      // ถ้า cancel ก็ไม่ทำอะไร ปล่อยให้ value ของ Select แสดงค่าบริษัทเดิม (เพราะเป็น controlled โดย selectedCompanyCode)
+    });
+  };
+
   // ใช้สำหรับกำหนด style ของ content ตาม activeApp
   const getContentStyle = () => {
     const baseStyle = {
@@ -268,7 +310,8 @@ export default function Dashboard() {
           colorBgContainer={colorBgContainer}
           user={user}
           selectedCompanyCode={selectedCompanyCode}
-          onChangeCompany={setSelectedCompany}
+          // onChangeCompany={setSelectedCompany}
+          onChangeCompany={handleChangeCompany} // <-- ใช้ฟังก์ชันนี้
           // Props สำหรับ mobile
           onMobileMenuClick={handleMobileMenuClick}
         />
