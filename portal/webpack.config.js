@@ -104,7 +104,8 @@ module.exports = (env, argv) => {
         name: "portal",
         remotes: {
           sales_visitor: isProduction
-      ? "sales_visitor@http://192.168.0.131:1005/sales-visitor/remoteEntry.js" // ✅ Full URL
+      ? "sales_visitor@http://192.168.100.50:7098/sales-visitor/remoteEntry.js" // ✅ Full URL
+      // ? "sales_visitor@http://192.168.0.131:1005/sales-visitor/remoteEntry.js" // ✅ Full URL
       : "sales_visitor@http://localhost:3001/remoteEntry.js", // Development
 
         },

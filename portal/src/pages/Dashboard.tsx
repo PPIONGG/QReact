@@ -85,12 +85,12 @@ export default function Dashboard() {
             icon: <TeamOutlined />,
             url: "/sales/sales-visitor",
           },
-          {
-            id: "SalesVisitor-2",
-            name: t("menu.salesVisitor2"),
-            icon: <TeamOutlined />,
-            url: "/sales/sales-visitor-2",
-          },
+          // {
+          //   id: "SalesVisitor-2",
+          //   name: t("menu.salesVisitor2"),
+          //   icon: <TeamOutlined />,
+          //   url: "/sales/sales-visitor-2",
+          // },
         ],
       },
     ],
