@@ -34,7 +34,8 @@
     "applicationDeveloping": "Application \"{{appName}}\" กำลังพัฒนา",
     "microfrontendDesc": "เรากำลังพัฒนา Application นี้ในรูปแบบ Microfrontend Architecture เพื่อประสิทธิภาพและความยืดหยุ่นที่ดีขึ้น",
     "notifyWhenReady": "แจ้งเตือนเมื่อพร้อม",
-    "backToMain": "กลับหน้าหลัก"
+    "backToMain": "กลับหน้าหลัก",
+    "welcomeQERPc" : "ยินดีต้อนรับสู่ Q-ERPc"
   },
   "remote": {
     "loading": "กำลังโหลด {{appName}}...",
@@ -44,5 +45,15 @@
     "reloadPage": "รีโหลดหน้า",
     "contactSupport": "ติดต่อฝ่ายสนับสนุน",
     "moduleNotReady": "Module ยังไม่พร้อมใช้งาน"
+  },
+  "confirm": {
+    "changedCompanySuccess": "เปลี่ยนบริษัทเรียบร้อยแล้ว"
+  },
+  "modalConfirm": {
+    "discardChanges": " ต้องการเปลี่ยนบริษัทใช่หรือไม่?",
+    "unsavedChangesNewWarning" : "คุณมีการแก้ไข visit report ที่ยังไม่ได้บันทึก",
+    "unsavedChangesEditWarning" :"คุณมีการแก้ไข visit report ที่ยังไม่ได้บันทึก ",
+    "cancel": "ยกเลิก",
+    "confirm": "ยืนยัน"
   }
 }

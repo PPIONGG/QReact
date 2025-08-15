@@ -39,8 +39,8 @@ interface AppHeaderProps {
 // Hook สำหรับตรวจจับขนาดหน้าจอ
 const useWindowSize = () => {
   const [windowSize, setWindowSize] = useState({
-    width: typeof window !== 'undefined' ? window.innerWidth : 1200,
-    height: typeof window !== 'undefined' ? window.innerHeight : 800,
+    width: typeof window !== "undefined" ? window.innerWidth : 1200,
+    height: typeof window !== "undefined" ? window.innerHeight : 800,
   });
 
   useEffect(() => {
@@ -51,8 +51,8 @@ const useWindowSize = () => {
       });
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   return windowSize;
@@ -71,7 +71,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 }) => {
   const { t, i18n } = useTranslation("portal-dashboard");
   const { width } = useWindowSize();
-  
+
   // กำหนดจุดเปลี่ยนเป็น mobile
   const isMobile = width <= 768;
 
@@ -91,6 +91,9 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     i18n.changeLanguage(newLanguage);
   };
 
+  const currentCompanyName =
+    user.company.find((c) => c.companyCode === selectedCompanyCode)
+      ?.companyName ?? "";
   // User dropdown สำหรับ mobile และ desktop
   const UserDropdown = ({ compact = false }) => (
     <Dropdown
@@ -132,9 +135,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             size={compact ? "small" : "small"}
             icon={<UserOutlined />}
           />
-          {!compact && (
-            <Text style={{ fontSize: 13 }}>{user.username}</Text>
-          )}
+          {!compact && <Text style={{ fontSize: 13 }}>{user.username}</Text>}
         </Space>
       </div>
     </Dropdown>
@@ -164,8 +165,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            // borderRadius: 8,
-            // color: "#B30000",
           }}
         />
 
@@ -177,7 +176,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             gap: "8px",
             marginLeft: "12px",
             flex: 1,
-            minWidth: 0, // Allow shrinking
+            minWidth: 0,
           }}
         >
           {displayIcon && (
@@ -185,15 +184,15 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               {displayIcon}
             </span>
           )}
-          <Title 
-            level={5} 
-            style={{ 
-              margin: 0, 
+          <Title
+            level={5}
+            style={{
+              margin: 0,
               color: "#262626",
               fontSize: "14px",
               whiteSpace: "nowrap",
               overflow: "hidden",
-              textOverflow: "ellipsis"
+              textOverflow: "ellipsis",
             }}
           >
             {displayName}
@@ -206,9 +205,26 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             display: "flex",
             alignItems: "center",
             gap: "8px",
-            flexShrink: 0,
+            // flexShrink: 0,
+            // ให้โซนขวายอมบีบได้ แต่คุมเพดาน-พื้น
+            // ต่ำสุด 140px, ปกติ 45vw, สูงสุด 260px (ปรับตามใจ)
+            flex: "0 1 clamp(140px, 45vw, 500px)",
+            minWidth: 0, // สำคัญ! เพื่อให้ลูกภายในยอมบีบ
           }}
         >
+          <div
+            style={{
+              flex: "1 1 auto",
+              minWidth: 0, // ให้ text-overflow ทำงานใน flex
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              fontSize: 13,
+            }}
+            title={currentCompanyName}
+          >
+            {currentCompanyName}
+          </div>{" "}
           {/* Language Toggle - Icon Only */}
           <Tooltip
             title={t("header.switchLanguage", {
@@ -229,7 +245,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               }}
             />
           </Tooltip>
-          
           {/* User Dropdown - Avatar Only */}
           <UserDropdown compact={true} />
         </div>
@@ -256,7 +271,9 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         style={{
           fontSize: "16px",
           width: 64,
+          minWidth: 64,
           height: 64,
+          whiteSpace: "nowrap",
         }}
       />
 
@@ -266,6 +283,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           alignItems: "center",
           gap: "8px",
           marginLeft: "8px",
+          whiteSpace: "nowrap",
         }}
       >
         {displayIcon && (
@@ -284,8 +302,26 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           display: "flex",
           alignItems: "center",
           gap: "16px",
+          // ให้กลุ่มขวาสามารถ "บีบ" ได้เมื่อจอแคบลง
+          //  -> ต่ำสุด 180px, ปกติ 100vw, สูงสุด auto px
+          flex: "0 1 clamp(180px, 100vw, auto)",
+          minWidth: 0, // สำคัญ! เพื่อให้ลูกภายในยอมบีบ
+          whiteSpace: "nowrap", // คงให้อยู่บรรทัดเดียว
+          paddingLeft: 8,
         }}
       >
+        <div
+          style={{
+            flex: "1 1 auto",
+            minWidth: 0,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+          title={currentCompanyName}
+        >
+          {currentCompanyName}
+        </div>
         <Tooltip
           title={t("header.switchLanguage", {
             lang: i18n.language === "th" ? "English" : "ไทย",
@@ -307,7 +343,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             {i18n.language.toUpperCase()}
           </Button>
         </Tooltip>
-        
+
         <UserDropdown />
       </div>
     </Header>

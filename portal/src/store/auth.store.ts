@@ -91,10 +91,12 @@ export const useAuthStore = create<AuthState>()(
           errorSalesinfo: null,
         });
       },
-      fetchSalesinfo: async (user: string) => {
+      fetchSalesinfo: async (user: string ,xpackage : string) => {
         set({ isloadingSalesinfo: true, errorSalesinfo: null });
         try {
-          const data = await getSalesInfoAPI(API_CONFIG, user); 
+          const data = await getSalesInfoAPI(API_CONFIG, user , xpackage); 
+          console.log('Salesinfo data:', data);
+          
           set({
             Salesinfo: data,
             isloadingSalesinfo: false,

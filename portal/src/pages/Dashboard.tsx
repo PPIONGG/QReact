@@ -1,6 +1,11 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Layout, message, theme, Modal } from "antd";
-import { HomeOutlined, DollarOutlined, TeamOutlined } from "@ant-design/icons";
+import { Layout, message, theme, Modal, Button } from "antd";
+import {
+  HomeOutlined,
+  DollarOutlined,
+  TeamOutlined,
+  ExclamationCircleOutlined,
+} from "@ant-design/icons";
 import { useEffect, useMemo, useState } from "react";
 import { MenuItem, SubMenuItem } from "../types";
 import { useDashboardNavigation } from "../hooks/useDashboardNavigation";
@@ -14,6 +19,7 @@ import { useTranslation } from "react-i18next";
 
 const { Content } = Layout;
 
+// Hook ตรวจจับขนาดหน้าจอ (คงไว้จากของเดิม)
 const useWindowSize = () => {
   const [windowSize, setWindowSize] = useState({
     width: typeof window !== "undefined" ? window.innerWidth : 1200,
@@ -45,12 +51,11 @@ export default function Dashboard() {
   const {
     token: { colorBgContainer },
   } = theme.useToken();
+
   const [collapsed, setCollapsed] = useState<boolean>(false);
   const [mobileDrawerVisible, setMobileDrawerVisible] =
     useState<boolean>(false);
   const { width } = useWindowSize();
-
-  // กำหนดจุดเปลี่ยนเป็น mobile
   const isMobile = width <= 768;
 
   const getCompanyName = (code: string) => {
@@ -61,8 +66,7 @@ export default function Dashboard() {
   useEffect(() => {
     if (user?.loginTime) {
       const timeDiff = Date.now() - user.loginTime;
-      const isRecentLogin = timeDiff < 5000; // 5 วินาที
-
+      const isRecentLogin = timeDiff < 5000; // 5 วิ
       if (isRecentLogin) {
         message.success({
           content: t("welcome.message", { username: user.username }),
@@ -92,6 +96,7 @@ export default function Dashboard() {
             icon: <TeamOutlined />,
             url: "/sales/sales-visitor",
           },
+          // ตัวอย่างเมนูอื่นในอนาคต
           // {
           //   id: "SalesVisitor-2",
           //   name: t("menu.salesVisitor2"),
@@ -109,27 +114,17 @@ export default function Dashboard() {
     user: User | null,
     selectedCompanyCode: string | null
   ): MenuItem[] => {
-    // ถ้าไม่มี user หรือ selectedCompanyCode ให้ return array ว่าง
-    if (!user || !selectedCompanyCode) {
-      return [];
-    }
+    if (!user || !selectedCompanyCode) return [];
 
-    // หาข้อมูลบริษัทที่เลือกอยู่จาก company array
-    const selectedCompany = user?.company?.find(
+    const selectedCompany = user.company?.find(
       (comp: any) => comp.companyCode === selectedCompanyCode
     );
+    if (!selectedCompany) return [];
 
-    // ถ้าไม่เจอบริษัทที่เลือก ให้ return array ว่าง
-    if (!selectedCompany) {
-      return [];
-    }
-
-    // ถ้า allPermission เป็น true ให้แสดงทั้งหมด
     if (selectedCompany.allPermission === true) {
       return menuItems;
     }
 
-    // ดึงรายการ programName ที่ user มี permission ในบริษัทที่เลือก
     const allowedPrograms: string[] = [];
     selectedCompany.accessPermission?.forEach((perm: any) => {
       if (perm.programName && Array.isArray(perm.programName)) {
@@ -137,46 +132,27 @@ export default function Dashboard() {
       }
     });
 
-    // ฟังก์ชันสำหรับกรอง subItems (ใช้ SubMenuItem[] ที่ถูกต้อง)
     const filterSubItems = (subItems: SubMenuItem[]): SubMenuItem[] => {
       return subItems.filter((item) => allowedPrograms.includes(item.id));
     };
 
-    // กรอง menuItems
     return menuItems
       .map((item) => {
-        // ถ้าเป็น parent item ที่มี subItems
         if (item.subItems && item.subItems.length > 0) {
           const filteredSubItems = filterSubItems(item.subItems);
-
-          // ถ้ามี subItems ที่ผ่านการกรองแล้ว ให้แสดง parent item
           if (filteredSubItems.length > 0) {
-            return {
-              ...item,
-              subItems: filteredSubItems,
-            };
+            return { ...item, subItems: filteredSubItems };
           }
-          // ถ้าไม่มี subItems ที่ผ่านการกรอง ให้ return null
           return null;
         }
 
-        // ถ้าเป็น single item ให้เช็คว่ามี permission หรือไม่
-        // สำหรับ home หรือ menu หลักๆ ที่ไม่ต้องเช็ค permission
-        if (item.id === "home") {
-          return item;
-        }
-
-        // เช็ค permission สำหรับ item อื่นๆ
-        if (allowedPrograms.includes(item.id)) {
-          return item;
-        }
-
+        if (item.id === "home") return item;
+        if (allowedPrograms.includes(item.id)) return item;
         return null;
       })
       .filter((item) => item !== null) as MenuItem[];
   };
 
-  // ใช้ useMemo เพื่อป้องกันการ re-calculate ที่ไม่จำเป็น
   const filteredMenuItems = useMemo(() => {
     return filterMenuItemsByPermission(allMenuItems, user, selectedCompanyCode);
   }, [allMenuItems, user, selectedCompanyCode]);
@@ -199,86 +175,82 @@ export default function Dashboard() {
     }
   };
 
-  // Handle mobile menu toggle
-  const handleMobileMenuClick = () => {
-    setMobileDrawerVisible(true);
+  // ===== Modal เปลี่ยนบริษัท (แบบเราคุมเอง) =====
+  const [isChangeCompanyConfirmVisible, setIsChangeCompanyConfirmVisible] =
+    useState(false);
+  const [pendingCompany, setPendingCompany] = useState<string | null>(null);
+
+  const isFormRoute = (path: string) =>
+    path === "/sales/sales-visitor/new" || path === "/sales/sales-visitor/edit";
+
+  const handleChangeCompanyConfirm = () => {
+    if (!pendingCompany) {
+      setIsChangeCompanyConfirmVisible(false);
+      return;
+    }
+    setSelectedCompany(pendingCompany);
+    setPendingCompany(null);
+    setIsChangeCompanyConfirmVisible(false);
+
+    if (location.pathname !== "/") {
+      setMobileDrawerVisible(false);
+      navigate("/", { replace: true });
+    }
+    message.success(t("confirm.changedCompanySuccess"));
   };
 
-  const handleMobileDrawerClose = () => {
-    setMobileDrawerVisible(false);
+  const handleChangeCompanyCancel = () => {
+    setPendingCompany(null);
+    setIsChangeCompanyConfirmVisible(false);
   };
 
-  //   const handleChangeCompany = (code: string) => {
-  //   setSelectedCompany(code);
-  //   if (location.pathname !== "/") {
-  //     setMobileDrawerVisible(false); // ปิด drawer บนมือถือ (ถ้าเปิดอยู่)
-  //     navigate("/", { replace: true });
-  //   }
-  // };
-
+  // แทนที่ Modal.confirm เดิมด้วย logic นี้
   const handleChangeCompany = (code: string) => {
-    // ถ้าเลือกบริษัทเดิม ก็ไม่ต้องทำอะไร
     if (code === selectedCompanyCode) return;
 
-    Modal.confirm({
-      title: t("confirm.changeCompanyTitle", "เปลี่ยนบริษัทใช่ไหม?"),
-      content: t(
-        "confirm.changeCompanyContent",
-        { company: getCompanyName(code) } // โชว์ชื่อบริษัทที่กำลังจะเปลี่ยน
-      ),
-      okText: t("common.confirm", "ยืนยัน"),
-      cancelText: t("common.cancel", "ยกเลิก"),
-      onOk: () => {
-        setSelectedCompany(code); // เปลี่ยนบริษัทใน store
-        if (location.pathname !== "/") {
-          // ถ้าไม่ได้อยู่หน้าแรก ให้เด้งกลับ
-          setMobileDrawerVisible(false); // ปิด drawer บนมือถือ (ถ้ามี)
-          navigate("/", { replace: true });
-        }
-        message.success(
-          t("confirm.changedCompanySuccess", "เปลี่ยนบริษัทเรียบร้อย")
-        );
-      },
-      // ถ้า cancel ก็ไม่ทำอะไร ปล่อยให้ value ของ Select แสดงค่าบริษัทเดิม (เพราะเป็น controlled โดย selectedCompanyCode)
-    });
+    if (isFormRoute(location.pathname)) {
+      setPendingCompany(code);
+      setIsChangeCompanyConfirmVisible(true);
+      return;
+    }
+
+    setSelectedCompany(code);
+    if (location.pathname !== "/") {
+      setMobileDrawerVisible(false);
+      navigate("/", { replace: true });
+    }
+    message.success(t("confirm.changedCompanySuccess"));
   };
 
-  // ใช้สำหรับกำหนด style ของ content ตาม activeApp
+  // Mobile drawer handler
+  const handleMobileMenuClick = () => setMobileDrawerVisible(true);
+  const handleMobileDrawerClose = () => setMobileDrawerVisible(false);
+
   const getContentStyle = () => {
     const baseStyle = {
       margin: 0,
       padding: 0,
       background: "transparent",
       height: "calc(100vh - 64px)",
-    };
+    } as const;
 
     if (activeApp.parentId === "home") {
-      // styles สำหรับแอพ home
-      return {
-        ...baseStyle,
-        overflow: "hidden",
-      };
-    } else {
-      // สำหรับแอพอื่น ๆ
-      return {
-        ...baseStyle,
-        overflow: "auto",
-      };
+      return { ...baseStyle, overflow: "hidden" };
     }
+    return { ...baseStyle, overflow: "auto" };
   };
 
-  // ปรับ layout style สำหรับ mobile
   const getLayoutStyle = () => {
     if (isMobile) {
       return {
         minHeight: "100vh",
         overflow: "hidden",
-      };
+      } as const;
     }
     return {
       minHeight: "100vh",
       overflow: "hidden",
-    };
+    } as const;
   };
 
   if (!user) {
@@ -296,7 +268,6 @@ export default function Dashboard() {
         onOpenChange={handleOpenChange}
         onLogout={handleLogout}
         getSelectedKeys={getSelectedKeys}
-        // Props สำหรับ mobile drawer
         mobileDrawerVisible={mobileDrawerVisible}
         onMobileDrawerClose={handleMobileDrawerClose}
       />
@@ -310,18 +281,83 @@ export default function Dashboard() {
           colorBgContainer={colorBgContainer}
           user={user}
           selectedCompanyCode={selectedCompanyCode}
-          // onChangeCompany={setSelectedCompany}
-          onChangeCompany={handleChangeCompany} // <-- ใช้ฟังก์ชันนี้
-          // Props สำหรับ mobile
+          onChangeCompany={handleChangeCompany}
           onMobileMenuClick={handleMobileMenuClick}
         />
 
         <Content className="dashboard-content" style={getContentStyle()}>
-          <DashboardContent
-            activeApp={activeApp}
-            menuItems={filteredMenuItems}
-          />
+          <DashboardContent activeApp={activeApp} menuItems={filteredMenuItems} />
         </Content>
+
+        {/* ===== Modal ยืนยันเปลี่ยนบริษัท (ควบคุมเอง) ===== */}
+        <Modal
+          title={
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <ExclamationCircleOutlined
+                style={{ color: "#faad14", fontSize: 22, marginRight: 12 }}
+              />
+              <span style={{ color: "#1f2937", fontWeight: 600 }}>
+                {t("modalConfirm.discardChanges")}
+                {/* ต้องการเปลี่ยนบริษัทใช่หรือไม่? */}
+              </span>
+            </div>
+          }
+          open={isChangeCompanyConfirmVisible}
+          closable={false}
+          centered
+          width={420}
+          footer={
+            <div
+              style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}
+            >
+              <Button
+                key="ok"
+                type="primary"
+                danger
+                onClick={handleChangeCompanyConfirm}
+                style={{ height: 36, borderRadius: 6, fontWeight: 500 }}
+              >
+                {t("modalConfirm.confirm")}
+                {/* ยืนยัน */}
+              </Button>
+              <Button
+                key="cancel"
+                onClick={handleChangeCompanyCancel}
+                style={{ height: 36, borderRadius: 6 }}
+              >
+                {t("modalConfirm.cancel")}
+                {/* ยกเลิก */}
+              </Button>
+            </div>
+          }
+          styles={{
+            header: {
+              borderBottom: "1px solid #f0f0f0",
+              paddingBottom: 16,
+            },
+          }}
+        >
+          <div style={{ padding: "8px 0" }}>
+            <p
+              style={{
+                margin: 0,
+                color: "#6b7280",
+                fontSize: 14,
+                lineHeight: 1.5,
+              }}
+            >
+              {location.pathname.endsWith("/new")
+                ? 
+                // 'คุณมีการแก้ไข visit report ที่ยังไม่ได้บันทึก'
+                 t("modalConfirm.unsavedChangesNewWarning")
+                :
+                 t("modalConfirm.unsavedChangesEditWarning")
+                // 'คุณมีการแก้ไข visit report ที่ยังไม่ได้บันทึก'
+                }
+            </p>
+          </div>
+        </Modal>
+        {/* ===== /Modal ===== */}
       </Layout>
     </Layout>
   );

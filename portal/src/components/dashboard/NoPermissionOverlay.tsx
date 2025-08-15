@@ -3,19 +3,18 @@ import { Result, Button } from "antd";
 import { useNavigate } from "react-router-dom";
 import { LockOutlined } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
+import { useAuthStore } from "../../store/auth.store";
+import i18n from "../../i18n/i18n";
 
 interface NoPermissionOverlayProps {
-  title?: string;
-  subTitle?: string;
   onClose?: () => void;
 }
 
 const NoPermissionOverlay: React.FC<NoPermissionOverlayProps> = ({
-  title,
-  subTitle,
   onClose,
 }) => {
   const navigate = useNavigate();
+  const { Salesinfo } = useAuthStore();
   const { t } = useTranslation("portal-dashboard");
   const handleBackToHome = () => {
     navigate("/");
@@ -50,12 +49,14 @@ const NoPermissionOverlay: React.FC<NoPermissionOverlayProps> = ({
       >
         <Result
           status="403"
-          title={title || t('noPermission.title')}
-          subTitle={subTitle || t('noPermission.subtitle')}
-          icon={<LockOutlined style={{ color: "#ff4d4f", fontSize: "64px" }} />}
+  subTitle={
+    i18n.language.startsWith("th")
+      ? Salesinfo?.message
+      : Salesinfo?.messageE
+  }          icon={<LockOutlined style={{ color: "#ff4d4f", fontSize: "64px" }} />}
           extra={
             <Button type="primary" size="large" onClick={handleBackToHome}>
-              {t('noPermission.backToHome')}
+              {t("noPermission.backToHome")}
             </Button>
           }
         />

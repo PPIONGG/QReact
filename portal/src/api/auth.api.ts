@@ -3,11 +3,11 @@ import { ResLogin } from '../types/auth.types';
 import type { ApiConfig } from './config';
 
 // API Configuration
-const createHeaders = (config: ApiConfig) => {
+const createHeaders = (config: ApiConfig ,xpackage?: string) => {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${config.token}`,
-    'X-PACKAGE': config.package,
+    'X-PACKAGE':xpackage  ? xpackage : config.package ,
   };
   
   // เพิ่ม ngrok header เฉพาะตอน development
@@ -48,14 +48,15 @@ export const loginAPI = async (
 
 export const getSalesInfoAPI = async (
   config: ApiConfig,
-  user: string
+  user: string ,
+  xpackage?: string
 ): Promise<ResSalesinfo> => {
   
   const response = await fetch(
     `${config.baseUrl}/api/Employee/salesinfo/${user}`,
     {
       method: 'GET',
-      headers: createHeaders(config),
+      headers: createHeaders(config ,xpackage),
     }
   );
 

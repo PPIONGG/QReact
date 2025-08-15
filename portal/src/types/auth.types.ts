@@ -44,7 +44,7 @@ export interface AuthState {
     loginType: 'Q' | 'DB'
   ) => Promise<boolean>;
   logout: () => void;
-  fetchSalesinfo: (user: string) => Promise<void>;
+  fetchSalesinfo: (user: string , xpackage : string) => Promise<void>;
   clearSalesinfo: () => void;
   clearErrorSalesinfo: () => void;
 }

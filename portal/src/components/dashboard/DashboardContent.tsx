@@ -59,8 +59,13 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   const [currentUrl, setCurrentUrl] = useState(window.location.href);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  const { Salesinfo, user, fetchSalesinfo, isloadingSalesinfo } =
-    useAuthStore();
+  const {
+    Salesinfo,
+    user,
+    fetchSalesinfo,
+    isloadingSalesinfo,
+    selectedCompanyCode,
+  } = useAuthStore();
   const { t } = useTranslation("portal-dashboard");
 
   // ⭐ เพิ่ม array ของรูปภาพ
@@ -82,10 +87,13 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   }, [images.length]);
 
   useEffect(() => {
-    if (user && user.username && !Salesinfo) {
-      fetchSalesinfo(cleanUsername(user.username));
+    if (user && user.username) {
+      fetchSalesinfo(
+        cleanUsername(user.username),
+        selectedCompanyCode || "PACKAGE"
+      );
     }
-  }, [user, Salesinfo]);
+  }, [user, selectedCompanyCode]);
 
   useEffect(() => {
     const handleUrlChange = () => {
@@ -364,19 +372,8 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
           {/* Title และ Description */}
           <div style={{ marginTop: "40px" }}>
             <Title level={2} style={{ color: "#1890ff", marginBottom: "16px" }}>
-              ยินดีต้อนรับสู่ Q-ERPc
+              {t("content.welcomeQERPc")}
             </Title>
-            {/* <Paragraph
-              style={{
-                fontSize: "16px",
-                color: "#64748b",
-                maxWidth: "600px",
-                margin: "0 auto",
-              }}
-            >
-              ระบบจัดการองค์กรแบบครบวงจร
-              เพื่อเพิ่มประสิทธิภาพในการดำเนินงานของธุรกิจ
-            </Paragraph> */}
           </div>
         </div>
       );
@@ -505,12 +502,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
 
       {!permissionStatus.hasPermission &&
         !permissionStatus.showLoading &&
-        activeApp.parentId !== "home" && (
-          <NoPermissionOverlay
-            title={t("noPermission.title")}
-            subTitle={t("noPermission.subtitle")}
-          />
-        )}
+        activeApp.parentId !== "home" && <NoPermissionOverlay />}
     </div>
   );
 };

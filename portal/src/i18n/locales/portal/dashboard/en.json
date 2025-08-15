@@ -34,7 +34,8 @@
     "applicationDeveloping": "Application \"{{appName}}\" is under development",
     "microfrontendDesc": "We are developing this application in Microfrontend Architecture for better performance and flexibility",
     "notifyWhenReady": "Notify when ready",
-    "backToMain": "Back to Main"
+    "backToMain": "Back to Main",
+    "welcomeQERPc": "Welcome to Q-ERPc"
   },
   "remote": {
     "loading": "Loading {{appName}}...",
@@ -44,5 +45,15 @@
     "reloadPage": "Reload Page",
     "contactSupport": "Contact Support",
     "moduleNotReady": "Module is not ready yet"
+  },
+    "confirm": {
+    "changedCompanySuccess": "Company changed successfully"
+  },
+  "modalConfirm": {
+    "discardChanges": " Do you want to change the company?",
+    "unsavedChangesNewWarning": "You have unsaved changes in the visit report",
+    "unsavedChangesEditWarning": "You have unsaved changes in the visit report",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
   }
 }
