@@ -16,6 +16,7 @@ import {
   Modal,
   Result,
   Spin,
+  message,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import {
@@ -28,6 +29,7 @@ import {
   EllipsisOutlined,
   ShoppingCartOutlined,
   UndoOutlined,
+  ExclamationCircleOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -132,6 +134,10 @@ export function POForm({ canEdit = true }: POFormProps) {
   const [saveModalOpen, setSaveModalOpen] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"saving" | "success" | "error">("saving");
   const [saveErrorMessage, setSaveErrorMessage] = useState("");
+
+  // Confirm modal state
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [confirmModalType, setConfirmModalType] = useState<"save" | "cancel">("save");
 
   // Product line items state
   const [lineItems, setLineItems] = useState<POLineItem[]>([
@@ -507,7 +513,57 @@ export function POForm({ canEdit = true }: POFormProps) {
   }, [lineItems, discountStringBeforeVAT, exchangeRate, accessToken, companyCode, form]);
 
   const handleCancel = () => {
-    navigate("..");
+    if (isReadOnly) {
+      navigate("..");
+      return;
+    }
+    setConfirmModalType("cancel");
+    setConfirmModalOpen(true);
+  };
+
+  const handleSaveClick = async () => {
+    try {
+      // Validate form fields first
+      await form.validateFields();
+
+      // Validate: must have at least 1 line item with transactionCode (exclude deleted items)
+      const validLineItems = lineItems.filter(
+        (item) => item.transactionCode && item.statusRow !== "D"
+      );
+      if (validLineItems.length === 0) {
+        message.error("กรุณาเพิ่มรายการสินค้าอย่างน้อย 1 รายการ");
+        return;
+      }
+
+      // Validate: quantity must be greater than 0 for all items with transactionCode
+      const invalidQuantityItems = validLineItems.filter(
+        (item) => !item.quantity || item.quantity <= 0
+      );
+      if (invalidQuantityItems.length > 0) {
+        const lineNumbers = invalidQuantityItems.map((item) => item.vline).join(", ");
+        message.error(`กรุณาระบุจำนวนสินค้าให้มากกว่า 0 (รายการที่ ${lineNumbers})`);
+        return;
+      }
+
+      // If all validation passes, show confirm modal
+      setConfirmModalType("save");
+      setConfirmModalOpen(true);
+    } catch {
+      // Validation failed - form will show error messages automatically
+    }
+  };
+
+  const handleConfirmOk = () => {
+    setConfirmModalOpen(false);
+    if (confirmModalType === "save") {
+      form.submit();
+    } else {
+      navigate("..");
+    }
+  };
+
+  const handleConfirmCancel = () => {
+    setConfirmModalOpen(false);
   };
 
   const handleSubmit = async (values: Record<string, unknown>) => {
@@ -520,29 +576,6 @@ export function POForm({ canEdit = true }: POFormProps) {
     // For edit mode, only require basic auth
     if (isEditMode && (!username || !accessToken || !companyCode)) {
       console.error("Missing required data for submit");
-      return;
-    }
-
-    // Validate: must have at least 1 line item with transactionCode (exclude deleted items)
-    const validLineItems = lineItems.filter(
-      (item) => item.transactionCode && item.statusRow !== "D"
-    );
-    if (validLineItems.length === 0) {
-      setSaveModalOpen(true);
-      setSaveStatus("error");
-      setSaveErrorMessage("กรุณาเพิ่มรายการสินค้าอย่างน้อย 1 รายการ");
-      return;
-    }
-
-    // Validate: quantity must be greater than 0 for all items with transactionCode
-    const invalidQuantityItems = validLineItems.filter(
-      (item) => !item.quantity || item.quantity <= 0
-    );
-    if (invalidQuantityItems.length > 0) {
-      const lineNumbers = invalidQuantityItems.map((item) => item.vline).join(", ");
-      setSaveModalOpen(true);
-      setSaveStatus("error");
-      setSaveErrorMessage(`กรุณาระบุจำนวนสินค้าให้มากกว่า 0 (รายการที่ ${lineNumbers})`);
       return;
     }
 
@@ -1135,7 +1168,7 @@ export function POForm({ canEdit = true }: POFormProps) {
             <Button
               type="primary"
               icon={<SaveOutlined />}
-              onClick={() => form.submit()}
+              onClick={handleSaveClick}
             >
               บันทึก
             </Button>
@@ -1158,6 +1191,11 @@ export function POForm({ canEdit = true }: POFormProps) {
             podate: dayjs(),
             currencyCode: "THB",
             exchangeRate: 1,
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+            }
           }}
         >
           {/* Section: ผู้ขาย */}
@@ -1744,6 +1782,42 @@ export function POForm({ canEdit = true }: POFormProps) {
         onCancel={() => setItemModalOpen(false)}
         onSelect={handleItemSelect}
       />
+
+      {/* Confirm Modal */}
+      <Modal
+        open={confirmModalOpen}
+        title={
+          <Flex align="center" gap={8}>
+            <ExclamationCircleOutlined style={{ color: "#faad14", fontSize: 22 }} />
+            <span>{confirmModalType === "save" ? "ยืนยันการบันทึก" : "ยืนยันการยกเลิก"}</span>
+          </Flex>
+        }
+        footer={
+          <Flex gap={8} justify="flex-end">
+            <Button type="primary" onClick={handleConfirmOk}>
+              {confirmModalType === "save" ? "บันทึก" : "ยืนยัน"}
+            </Button>
+            <Button onClick={handleConfirmCancel}>
+              {confirmModalType === "save" ? "ยกเลิก" : "ไม่"}
+            </Button>
+          </Flex>
+        }
+        onCancel={handleConfirmCancel}
+        centered
+        width={400}
+        destroyOnClose
+        maskClosable={false}
+      >
+        <Typography.Text style={{ marginLeft: 30 }}>
+          {confirmModalType === "save"
+            ? isEditMode
+              ? "ต้องการบันทึกการแก้ไขใบสั่งซื้อหรือไม่?"
+              : "ต้องการบันทึกใบสั่งซื้อหรือไม่?"
+            : isEditMode
+            ? "ต้องการยกเลิกการแก้ไขใบสั่งซื้อหรือไม่?"
+            : "ต้องการยกเลิกการสร้างใบสั่งซื้อหรือไม่?"}
+        </Typography.Text>
+      </Modal>
 
       {/* Save Status Modal */}
       <Modal

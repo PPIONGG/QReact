@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Card, Table, Typography, Tag, Flex, Button, Select, Input, Tooltip, Modal, message } from 'antd'
-import { PlusOutlined, EditOutlined, EyeOutlined, SearchOutlined, PrinterOutlined, StopOutlined } from '@ant-design/icons'
+import { PlusOutlined, EditOutlined, EyeOutlined, SearchOutlined, PrinterOutlined, StopOutlined, ExclamationCircleOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore, usePOStore, useDocumentTypes, useSelectedDocumentType, usePOHeaders, useSearchText } from '../stores'
@@ -401,34 +401,36 @@ export function POList({ canInsert = true }: POListProps) {
       {/* Cancel Confirmation Modal */}
       <Modal
         open={cancelModalOpen}
-        title="ยืนยันการยกเลิกใบสั่งซื้อ"
+        title={
+          <Flex align="center" gap={8}>
+            <ExclamationCircleOutlined style={{ color: "#faad14", fontSize: 22 }} />
+            <span>ยืนยันการยกเลิกใบสั่งซื้อ</span>
+          </Flex>
+        }
         onCancel={handleCancelModalClose}
         centered
-        footer={[
-          <Button
-            key="confirm"
-            danger
-            type="primary"
-            loading={isCancelling}
-            onClick={handleConfirmCancel}
-          >
-            ใช่, ยกเลิก
-          </Button>,
-          <Button key="back" onClick={handleCancelModalClose}>
-            ไม่ใช่
-          </Button>,
-        ]}
+        width={400}
+        destroyOnClose
+        maskClosable={false}
+        footer={
+          <Flex gap={8} justify="flex-end">
+            <Button
+              danger
+              type="primary"
+              loading={isCancelling}
+              onClick={handleConfirmCancel}
+            >
+              ยืนยัน
+            </Button>
+            <Button onClick={handleCancelModalClose}>
+              ยกเลิก
+            </Button>
+          </Flex>
+        }
       >
-        <Flex vertical align="center" gap={16} style={{ padding: '16px 0' }}>
-          <Typography.Text style={{ fontSize: 16 }}>
-            ต้องการยกเลิกใบสั่งซื้อนี้หรือไม่?
-          </Typography.Text>
-          {selectedPOForCancel && (
-            <Typography.Text type="secondary">
-              เลขที่: {selectedPOForCancel.pono}
-            </Typography.Text>
-          )}
-        </Flex>
+        <Typography.Text style={{ marginLeft: 30 }}>
+          ต้องการยกเลิกใบสั่งซื้อ {selectedPOForCancel?.pono} หรือไม่?
+        </Typography.Text>
       </Modal>
     </Card>
   )
