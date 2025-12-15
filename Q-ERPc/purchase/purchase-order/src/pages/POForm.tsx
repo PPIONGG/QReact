@@ -55,6 +55,7 @@ import {
   poUpdate,
   getPOOrder,
   getSupplier,
+  getCompanyInfo,
 } from "../services";
 import { SupplierSearchModal, ItemSearchModal } from "../components";
 import type {
@@ -69,6 +70,7 @@ import type {
   CalculateDetail,
   POInsertRequest,
   PODetail,
+  CompanyInfo,
 } from "../types";
 
 // Extend dayjs for antd DatePicker
@@ -122,6 +124,9 @@ export function POForm({ canEdit = true }: POFormProps) {
 
   // Warehouse state
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+
+  // Company info state (for noDigit settings)
+  const [companyInfo, setCompanyInfo] = useState<CompanyInfo | null>(null);
 
   // Supplier modal state
   const [supplierModalOpen, setSupplierModalOpen] = useState(false);
@@ -300,9 +305,21 @@ export function POForm({ canEdit = true }: POFormProps) {
       }
     };
 
+    const fetchCompanyInfo = async () => {
+      try {
+        const response = await getCompanyInfo(accessToken, companyCode);
+        if (response.code === 0 && response.result) {
+          setCompanyInfo(response.result);
+        }
+      } catch (error) {
+        console.error("Failed to fetch company info:", error);
+      }
+    };
+
     fetchPaymentTerms();
     fetchCurrencies();
     fetchWarehouses();
+    fetchCompanyInfo();
   }, [accessToken, companyCode]);
 
   // Fetch PO data for edit mode
@@ -482,9 +499,9 @@ export function POForm({ canEdit = true }: POFormProps) {
 
       const request: CalculateVatRequest = {
         calculateHeader: {
-          noDigitQty: 2,
-          noDigitUnitPrice: 2,
-          noDigitTotal: 2,
+          noDigitQty: companyInfo?.noDigitQty ?? 2,
+          noDigitUnitPrice: companyInfo?.noDigitUnitPrice ?? 2,
+          noDigitTotal: companyInfo?.noDigitTotal ?? 2,
           adjustVATYesNo: "",
           adjustTotalYesNo: false,
           exchangeRate: rate,
@@ -531,7 +548,7 @@ export function POForm({ canEdit = true }: POFormProps) {
     };
 
     calculateTotals();
-  }, [lineItems, discountStringBeforeVAT, exchangeRate, accessToken, companyCode, form]);
+  }, [lineItems, discountStringBeforeVAT, exchangeRate, accessToken, companyCode, form, companyInfo]);
 
   const handleCancel = () => {
     if (isReadOnly) {
