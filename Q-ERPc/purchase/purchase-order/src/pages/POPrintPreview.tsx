@@ -3,8 +3,8 @@ import { Flex, Spin, Button, Typography } from 'antd'
 import { PrinterOutlined, CloseOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { useAuthStore, useSelectedDocumentType } from '../stores'
-import { getPOOrder } from '../services'
-import type { PODetail } from '../types'
+import { getPOOrder, getSupplier } from '../services'
+import type { POOrder } from '../types'
 
 const { Text } = Typography
 
@@ -14,34 +14,10 @@ interface POPrintPreviewProps {
   onClose: () => void
 }
 
-interface POOrderData {
-  pono: string
-  podate: string
-  supplierCode: string
-  supplierName: string
+// Extended POOrder with supplier details for print
+interface POOrderData extends POOrder {
   fullAddress?: string
   phone?: string
-  targetShippingDate?: string
-  paymentTermCode?: string
-  paymentDueDate?: string
-  currencyCode: string
-  exchangeRate: number
-  contactName?: string
-  refNoYours?: string
-  refNoOurs?: string
-  sellerRefNo?: string
-  note?: string
-  memo?: string
-  billingCode?: string
-  billingName?: string
-  billingAddress?: string
-  totalAmountCurrency: number
-  amountDiscountCurrency: number
-  discountStringBeforeVat?: string
-  totalAmountCurrencyAfterDiscountBeforeVat: number
-  vatamountCurrency: number
-  totalAmountCurrencyAfterVat: number
-  poDetails: PODetail[]
 }
 
 export function POPrintPreview({ runNo, open, onClose }: POPrintPreviewProps) {
@@ -67,7 +43,33 @@ export function POPrintPreview({ runNo, open, onClose }: POPrintPreviewProps) {
           companyCode
         )
         if (response.code === 0 && response.result) {
-          setPOData(response.result as unknown as POOrderData)
+          const poOrder = response.result
+
+          // Fetch supplier detail to get fullAddress and phone
+          let fullAddress = ''
+          let phone = ''
+          if (poOrder.supplierCode) {
+            try {
+              const supplierResponse = await getSupplier(
+                poOrder.supplierCode,
+                accessToken,
+                companyCode
+              )
+              if (supplierResponse.code === 0 && supplierResponse.result) {
+                fullAddress = supplierResponse.result.fullAddress || ''
+                phone = supplierResponse.result.phone || ''
+              }
+            } catch (err) {
+              console.error('Failed to fetch supplier detail:', err)
+            }
+          }
+
+          // Set PO data with supplier details
+          setPOData({
+            ...poOrder,
+            fullAddress,
+            phone,
+          })
         }
       } catch (error) {
         console.error('Failed to fetch PO data:', error)
@@ -89,7 +91,7 @@ export function POPrintPreview({ runNo, open, onClose }: POPrintPreviewProps) {
     return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   }
 
-  const formatDate = (date: string | undefined) => {
+  const formatDate = (date: string | null | undefined) => {
     if (!date) return ''
     return dayjs(date).format('DD/MM/YYYY')
   }

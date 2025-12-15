@@ -1,4 +1,4 @@
-import type { ApiResponse } from './permission'
+import type { ApiResponse } from '@qerp/shared'
 
 export interface CalculateHeader {
   noDigitQty: number

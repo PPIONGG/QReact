@@ -129,6 +129,7 @@ export function POForm({ canEdit = true }: POFormProps) {
   // Item modal state
   const [itemModalOpen, setItemModalOpen] = useState(false);
   const [selectedLineKey, setSelectedLineKey] = useState<string | null>(null);
+  const [isLoadingItem, setIsLoadingItem] = useState(false);
 
   // Save modal state
   const [saveModalOpen, setSaveModalOpen] = useState(false);
@@ -322,6 +323,25 @@ export function POForm({ canEdit = true }: POFormProps) {
         if (response.code === 0 && response.result) {
           const poOrder = response.result;
 
+          // Fetch supplier detail to get fullAddress and phone
+          if (poOrder.supplierCode) {
+            try {
+              const supplierResponse = await getSupplier(
+                poOrder.supplierCode,
+                accessToken,
+                companyCode
+              );
+              if (supplierResponse.code === 0 && supplierResponse.result) {
+                form.setFieldsValue({
+                  fullAddress: supplierResponse.result.fullAddress || "",
+                  supplierPhone: supplierResponse.result.phone || "",
+                });
+              }
+            } catch (error) {
+              console.error("Failed to fetch supplier detail:", error);
+            }
+          }
+
           // Set form values
           form.setFieldsValue({
             supplierCode: poOrder.supplierCode,
@@ -506,6 +526,7 @@ export function POForm({ canEdit = true }: POFormProps) {
         }
       } catch (error) {
         console.error("Failed to calculate VAT:", error);
+        message.warning("ไม่สามารถคำนวณ VAT ได้ กรุณาตรวจสอบข้อมูล");
       }
     };
 
@@ -756,7 +777,7 @@ export function POForm({ canEdit = true }: POFormProps) {
     setLineItems([
       ...lineItems,
       {
-        key: String(Date.now()), // Use timestamp for unique key
+        key: crypto.randomUUID(), // Use UUID for unique key
         noLine: 0, // New row - will be assigned by API
         vline: newVline,
         transactionCode: "",
@@ -852,6 +873,8 @@ export function POForm({ canEdit = true }: POFormProps) {
     if (selectedLineKey === null) return;
     if (!accessToken || !companyCode) return;
 
+    setIsLoadingItem(true);
+
     // Fetch unit conversion list for this item
     let unitOptions: UnitConversion[] = [];
     if (item.defaultUnitCode) {
@@ -866,6 +889,7 @@ export function POForm({ canEdit = true }: POFormProps) {
         }
       } catch (error) {
         console.error("Failed to fetch unit conversion list:", error);
+        message.warning("ไม่สามารถโหลดหน่วยสินค้าได้");
       }
     }
 
@@ -882,6 +906,8 @@ export function POForm({ canEdit = true }: POFormProps) {
           : lineItem
       )
     );
+
+    setIsLoadingItem(false);
   };
 
   // Table columns
@@ -1505,6 +1531,7 @@ export function POForm({ canEdit = true }: POFormProps) {
               size="small"
               scroll={{ x: 1200 }}
               rowKey="key"
+              loading={isLoadingItem}
               rowClassName={(record) => (record.statusRow === "D" ? "deleted-row" : "")}
             />
 

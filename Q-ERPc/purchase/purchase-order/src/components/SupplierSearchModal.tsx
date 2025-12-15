@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { Modal, Table, Input, Flex } from 'antd'
+import { Modal, Table, Input, Flex, Alert } from 'antd'
 import { SearchOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { useAuthStore } from '../stores'
@@ -18,6 +18,7 @@ export function SupplierSearchModal({ open, onCancel, onSelect }: SupplierSearch
   const [suppliers, setSuppliers] = useState<Supplier[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [searchText, setSearchText] = useState('')
+  const [error, setError] = useState<string | null>(null)
 
   // Fetch suppliers when modal opens
   useEffect(() => {
@@ -25,13 +26,17 @@ export function SupplierSearchModal({ open, onCancel, onSelect }: SupplierSearch
 
     const fetchSuppliers = async () => {
       setIsLoading(true)
+      setError(null)
       try {
         const response = await getSupplierList(accessToken, companyCode)
         if (response.code === 0 && response.result) {
           setSuppliers(response.result)
+        } else {
+          setError(response.msg || 'ไม่สามารถโหลดข้อมูลผู้ขายได้')
         }
-      } catch (error) {
-        console.error('Failed to fetch suppliers:', error)
+      } catch (err) {
+        console.error('Failed to fetch suppliers:', err)
+        setError('เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง')
       } finally {
         setIsLoading(false)
       }
@@ -100,6 +105,10 @@ export function SupplierSearchModal({ open, onCancel, onSelect }: SupplierSearch
           onChange={(e) => setSearchText(e.target.value)}
           allowClear
         />
+
+        {error && (
+          <Alert message={error} type="error" showIcon />
+        )}
 
         <Table
           columns={columns}

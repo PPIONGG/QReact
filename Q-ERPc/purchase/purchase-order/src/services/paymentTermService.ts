@@ -21,7 +21,7 @@ export async function getPaymentTermList(
  */
 export async function calculatePaymentDueDate(
   paymentTermCode: string,
-  refDate: string, // Format: DD/MM/YYYY
+  refDate: string, // Format: YYYY-MM-DD
   accessToken: string,
   packageCode: string
 ): Promise<CalculatePaymentResponse> {

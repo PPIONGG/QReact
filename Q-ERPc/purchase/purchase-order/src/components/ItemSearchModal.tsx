@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { Modal, Table, Input, Flex, Button } from 'antd'
+import { Modal, Table, Input, Flex, Button, Alert } from 'antd'
 import { SearchOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { useAuthStore } from '../stores'
@@ -18,6 +18,7 @@ export function ItemSearchModal({ open, onCancel, onSelect }: ItemSearchModalPro
   const [items, setItems] = useState<ItemListItem[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [searchText, setSearchText] = useState('')
+  const [error, setError] = useState<string | null>(null)
 
   // Fetch items when modal opens
   useEffect(() => {
@@ -25,13 +26,17 @@ export function ItemSearchModal({ open, onCancel, onSelect }: ItemSearchModalPro
 
     const fetchItems = async () => {
       setIsLoading(true)
+      setError(null)
       try {
         const response = await getItemList(accessToken, companyCode)
         if (response.code === 0 && response.result) {
           setItems(response.result)
+        } else {
+          setError(response.msg || 'ไม่สามารถโหลดข้อมูลสินค้าได้')
         }
-      } catch (error) {
-        console.error('Failed to fetch items:', error)
+      } catch (err) {
+        console.error('Failed to fetch items:', err)
+        setError('เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง')
       } finally {
         setIsLoading(false)
       }
@@ -110,6 +115,10 @@ export function ItemSearchModal({ open, onCancel, onSelect }: ItemSearchModalPro
           onChange={(e) => setSearchText(e.target.value)}
           allowClear
         />
+
+        {error && (
+          <Alert message={error} type="error" showIcon />
+        )}
 
         <Table
           columns={columns}
