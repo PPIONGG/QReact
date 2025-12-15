@@ -30,6 +30,8 @@ import {
   ShoppingCartOutlined,
   UndoOutlined,
   ExclamationCircleOutlined,
+  ExpandAltOutlined,
+  CompressOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -144,6 +146,9 @@ export function POForm({ canEdit = true }: POFormProps) {
   // Confirm modal state
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [confirmModalType, setConfirmModalType] = useState<"save" | "cancel">("save");
+
+  // Expand card state
+  const [isExpanded, setIsExpanded] = useState(false);
 
   // Product line items state
   const [lineItems, setLineItems] = useState<POLineItem[]>([
@@ -1242,7 +1247,7 @@ export function POForm({ canEdit = true }: POFormProps) {
           }}
         >
           {/* Section: ผู้ขาย */}
-          <Card style={{ marginBottom: 16 }}>
+          <Card style={{ marginBottom: 16, display: isExpanded ? "none" : "block" }}>
             <Flex align="center" gap={12} style={{ marginBottom: 16 }}>
               <div
                 style={{
@@ -1459,7 +1464,7 @@ export function POForm({ canEdit = true }: POFormProps) {
             </Row>
           </Card>
 
-          <Flex gap={16}>
+          <Flex gap={16} style={{ display: isExpanded ? "none" : "flex" }}>
             <Card style={{ flex: 1 }}>
               {/* Tabs: สถานที่ส่งสินค้า / เอกสารอ้างอิง */}
               <Tabs defaultActiveKey="billing">
@@ -1523,24 +1528,32 @@ export function POForm({ canEdit = true }: POFormProps) {
           </Flex>
 
           {/* Section: รายการสินค้า */}
-          <Card style={{ marginTop: 16 }}>
-            <Flex align="center" gap={12} style={{ marginBottom: 16 }}>
-              <div
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: "50%",
-                  backgroundColor: "#52c41a",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <ShoppingCartOutlined style={{ color: "#fff", fontSize: 16 }} />
-              </div>
-              <Text strong style={{ fontSize: 16 }}>
-                รายการสินค้า
-              </Text>
+          <Card style={{ marginTop: isExpanded ? 0 : 16 }}>
+            <Flex align="center" justify="space-between" style={{ marginBottom: 16 }}>
+              <Flex align="center" gap={12}>
+                <div
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: "50%",
+                    backgroundColor: "#52c41a",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <ShoppingCartOutlined style={{ color: "#fff", fontSize: 16 }} />
+                </div>
+                <Text strong style={{ fontSize: 16 }}>
+                  รายการสินค้า
+                </Text>
+              </Flex>
+              <Button
+                type="text"
+                icon={isExpanded ? <CompressOutlined /> : <ExpandAltOutlined />}
+                onClick={() => setIsExpanded(!isExpanded)}
+                title={isExpanded ? "ย่อ" : "ขยาย"}
+              />
             </Flex>
 
             <Table
@@ -1591,7 +1604,7 @@ export function POForm({ canEdit = true }: POFormProps) {
                     parser={(value) => value?.replace(/,/g, "") as unknown as number}
                   />
                 </Form.Item>
-                <Text style={{ width: 50 }}>สกุลเงิน</Text>
+                <Text strong style={{ width: 50 }}>สกุลเงิน</Text>
                 <Form.Item name="totalAmountBeforeVATBaht" noStyle>
                   <InputNumber
                     style={{ width: 150 }}
@@ -1610,7 +1623,7 @@ export function POForm({ canEdit = true }: POFormProps) {
                     parser={(value) => value?.replace(/,/g, "") as unknown as number}
                   />
                 </Form.Item>
-                <Text style={{ width: 30 }}>บาท</Text>
+                <Text strong style={{ width: 30 }}>บาท</Text>
               </Flex>
 
               {/* ส่วนลด */}
@@ -1660,7 +1673,7 @@ export function POForm({ canEdit = true }: POFormProps) {
                     parser={(value) => value?.replace(/,/g, "") as unknown as number}
                   />
                 </Form.Item>
-                <Text style={{ width: 50 }}>สกุลเงิน</Text>
+                <Text strong style={{ width: 50 }}>สกุลเงิน</Text>
                 <Form.Item name="amountDiscountBaht" noStyle>
                   <InputNumber
                     style={{ width: 150 }}
@@ -1679,7 +1692,7 @@ export function POForm({ canEdit = true }: POFormProps) {
                     parser={(value) => value?.replace(/,/g, "") as unknown as number}
                   />
                 </Form.Item>
-                <Text style={{ width: 30 }}>บาท</Text>
+                <Text strong style={{ width: 30 }}>บาท</Text>
               </Flex>
 
               {/* ยอดเงินหลังลด */}
@@ -1703,7 +1716,7 @@ export function POForm({ canEdit = true }: POFormProps) {
                     parser={(value) => value?.replace(/,/g, "") as unknown as number}
                   />
                 </Form.Item>
-                <Text style={{ width: 50 }}>สกุลเงิน</Text>
+                <Text strong style={{ width: 50 }}>สกุลเงิน</Text>
                 <Form.Item name="totalAmountBahtAfterDiscountBeforeVAT" noStyle>
                   <InputNumber
                     style={{ width: 150 }}
@@ -1722,7 +1735,7 @@ export function POForm({ canEdit = true }: POFormProps) {
                     parser={(value) => value?.replace(/,/g, "") as unknown as number}
                   />
                 </Form.Item>
-                <Text style={{ width: 30 }}>บาท</Text>
+                <Text strong style={{ width: 30 }}>บาท</Text>
               </Flex>
 
               {/* ภาษี */}
@@ -1746,7 +1759,7 @@ export function POForm({ canEdit = true }: POFormProps) {
                     parser={(value) => value?.replace(/,/g, "") as unknown as number}
                   />
                 </Form.Item>
-                <Text style={{ width: 50 }}>สกุลเงิน</Text>
+                <Text strong style={{ width: 50 }}>สกุลเงิน</Text>
                 <Form.Item name="vatAmountBaht" noStyle>
                   <InputNumber
                     style={{ width: 150 }}
@@ -1765,7 +1778,7 @@ export function POForm({ canEdit = true }: POFormProps) {
                     parser={(value) => value?.replace(/,/g, "") as unknown as number}
                   />
                 </Form.Item>
-                <Text style={{ width: 30 }}>บาท</Text>
+                <Text strong style={{ width: 30 }}>บาท</Text>
               </Flex>
 
               {/* รวมเงินทั้งสิ้น */}
@@ -1789,7 +1802,7 @@ export function POForm({ canEdit = true }: POFormProps) {
                     parser={(value) => value?.replace(/,/g, "") as unknown as number}
                   />
                 </Form.Item>
-                <Text style={{ width: 50 }}>สกุลเงิน</Text>
+                <Text strong style={{ width: 50 }}>สกุลเงิน</Text>
                 <Form.Item name="totalAmountAfterVATBaht" noStyle>
                   <InputNumber
                     style={{ width: 150 }}
@@ -1808,7 +1821,7 @@ export function POForm({ canEdit = true }: POFormProps) {
                     parser={(value) => value?.replace(/,/g, "") as unknown as number}
                   />
                 </Form.Item>
-                <Text style={{ width: 30 }}>บาท</Text>
+                <Text strong style={{ width: 30 }}>บาท</Text>
               </Flex>
             </Flex>
           </Card>
