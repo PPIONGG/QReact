@@ -52,6 +52,7 @@ import {
   poInsert,
   poUpdate,
   getPOOrder,
+  getSupplier,
 } from "../services";
 import { SupplierSearchModal, ItemSearchModal } from "../components";
 import type {
@@ -685,12 +686,27 @@ export function POForm({ canEdit = true }: POFormProps) {
     }
   };
 
-  const handleSupplierSelect = (supplier: Supplier) => {
+  const handleSupplierSelect = async (supplier: Supplier) => {
     form.setFieldsValue({
       supplierCode: supplier.code,
       supplierName: supplier.nameThai,
       paymentTermCode: supplier.paymentTermCode,
     });
+
+    // Fetch supplier detail to get fullAddress and phone
+    if (accessToken && companyCode) {
+      try {
+        const response = await getSupplier(supplier.code, accessToken, companyCode);
+        if (response.code === 0 && response.result) {
+          form.setFieldsValue({
+            fullAddress: response.result.fullAddress || "",
+            supplierPhone: response.result.phone || "",
+          });
+        }
+      } catch (error) {
+        console.error("Failed to fetch supplier detail:", error);
+      }
+    }
 
     // Calculate payment due date if supplier has paymentTermCode
     if (supplier.paymentTermCode) {
@@ -1227,6 +1243,12 @@ export function POForm({ canEdit = true }: POFormProps) {
                       }
                       return false;
                     }}
+                    onChange={() => {
+                      const paymentTermCode = form.getFieldValue("paymentTermCode");
+                      if (paymentTermCode) {
+                        handlePaymentTermChange(paymentTermCode);
+                      }
+                    }}
                   />
                 </Form.Item>
               </Col>
@@ -1259,7 +1281,7 @@ export function POForm({ canEdit = true }: POFormProps) {
               <Col span={8} />
               {/* Row 3 */}
               <Col span={8}>
-                <Form.Item label="ที่อยู่" name="address">
+                <Form.Item label="ที่อยู่" name="fullAddress">
                   <TextArea rows={3} placeholder="ที่อยู่" readOnly />
                 </Form.Item>
               </Col>
@@ -1346,7 +1368,7 @@ export function POForm({ canEdit = true }: POFormProps) {
                     placeholder="1"
                     min={0}
                     precision={4}
-                    disabled={isReadOnly || currencyCode === "THB"}
+                    disabled={isReadOnly || currencyCode !== "THB"}
                   />
                 </Form.Item>
               </Col>
@@ -1466,7 +1488,7 @@ export function POForm({ canEdit = true }: POFormProps) {
             <Flex vertical gap={12} align="flex-end">
               {/* รวมมูลค่า */}
               <Flex align="center" gap={16}>
-                <Text style={{ width: 220, textAlign: "left" }}>รวมมูลค่า:</Text>
+                <Text strong style={{ width: 220, textAlign: "left" }}>รวมมูลค่า:</Text>
                 <Form.Item name="totalAmountCurrency" noStyle>
                   <InputNumber
                     style={{ width: 150 }}
@@ -1510,7 +1532,7 @@ export function POForm({ canEdit = true }: POFormProps) {
               {/* ส่วนลด */}
               <Flex align="center" gap={16}>
                 <Flex align="center" gap={8} style={{ width: 220 }}>
-                  <Text style={{ textAlign: "left" }}>ส่วนลด:</Text>
+                  <Text strong style={{ textAlign: "left" }}>ส่วนลด:</Text>
                   <Form.Item name="discountStringBeforeVAT" noStyle>
                     <Input
                       style={{ width: 80, textAlign: "right" }}
@@ -1534,7 +1556,7 @@ export function POForm({ canEdit = true }: POFormProps) {
                       }}
                     />
                   </Form.Item>
-                  <Text style={{ textAlign: "left" }}>จำนวนลด:</Text>
+                  <Text strong style={{ textAlign: "left" }}>จำนวนลด:</Text>
                 </Flex>
                 <Form.Item name="amountDiscountCurrency" noStyle>
                   <InputNumber
@@ -1578,7 +1600,7 @@ export function POForm({ canEdit = true }: POFormProps) {
 
               {/* ยอดเงินหลังลด */}
               <Flex align="center" gap={16}>
-                <Text style={{ width: 220, textAlign: "left" }}>ยอดเงินหลังลด:</Text>
+                <Text strong style={{ width: 220, textAlign: "left" }}>ยอดเงินหลังลด:</Text>
                 <Form.Item name="totalAmountCurrencyAfterDiscountBeforeVAT" noStyle>
                   <InputNumber
                     style={{ width: 150 }}
@@ -1621,7 +1643,7 @@ export function POForm({ canEdit = true }: POFormProps) {
 
               {/* ภาษี */}
               <Flex align="center" gap={16}>
-                <Text style={{ width: 220, textAlign: "left" }}>ภาษี:</Text>
+                <Text  strong style={{ width: 220, textAlign: "left" }}>ภาษี:</Text>
                 <Form.Item name="vatAmountCurrency" noStyle>
                   <InputNumber
                     style={{ width: 150 }}

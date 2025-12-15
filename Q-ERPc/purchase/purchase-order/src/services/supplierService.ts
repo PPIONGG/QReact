@@ -1,5 +1,5 @@
 import { httpClient } from './httpClient'
-import type { SupplierListResponse } from '../types'
+import type { SupplierListResponse, SupplierDetailResponse } from '../types'
 
 /**
  * Get supplier list
@@ -15,6 +15,25 @@ export async function getSupplierList(
   })
 }
 
+/**
+ * Get supplier detail by code
+ * Calls /api/Supplier/GetSupplier API
+ */
+export async function getSupplier(
+  supplierCode: string,
+  accessToken: string,
+  packageCode: string
+): Promise<SupplierDetailResponse> {
+  return httpClient.get<SupplierDetailResponse>(
+    `/api/Supplier/GetSupplier?SupplierCode=${encodeURIComponent(supplierCode)}`,
+    {
+      accessToken,
+      packageCode,
+    }
+  )
+}
+
 export const supplierService = {
   getSupplierList,
+  getSupplier,
 }
