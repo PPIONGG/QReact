@@ -1435,8 +1435,10 @@ export function POForm({ canEdit = true }: POFormProps) {
                       value: c.code,
                       label: `${c.code} - ${c.t}`,
                     }))}
-                    onChange={() => {
-                      form.setFieldValue("exchangeRate", 1);
+                    onChange={(value) => {
+                      if (value === "THB") {
+                        form.setFieldValue("exchangeRate", 1);
+                      }
                     }}
                   />
                 </Form.Item>
@@ -1449,7 +1451,7 @@ export function POForm({ canEdit = true }: POFormProps) {
                     placeholder="1"
                     min={0}
                     precision={4}
-                    disabled={isReadOnly || currencyCode !== "THB"}
+                    disabled={isReadOnly || currencyCode === "THB"}
                   />
                 </Form.Item>
               </Col>
