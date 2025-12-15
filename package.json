@@ -1,0 +1,36 @@
+{
+  "name": "microfrontend-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "shared",
+    "portal",
+    "Q-ERPc/sales/sales-visitor",
+    "Q-ERPc/purchase/purchase-order"
+  ],
+  "scripts": {
+    "dev": "npm-run-all --parallel dev:*",
+    "dev:sales-visitor": "cd Q-ERPc/sales/sales-visitor && npm run dev:integrated",
+    "dev:purchase-order": "cd Q-ERPc/purchase/purchase-order && npm run dev:integrated",
+    "dev:portal": "cd portal && npm run dev",
+    "portal": "cd portal && npm run dev",
+    "sales-visitor": "cd Q-ERPc/sales/sales-visitor && npm run dev:integrated",
+    "purchase-order": "cd Q-ERPc/purchase/purchase-order && npm run dev:integrated",
+    "stop": "stop-dev.bat",
+    "build": "npm-run-all build:*",
+    "build:sales-visitor": "cd Q-ERPc/sales/sales-visitor && npm run build",
+    "build:purchase-order": "cd Q-ERPc/purchase/purchase-order && npm run build",
+    "build:portal": "cd portal && npm run build",
+    "preview": "npm-run-all --parallel preview:*",
+    "preview:sales-visitor": "cd Q-ERPc/sales/sales-visitor && npm run preview",
+    "preview:purchase-order": "cd Q-ERPc/purchase/purchase-order && npm run preview",
+    "preview:portal": "cd portal && npm run preview",
+    "install:all": "npm-run-all install:*",
+    "install:sales-visitor": "cd Q-ERPc/sales/sales-visitor && npm install",
+    "install:purchase-order": "cd Q-ERPc/purchase/purchase-order && npm install",
+    "install:portal": "cd portal && npm install"
+  },
+  "devDependencies": {
+    "npm-run-all": "^4.1.5"
+  }
+}

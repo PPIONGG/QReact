@@ -1,0 +1,126 @@
+import { useState, useEffect, useMemo } from 'react'
+import { Modal, Table, Input, Flex } from 'antd'
+import { SearchOutlined } from '@ant-design/icons'
+import type { ColumnsType } from 'antd/es/table'
+import { useAuthStore } from '../stores'
+import { getSupplierList } from '../services'
+import type { Supplier } from '../types'
+
+interface SupplierSearchModalProps {
+  open: boolean
+  onCancel: () => void
+  onSelect: (supplier: Supplier) => void
+}
+
+export function SupplierSearchModal({ open, onCancel, onSelect }: SupplierSearchModalProps) {
+  const { accessToken, companyCode } = useAuthStore()
+
+  const [suppliers, setSuppliers] = useState<Supplier[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [searchText, setSearchText] = useState('')
+
+  // Fetch suppliers when modal opens
+  useEffect(() => {
+    if (!open || !accessToken || !companyCode) return
+
+    const fetchSuppliers = async () => {
+      setIsLoading(true)
+      try {
+        const response = await getSupplierList(accessToken, companyCode)
+        if (response.code === 0 && response.result) {
+          setSuppliers(response.result)
+        }
+      } catch (error) {
+        console.error('Failed to fetch suppliers:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchSuppliers()
+  }, [open, accessToken, companyCode])
+
+  // Filter suppliers based on search
+  const filteredSuppliers = useMemo(() => {
+    if (!searchText) return suppliers
+
+    const search = searchText.toLowerCase()
+    return suppliers.filter((s) =>
+      s.code.toLowerCase().includes(search) ||
+      s.nameThai.toLowerCase().includes(search) ||
+      s.prefixThai?.toLowerCase().includes(search) ||
+      s.taxId?.toLowerCase().includes(search)
+    )
+  }, [suppliers, searchText])
+
+  const handleRowClick = (supplier: Supplier) => {
+    onSelect(supplier)
+    onCancel()
+  }
+
+  const columns: ColumnsType<Supplier> = [
+    {
+      title: 'รหัส',
+      dataIndex: 'code',
+      key: 'code',
+      width: 100,
+    },
+    {
+      title: 'คำนำหน้า',
+      dataIndex: 'prefixThai',
+      key: 'prefixThai',
+      width: 120,
+    },
+    {
+      title: 'ชื่อ',
+      dataIndex: 'nameThai',
+      key: 'nameThai',
+    },
+    {
+      title: 'เลขประจำตัวผู้เสียภาษี',
+      dataIndex: 'taxId',
+      key: 'taxId',
+      width: 150,
+    },
+  ]
+
+  return (
+    <Modal
+      title="ค้นหาผู้ขาย"
+      open={open}
+      onCancel={onCancel}
+      footer={null}
+      width={800}
+    >
+      <Flex vertical gap={16}>
+        <Input
+          placeholder="ค้นหารหัส, ชื่อ, เลขประจำตัวผู้เสียภาษี..."
+          prefix={<SearchOutlined />}
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          allowClear
+        />
+
+        <Table
+          columns={columns}
+          dataSource={filteredSuppliers}
+          rowKey="code"
+          loading={isLoading}
+          pagination={{ pageSize: 10 }}
+          size="small"
+          rowClassName="supplier-row-hover"
+          onRow={(record) => ({
+            onClick: () => handleRowClick(record),
+            style: { cursor: 'pointer' },
+          })}
+          scroll={{ y: 400 }}
+        />
+        <style>{`
+          .supplier-row-hover:hover td {
+            background-color: #e6f7ff !important;
+          }
+        `}</style>
+      </Flex>
+    </Modal>
+  )
+}
