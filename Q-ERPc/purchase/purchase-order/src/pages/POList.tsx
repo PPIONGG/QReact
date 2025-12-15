@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuthStore, usePOStore, useDocumentTypes, useSelectedDocumentType, usePOHeaders, useSearchText } from '../stores'
 import { getDocumentTypeRightList, getPOHeaderList, poCancel } from '../services'
 import type { POHeader } from '../types'
+import { POPrintPreview } from './POPrintPreview'
 import dayjs from 'dayjs'
 
 const { Title } = Typography
@@ -25,6 +26,10 @@ export function POList({ canInsert = true }: POListProps) {
   const [cancelModalOpen, setCancelModalOpen] = useState(false)
   const [selectedPOForCancel, setSelectedPOForCancel] = useState<POHeader | null>(null)
   const [isCancelling, setIsCancelling] = useState(false)
+
+  // Print preview state
+  const [printPreviewOpen, setPrintPreviewOpen] = useState(false)
+  const [selectedRunNoForPrint, setSelectedRunNoForPrint] = useState<number | null>(null)
 
   // PO store
   const documentTypes = useDocumentTypes()
@@ -110,8 +115,9 @@ export function POList({ canInsert = true }: POListProps) {
     navigate(`edit/${id}`)
   }
 
-  const handleView = (runNo: number) => {
-    navigate(`edit/${runNo}?view=true`)
+  const handleView = (record: POHeader) => {
+    setSelectedRunNoForPrint(record.runNo)
+    setPrintPreviewOpen(true)
   }
 
   // Filter data based on search
@@ -221,9 +227,13 @@ export function POList({ canInsert = true }: POListProps) {
   }
 
   const handlePrint = (record: POHeader) => {
-    // Open view mode in new window for printing
-    const printUrl = `${window.location.origin}/purchase/purchase-order/edit/${record.runNo}?view=true&print=true`
-    window.open(printUrl, '_blank')
+    setSelectedRunNoForPrint(record.runNo)
+    setPrintPreviewOpen(true)
+  }
+
+  const handleClosePrintPreview = () => {
+    setPrintPreviewOpen(false)
+    setSelectedRunNoForPrint(null)
   }
 
   const columns: ColumnsType<POHeader> = [
@@ -312,12 +322,13 @@ export function POList({ canInsert = true }: POListProps) {
       fixed: 'right',
       render: (_, record) => (
         <Flex gap={4} justify="center">
-          <Tooltip title="ดูรายละเอียด">
+          <Tooltip title={record.recStatus === 1 ? "ยกเลิกแล้ว" : "ดูรายละเอียด"}>
             <Button
               type="text"
               size="small"
               icon={<EyeOutlined />}
-              onClick={() => handleView(record.runNo)}
+              onClick={() => handleView(record)}
+              disabled={record.recStatus === 1}
             />
           </Tooltip>
           <Tooltip title={record.recStatus === 1 ? "ยกเลิกแล้ว" : "แก้ไข"}>
@@ -339,12 +350,13 @@ export function POList({ canInsert = true }: POListProps) {
               disabled={record.recStatus === 1}
             />
           </Tooltip>
-          <Tooltip title="พิมพ์">
+          <Tooltip title={record.recStatus === 1 ? "ยกเลิกแล้ว" : "พิมพ์"}>
             <Button
               type="text"
               size="small"
               icon={<PrinterOutlined />}
               onClick={() => handlePrint(record)}
+              disabled={record.recStatus === 1}
             />
           </Tooltip>
         </Flex>
@@ -432,6 +444,15 @@ export function POList({ canInsert = true }: POListProps) {
           ต้องการยกเลิกใบสั่งซื้อ {selectedPOForCancel?.pono} หรือไม่?
         </Typography.Text>
       </Modal>
+
+      {/* Print Preview */}
+      {selectedRunNoForPrint && (
+        <POPrintPreview
+          runNo={selectedRunNoForPrint}
+          open={printPreviewOpen}
+          onClose={handleClosePrintPreview}
+        />
+      )}
     </Card>
   )
 }
