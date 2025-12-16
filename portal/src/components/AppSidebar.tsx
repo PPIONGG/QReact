@@ -84,7 +84,7 @@ export function AppSidebar({ selectedMenu, onMenuClick, onLogout, collapsed = fa
       children: [
         {
           key: 'purchase/purchase-order',
-          label: 'Purchase Order',
+          label: 'ใบสั่งซื้อ',
         },
       ],
     },
