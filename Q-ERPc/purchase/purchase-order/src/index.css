@@ -97,3 +97,8 @@ button:focus-visible {
 .antd-scrollbar::-webkit-scrollbar-corner {
   background: transparent;
 }
+
+/* InputNumber with red text for discount */
+.input-number-red .ant-input-number-input {
+  color: red !important;
+}

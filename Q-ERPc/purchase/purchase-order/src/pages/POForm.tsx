@@ -1345,7 +1345,7 @@ export function POForm({ canEdit = true }: POFormProps) {
           {!isEditMode && serieInfo && (
             <Badge
               count={`เลขที่ ${serieInfo.yearForRunNo}/${serieInfo.nextNumber}`}
-              style={{ backgroundColor: "#52c41a" }}
+              style={{ backgroundColor: "#52c41a",fontSize: 16 }}
             />
           )}
           {!isEditMode && isLoadingSerie && (
@@ -1790,7 +1790,7 @@ export function POForm({ canEdit = true }: POFormProps) {
               <Flex vertical gap={12}>
               {/* Header Row */}
               <Flex align="center" gap={16}>
-                <div style={{ width: 220 }} />
+                <div style={{ width: 270 }} />
                 <Text strong style={{ width: 150, textAlign: "right" }}>
                   {currencyCode || "สกุลเงิน"}
                 </Text>
@@ -1801,7 +1801,7 @@ export function POForm({ canEdit = true }: POFormProps) {
 
               {/* รวมมูลค่า */}
               <Flex align="center" gap={16}>
-                <Text strong style={{ width: 220, textAlign: "left" }}>
+                <Text strong style={{ width: 270, textAlign: "left" }}>
                   รวมมูลค่า:
                 </Text>
                 <Form.Item name="totalAmountCurrency" noStyle>
@@ -1848,7 +1848,7 @@ export function POForm({ canEdit = true }: POFormProps) {
 
               {/* ส่วนลด */}
               <Flex align="center" gap={16}>
-                <Flex align="center" gap={8} style={{ width: 220 }}>
+                <Flex align="center" gap={8} style={{ width: 270 }}>
                   <Text strong style={{ textAlign: "left" }}>
                     ส่วนลด:
                   </Text>
@@ -1878,47 +1878,49 @@ export function POForm({ canEdit = true }: POFormProps) {
                       }}
                     />
                   </Form.Item>
-                  <Text strong style={{ textAlign: "left" }}>
+                  <Text strong style={{ textAlign: "left", color: "red" }}>
                     จำนวนลด:
                   </Text>
                 </Flex>
                 <Form.Item name="amountDiscountCurrency" noStyle>
                   <InputNumber
                     style={{ width: 150 }}
-                    className="input-number-right"
+                    className="input-number-right input-number-red"
                     placeholder="0.00"
                     precision={2}
                     readOnly
                     formatter={(value) => {
                       if (!value && value !== 0) return "";
                       const num = parseFloat(value.toString());
-                      return num.toLocaleString("en-US", {
+                      const formatted = num.toLocaleString("en-US", {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       });
+                      return num > 0 ? `-${formatted}` : formatted;
                     }}
                     parser={(value) =>
-                      value?.replace(/,/g, "") as unknown as number
+                      value?.replace(/,/g, "").replace(/-/g, "") as unknown as number
                     }
                   />
                 </Form.Item>
                 <Form.Item name="amountDiscountBaht" noStyle>
                   <InputNumber
                     style={{ width: 150 }}
-                    className="input-number-right"
+                    className="input-number-right input-number-red"
                     placeholder="0.00"
                     precision={2}
                     readOnly
                     formatter={(value) => {
                       if (!value && value !== 0) return "";
                       const num = parseFloat(value.toString());
-                      return num.toLocaleString("en-US", {
+                      const formatted = num.toLocaleString("en-US", {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       });
+                      return num > 0 ? `-${formatted}` : formatted;
                     }}
                     parser={(value) =>
-                      value?.replace(/,/g, "") as unknown as number
+                      value?.replace(/,/g, "").replace(/-/g, "") as unknown as number
                     }
                   />
                 </Form.Item>
@@ -1926,7 +1928,7 @@ export function POForm({ canEdit = true }: POFormProps) {
 
               {/* ยอดเงินหลังลด */}
               <Flex align="center" gap={16}>
-                <Text strong style={{ width: 220, textAlign: "left" }}>
+                <Text strong style={{ width: 270, textAlign: "left" }}>
                   ยอดเงินหลังลด:
                 </Text>
                 <Form.Item
@@ -1974,15 +1976,42 @@ export function POForm({ canEdit = true }: POFormProps) {
                 </Form.Item>
               </Flex>
 
-              {/* ฐานภาษี */}
+              {/* ภาษีมูลค่าเพิ่ม */}
               <Flex align="center" gap={16}>
                 <Flex align="center" gap={8} style={{ width: 300 }}>
+                  <Text strong style={{ textAlign: "left" }}>
+                    ภาษีมูลค่าเพิ่ม:
+                  </Text>
+                  <Form.Item name="vatRate" noStyle>
+                    <Input
+                      style={{ width:70, textAlign: "right" }}
+                      disabled={isReadOnly}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        const regex = /^[0-9]*\.?[0-9]*$/;
+                        if (!regex.test(value) && value !== "") {
+                          e.preventDefault();
+                        }
+                      }}
+                    />
+                  </Form.Item>
+                  <Text strong style={{ textAlign: "left" }}>
+                    %
+                  </Text>
+                </Flex>
+                <div style={{ width: 100 }} />
+                <div style={{ width: 150 }} />
+              </Flex>
+
+              {/* ฐานภาษี */}
+              <Flex align="center" gap={16}>
+                <Flex align="center" gap={8} style={{ width: 270 }}>
                   <Text strong style={{ whiteSpace: "nowrap" }}>
                     ฐานภาษี:
                   </Text>
                   <Form.Item name="vatBasedForVATAmountCurrency" noStyle>
                     <Input
-                      style={{ width: 80, textAlign: "right" }}
+                      style={{ width: 100, textAlign: "right" }}
                       readOnly
                       onBlur={(e) => {
                         let value = e.target.value.trim();
@@ -2001,33 +2030,6 @@ export function POForm({ canEdit = true }: POFormProps) {
                       <Text strong>แก้ไขภาษี</Text>
                     </Checkbox>
                   </Form.Item>
-                </Flex>
-                <div style={{ width: 70 }} />
-                <div style={{ width: 150 }} />
-              </Flex>
-
-              {/* ภาษี */}
-              <Flex align="center" gap={16}>
-                <Flex align="center" gap={8} style={{ width: 220 }}>
-                  <Text strong style={{ textAlign: "left" }}>
-                    ฐานภาษีมูลค่าเพิ่ม:
-                  </Text>
-                  <Form.Item name="vatRate" noStyle>
-                    <Input
-                      style={{ width: 50, textAlign: "right" }}
-                      disabled={isReadOnly}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        const regex = /^[0-9]*\.?[0-9]*$/;
-                        if (!regex.test(value) && value !== "") {
-                          e.preventDefault();
-                        }
-                      }}
-                    />
-                  </Form.Item>
-                  <Text strong style={{ textAlign: "left" }}>
-                    %
-                  </Text>
                 </Flex>
 
                 <Form.Item name="vatAmountCurrency" noStyle>
