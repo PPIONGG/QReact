@@ -58,5 +58,8 @@ coverage
 # TypeScript cache
 *.tsbuildinfo
 
+# Deploy output (generated files)
+deploy/output
+
 # Misc
 nul
