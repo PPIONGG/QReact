@@ -154,7 +154,7 @@ function Main() {
     const titles: Record<string, string> = {
       home: 'หน้าหลัก',
       'sales/sales-visitor': 'Sales Visitor',
-      'purchase/purchase-order': 'Purchase Order',
+      'purchase/purchase-order': 'ใบสั่งซื้อ',
       quotation: 'ใบเสนอซื้อ',
       dashboard: 'Dashboard',
       search: 'ค้นหาเอกสาร',
