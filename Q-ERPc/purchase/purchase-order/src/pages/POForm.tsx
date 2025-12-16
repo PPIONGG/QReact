@@ -17,6 +17,7 @@ import {
   Result,
   Spin,
   message,
+  Checkbox,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import {
@@ -32,6 +33,10 @@ import {
   ExclamationCircleOutlined,
   ExpandAltOutlined,
   CompressOutlined,
+  HomeOutlined,
+  FileTextOutlined,
+  MessageOutlined,
+  EditOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -140,12 +145,16 @@ export function POForm({ canEdit = true }: POFormProps) {
 
   // Save modal state
   const [saveModalOpen, setSaveModalOpen] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<"saving" | "success" | "error">("saving");
+  const [saveStatus, setSaveStatus] = useState<"saving" | "success" | "error">(
+    "saving"
+  );
   const [saveErrorMessage, setSaveErrorMessage] = useState("");
 
   // Confirm modal state
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
-  const [confirmModalType, setConfirmModalType] = useState<"save" | "cancel">("save");
+  const [confirmModalType, setConfirmModalType] = useState<"save" | "cancel">(
+    "save"
+  );
 
   // Expand card state
   const [isExpanded, setIsExpanded] = useState(false);
@@ -171,9 +180,16 @@ export function POForm({ canEdit = true }: POFormProps) {
   const targetShippingDate = Form.useWatch("targetShippingDate", form);
 
   // Watch fields for calculation
-  const discountStringBeforeVAT = Form.useWatch("discountStringBeforeVAT", form);
+  const discountStringBeforeVAT = Form.useWatch(
+    "discountStringBeforeVAT",
+    form
+  );
   const exchangeRate = Form.useWatch("exchangeRate", form);
   const currencyCode = Form.useWatch("currencyCode", form);
+  const vatRate = Form.useWatch("vatRate", form);
+  const adjustVatEnabled = Form.useWatch("adjustVatEnabled", form);
+  const vatBasedForVATAmountCurrency = Form.useWatch("vatBasedForVATAmountCurrency", form);
+  const vatAmountCurrencyWatch = Form.useWatch("vatAmountCurrency", form);
 
   const isEditMode = !!id;
   const isViewMode = searchParams.get("view") === "true";
@@ -329,7 +345,15 @@ export function POForm({ canEdit = true }: POFormProps) {
 
   // Fetch PO data for edit mode
   useEffect(() => {
-    if (!isEditMode || !id || !username || !accessToken || !companyCode || !selectedDocumentTypeCode) return;
+    if (
+      !isEditMode ||
+      !id ||
+      !username ||
+      !accessToken ||
+      !companyCode ||
+      !selectedDocumentTypeCode
+    )
+      return;
 
     const fetchPOOrder = async () => {
       try {
@@ -370,9 +394,13 @@ export function POForm({ canEdit = true }: POFormProps) {
             supplierName: poOrder.supplierName,
             pono: poOrder.pono,
             podate: poOrder.podate ? dayjs(poOrder.podate) : null,
-            targetShippingDate: poOrder.targetShippingDate ? dayjs(poOrder.targetShippingDate) : null,
+            targetShippingDate: poOrder.targetShippingDate
+              ? dayjs(poOrder.targetShippingDate)
+              : null,
             paymentTermCode: poOrder.paymentTermCode,
-            paymentDueDate: poOrder.paymentDueDate ? dayjs(poOrder.paymentDueDate) : null,
+            paymentDueDate: poOrder.paymentDueDate
+              ? dayjs(poOrder.paymentDueDate)
+              : null,
             paymentTermRefDoc: poOrder.paymentTermRefDoc,
             currencyCode: poOrder.currencyCode,
             exchangeRate: poOrder.exchangeRate,
@@ -384,11 +412,14 @@ export function POForm({ canEdit = true }: POFormProps) {
             memo: poOrder.memo,
             billingCode: poOrder.billingCode,
             // Lookup billingAddress from warehouses
-            billingAddress: warehouses.find((w) => w.code === poOrder.billingCode)?.addressThai || "",
+            billingAddress:
+              warehouses.find((w) => w.code === poOrder.billingCode)
+                ?.addressThai || "",
             discountStringBeforeVAT: poOrder.discountStringBeforeVat,
             totalAmountCurrency: poOrder.totalAmountCurrency,
             amountDiscountCurrency: poOrder.amountDiscountCurrency,
-            totalAmountCurrencyAfterDiscountBeforeVAT: poOrder.totalAmountCurrencyAfterDiscountBeforeVat,
+            totalAmountCurrencyAfterDiscountBeforeVAT:
+              poOrder.totalAmountCurrencyAfterDiscountBeforeVat,
             vatAmountCurrency: poOrder.vatamountCurrency,
             totalAmountCurrencyAfterVAT: poOrder.totalAmountCurrencyAfterVat,
           });
@@ -407,10 +438,15 @@ export function POForm({ canEdit = true }: POFormProps) {
                       companyCode
                     );
                     if (unitResponse.code === 0 && unitResponse.result) {
-                      unitOptions = unitResponse.result.map((u: UnitConversion) => ({ code: u.code, t: u.t }));
+                      unitOptions = unitResponse.result.map(
+                        (u: UnitConversion) => ({ code: u.code, t: u.t })
+                      );
                     }
                   } catch (error) {
-                    console.error("Failed to fetch unit conversion list:", error);
+                    console.error(
+                      "Failed to fetch unit conversion list:",
+                      error
+                    );
                   }
                 }
 
@@ -438,11 +474,25 @@ export function POForm({ canEdit = true }: POFormProps) {
     };
 
     fetchPOOrder();
-  }, [isEditMode, id, username, accessToken, companyCode, selectedDocumentTypeCode, form, warehouses]);
+  }, [
+    isEditMode,
+    id,
+    username,
+    accessToken,
+    companyCode,
+    selectedDocumentTypeCode,
+    form,
+    warehouses,
+  ]);
 
   // Auto print when in print mode and data is loaded
   useEffect(() => {
-    if (isPrintMode && isViewMode && lineItems.length > 0 && lineItems[0].transactionCode) {
+    if (
+      isPrintMode &&
+      isViewMode &&
+      lineItems.length > 0 &&
+      lineItems[0].transactionCode
+    ) {
       // Wait a bit for the page to fully render
       const timer = setTimeout(() => {
         window.print();
@@ -456,7 +506,9 @@ export function POForm({ canEdit = true }: POFormProps) {
     if (!accessToken || !companyCode) return;
 
     // Check if there are any items with transactionCode (exclude deleted items)
-    const hasValidItems = lineItems.some((item) => item.transactionCode && item.statusRow !== "D");
+    const hasValidItems = lineItems.some(
+      (item) => item.transactionCode && item.statusRow !== "D"
+    );
     if (!hasValidItems) {
       // Reset all summary fields
       form.setFieldsValue({
@@ -480,49 +532,70 @@ export function POForm({ canEdit = true }: POFormProps) {
       // Build calculate details from lineItems (exclude deleted items)
       const calculateDetails: CalculateDetail[] = lineItems
         .filter((item) => item.transactionCode && item.statusRow !== "D")
-        .map((item) => ({
-          useExpenseSameLocalCurrencyTrueFalse: false,
-          excludeVATTrueFalse: false,
-          flagExcludeExpenseExport: false,
-          vLine: item.vline,
-          transactionType: "I",
-          transactionCode: item.transactionCode,
-          quantity: item.quantity || 0,
-          unitPriceCurrency: item.unitPriceCurrency || 0,
-          discount: item.discount || "",
-          totalAmountCurrency: 0,
-          unitPriceAfterDiscount: 0,
-          unitPriceLocalCurrencyAfterDiscount: 0,
-          totalAmountCurrencyAfterDiscount: 0,
-          totalAmountAfterDiscountLocalCurrency: 0,
-          vatBasedAmountCurrency: 0,
-          transactionTotalAmountBaht: 0,
-          transactionTotalAmountBahtAfterDiscountBeforeVAT: 0,
-          transactionVATAmountBaht: 0,
-          transactionTotalAmountAfterVATBaht: 0,
-        }));
+        .map((item) => {
+          const qty = item.quantity || 0;
+          const unitPrice = item.unitPriceCurrency || 0;
+          const totalAmount = qty * unitPrice;
+          return {
+            useExpenseSameLocalCurrencyTrueFalse: false,
+            excludeVATTrueFalse: false,
+            flagExcludeExpenseExport: false,
+            vLine: item.vline,
+            transactionType: "I",
+            transactionCode: item.transactionCode,
+            quantity: qty,
+            unitPriceCurrency: unitPrice,
+            discount: item.discount || "",
+            totalAmountCurrency: totalAmount,
+            unitPriceAfterDiscount: unitPrice,
+            unitPriceLocalCurrencyAfterDiscount: unitPrice * rate,
+            totalAmountCurrencyAfterDiscount: totalAmount,
+            totalAmountAfterDiscountLocalCurrency: totalAmount * rate,
+            vatBasedAmountCurrency: totalAmount,
+            transactionTotalAmountBaht: totalAmount * rate,
+            transactionTotalAmountBahtAfterDiscountBeforeVAT: totalAmount * rate,
+            transactionVATAmountBaht: 0,
+            transactionTotalAmountAfterVATBaht: 0,
+          };
+        });
+
+      // Calculate total amount from details
+      const totalFromDetails = calculateDetails.reduce((sum, item) => sum + item.totalAmountCurrency, 0);
+
+      // Parse vatBasedForVATAmountCurrency value
+      // Convert to string first to handle both number and string types
+      let vatBasedValue = 0;
+      if (adjustVatEnabled && vatBasedForVATAmountCurrency !== undefined && vatBasedForVATAmountCurrency !== null && vatBasedForVATAmountCurrency !== '') {
+        vatBasedValue = parseFloat(String(vatBasedForVATAmountCurrency)) || 0;
+      }
+
+      // Parse vatAmountCurrency value when adjustVatEnabled
+      let vatAmountValue = 0;
+      if (adjustVatEnabled && vatAmountCurrencyWatch !== undefined && vatAmountCurrencyWatch !== null) {
+        vatAmountValue = parseFloat(String(vatAmountCurrencyWatch)) || 0;
+      }
 
       const request: CalculateVatRequest = {
         calculateHeader: {
           noDigitQty: companyInfo?.noDigitQty ?? 2,
           noDigitUnitPrice: companyInfo?.noDigitUnitPrice ?? 2,
           noDigitTotal: companyInfo?.noDigitTotal ?? 2,
-          adjustVATYesNo: "",
-          adjustTotalYesNo: false,
+          adjustVATYesNo: adjustVatEnabled ? "Y" : "",
+          adjustTotalYesNo: adjustVatEnabled || false,
           exchangeRate: rate,
-          vatRate: 7,
+          vatRate: parseFloat(vatRate) || 7,
           includeVATTrueFalse: false,
-          totalAmountCurrency: 0,
-          totalAmountBeforeVATLocalCurrency: 0,
+          totalAmountCurrency: totalFromDetails,
+          totalAmountBeforeVATLocalCurrency: totalFromDetails * rate,
           discountStringBeforeVAT: discountStringBeforeVAT || "",
           amountDiscountCurrency: 0,
           amountDiscountBaht: 0,
-          totalAmountCurrencyAfterDiscountBeforeVAT: 0,
-          totalAmountBahtAfterDiscountBeforeVAT: 0,
-          vatAmountCurrency: 0,
-          vatAmountLocalCurrency: 0,
-          vatBasedForVATAmountCurrency: 0,
-          vatBasedForVATAmountBaht: 0,
+          totalAmountCurrencyAfterDiscountBeforeVAT: totalFromDetails,
+          totalAmountBahtAfterDiscountBeforeVAT: totalFromDetails * rate,
+          vatAmountCurrency: vatAmountValue,
+          vatAmountLocalCurrency: vatAmountValue * rate,
+          vatBasedForVATAmountCurrency: vatBasedValue,
+          vatBasedForVATAmountBaht: vatBasedValue * rate,
           totalAmountCurrencyAfterVAT: 0,
           totalAmountAfterVATLocalCurrency: 0,
         },
@@ -530,21 +603,38 @@ export function POForm({ canEdit = true }: POFormProps) {
       };
 
       try {
-        const response = await calculateVatAmount(request, accessToken, companyCode);
+        const response = await calculateVatAmount(
+          request,
+          accessToken,
+          companyCode
+        );
         if (response.code === 0 && response.result) {
           const header = response.result.calculateHeader;
-          form.setFieldsValue({
+          // Build fields to update based on adjustVatEnabled
+          const fieldsToUpdate: Record<string, unknown> = {
             totalAmountCurrency: header.totalAmountCurrency,
             totalAmountBeforeVATBaht: header.totalAmountBeforeVATLocalCurrency,
             amountDiscountCurrency: header.amountDiscountCurrency,
             amountDiscountBaht: header.amountDiscountBaht,
-            totalAmountCurrencyAfterDiscountBeforeVAT: header.totalAmountCurrencyAfterDiscountBeforeVAT,
-            totalAmountBahtAfterDiscountBeforeVAT: header.totalAmountBahtAfterDiscountBeforeVAT,
-            vatAmountCurrency: header.vatAmountCurrency,
-            vatAmountBaht: header.vatAmountCurrency * rate,
+            totalAmountCurrencyAfterDiscountBeforeVAT:
+              header.totalAmountCurrencyAfterDiscountBeforeVAT,
+            totalAmountBahtAfterDiscountBeforeVAT:
+              header.totalAmountBahtAfterDiscountBeforeVAT,
             totalAmountCurrencyAfterVAT: header.totalAmountCurrencyAfterVAT,
             totalAmountAfterVATBaht: header.totalAmountCurrencyAfterVAT * rate,
-          });
+          };
+
+          // If adjustVatEnabled is false, update vatAmountCurrency and vatBasedForVATAmountCurrency from API
+          if (!adjustVatEnabled) {
+            fieldsToUpdate.vatAmountCurrency = header.vatAmountCurrency;
+            fieldsToUpdate.vatAmountBaht = header.vatAmountCurrency * rate;
+            fieldsToUpdate.vatBasedForVATAmountCurrency = header.vatBasedForVATAmountCurrency;
+          } else {
+            // When adjustVatEnabled is true, only update vatAmountBaht (local currency)
+            fieldsToUpdate.vatAmountBaht = header.vatAmountLocalCurrency;
+          }
+
+          form.setFieldsValue(fieldsToUpdate);
         }
       } catch (error) {
         console.error("Failed to calculate VAT:", error);
@@ -553,7 +643,19 @@ export function POForm({ canEdit = true }: POFormProps) {
     };
 
     calculateTotals();
-  }, [lineItems, discountStringBeforeVAT, exchangeRate, accessToken, companyCode, form, companyInfo]);
+  }, [
+    lineItems,
+    discountStringBeforeVAT,
+    exchangeRate,
+    accessToken,
+    companyCode,
+    form,
+    companyInfo,
+    vatRate,
+    adjustVatEnabled,
+    vatBasedForVATAmountCurrency,
+    vatAmountCurrencyWatch,
+  ]);
 
   const handleCancel = () => {
     if (isReadOnly) {
@@ -583,8 +685,12 @@ export function POForm({ canEdit = true }: POFormProps) {
         (item) => !item.quantity || item.quantity <= 0
       );
       if (invalidQuantityItems.length > 0) {
-        const lineNumbers = invalidQuantityItems.map((item) => item.vline).join(", ");
-        message.error(`กรุณาระบุจำนวนสินค้าให้มากกว่า 0 (รายการที่ ${lineNumbers})`);
+        const lineNumbers = invalidQuantityItems
+          .map((item) => item.vline)
+          .join(", ");
+        message.error(
+          `กรุณาระบุจำนวนสินค้าให้มากกว่า 0 (รายการที่ ${lineNumbers})`
+        );
         return;
       }
 
@@ -611,7 +717,10 @@ export function POForm({ canEdit = true }: POFormProps) {
 
   const handleSubmit = async (values: Record<string, unknown>) => {
     // For new mode, require serieInfo
-    if (!isEditMode && (!username || !accessToken || !companyCode || !serieInfo)) {
+    if (
+      !isEditMode &&
+      (!username || !accessToken || !companyCode || !serieInfo)
+    ) {
       console.error("Missing required data for submit");
       return;
     }
@@ -639,7 +748,8 @@ export function POForm({ canEdit = true }: POFormProps) {
           discountPerUnit = parseFloat(discount) || 0;
         }
         const totalAmountCurrency = pricePerUnit * quantity;
-        const totalAmountAfterDiscount = (pricePerUnit - discountPerUnit) * quantity;
+        const totalAmountAfterDiscount =
+          (pricePerUnit - discountPerUnit) * quantity;
 
         return {
           // For deleted/existing items, use original noLine from DB
@@ -678,7 +788,9 @@ export function POForm({ canEdit = true }: POFormProps) {
         supplierName: (values.supplierName as string) || "",
         supplierSuffix: "",
         targetShippingDate: values.targetShippingDate
-          ? (values.targetShippingDate as dayjs.Dayjs).format("YYYY-MM-DDTHH:mm:ss")
+          ? (values.targetShippingDate as dayjs.Dayjs).format(
+              "YYYY-MM-DDTHH:mm:ss"
+            )
           : null,
         paymentTermCode: (values.paymentTermCode as string) || "",
         paymentDueDate: values.paymentDueDate
@@ -689,10 +801,13 @@ export function POForm({ canEdit = true }: POFormProps) {
         totalAmountCurrency: (values.totalAmountCurrency as number) || 0,
         vatrate: 7,
         vatamountCurrency: (values.vatAmountCurrency as number) || 0,
-        totalAmountCurrencyAfterVat: (values.totalAmountCurrencyAfterVAT as number) || 0,
+        totalAmountCurrencyAfterVat:
+          (values.totalAmountCurrencyAfterVAT as number) || 0,
         amountDiscountCurrency: (values.amountDiscountCurrency as number) || 0,
-        totalAmountCurrencyAfterDiscountBeforeVat: (values.totalAmountCurrencyAfterDiscountBeforeVAT as number) || 0,
-        discountStringBeforeVat: (values.discountStringBeforeVAT as string) || "",
+        totalAmountCurrencyAfterDiscountBeforeVat:
+          (values.totalAmountCurrencyAfterDiscountBeforeVAT as number) || 0,
+        discountStringBeforeVat:
+          (values.discountStringBeforeVAT as string) || "",
         note: (values.note as string) || "",
         totalAmountIncludeVattrueFalse: false,
         costCenterCode: "",
@@ -772,7 +887,11 @@ export function POForm({ canEdit = true }: POFormProps) {
     // Fetch supplier detail to get fullAddress and phone
     if (accessToken && companyCode) {
       try {
-        const response = await getSupplier(supplier.code, accessToken, companyCode);
+        const response = await getSupplier(
+          supplier.code,
+          accessToken,
+          companyCode
+        );
         if (response.code === 0 && response.result) {
           form.setFieldsValue({
             fullAddress: response.result.fullAddress || "",
@@ -976,7 +1095,14 @@ export function POForm({ canEdit = true }: POFormProps) {
       dataIndex: "transactionDescription",
       key: "transactionDescription",
       width: 250,
-      render: (text, record) => <Input value={text} placeholder="ชื่อสินค้า" readOnly disabled={record.statusRow === "D"} />,
+      render: (text, record) => (
+        <Input
+          value={text}
+          placeholder="ชื่อสินค้า"
+          readOnly
+          disabled={record.statusRow === "D"}
+        />
+      ),
     },
     {
       title: "จำนวน",
@@ -1018,7 +1144,9 @@ export function POForm({ canEdit = true }: POFormProps) {
           value={text || undefined}
           placeholder="เลือกหน่วย"
           style={{ width: "100%" }}
-          disabled={isReadOnly || !record.transactionCode || record.statusRow === "D"}
+          disabled={
+            isReadOnly || !record.transactionCode || record.statusRow === "D"
+          }
           onChange={(value) =>
             handleLineChange(record.vline, "purchaseUnitCode", value)
           }
@@ -1208,9 +1336,23 @@ export function POForm({ canEdit = true }: POFormProps) {
         align="center"
         style={{ flexShrink: 0, marginBottom: 12 }}
       >
-        <Text strong style={{ fontSize: 16 }}>
-          {pageTitle}
-        </Text>
+        <Flex align="center" gap={8}>
+          <Text strong style={{ fontSize: 16 }}>
+            {pageTitle}
+          </Text>
+          {!isEditMode && serieInfo && (
+            <Badge
+              count={`เลขที่ ${serieInfo.yearForRunNo}/${serieInfo.nextNumber}`}
+              style={{ backgroundColor: "#52c41a" }}
+            />
+          )}
+          {!isEditMode && isLoadingSerie && (
+            <Badge
+              count="กำลังโหลด..."
+              style={{ backgroundColor: "#1890ff" }}
+            />
+          )}
+        </Flex>
         {!isReadOnly && (
           <Flex gap={8}>
             <Button
@@ -1239,6 +1381,8 @@ export function POForm({ canEdit = true }: POFormProps) {
             podate: dayjs(),
             currencyCode: "THB",
             exchangeRate: 1,
+            vatRate: 7,
+            adjustVatEnabled: false,
           }}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
@@ -1247,7 +1391,9 @@ export function POForm({ canEdit = true }: POFormProps) {
           }}
         >
           {/* Section: ผู้ขาย */}
-          <Card style={{ marginBottom: 16, display: isExpanded ? "none" : "block" }}>
+          <Card
+            style={{ marginBottom: 16, display: isExpanded ? "none" : "block" }}
+          >
             <Flex align="center" gap={12} style={{ marginBottom: 16 }}>
               <div
                 style={{
@@ -1265,18 +1411,6 @@ export function POForm({ canEdit = true }: POFormProps) {
               <Text strong style={{ fontSize: 16 }}>
                 ผู้ขาย
               </Text>
-              {!isEditMode && serieInfo && (
-                <Badge
-                  count={`ลำดับที่ ${serieInfo.yearForRunNo}/${serieInfo.nextNumber}`}
-                  style={{ backgroundColor: "#52c41a" }}
-                />
-              )}
-              {!isEditMode && isLoadingSerie && (
-                <Badge
-                  count="กำลังโหลด..."
-                  style={{ backgroundColor: "#1890ff" }}
-                />
-              )}
             </Flex>
 
             <Row gutter={[16, 0]}>
@@ -1307,7 +1441,9 @@ export function POForm({ canEdit = true }: POFormProps) {
                 <Form.Item
                   label="เลขที่ใบสั่งซื้อ"
                   name="pono"
-                  rules={[{ required: true, message: "กรุณาระบุเลขที่ใบสั่งซื้อ" }]}
+                  rules={[
+                    { required: true, message: "กรุณาระบุเลขที่ใบสั่งซื้อ" },
+                  ]}
                 >
                   <Input placeholder="Auto" readOnly />
                 </Form.Item>
@@ -1316,7 +1452,9 @@ export function POForm({ canEdit = true }: POFormProps) {
                 <Form.Item
                   label="วันที่ใบสั่งซื้อ"
                   name="podate"
-                  rules={[{ required: true, message: "กรุณาเลือกวันที่ใบสั่งซื้อ" }]}
+                  rules={[
+                    { required: true, message: "กรุณาเลือกวันที่ใบสั่งซื้อ" },
+                  ]}
                 >
                   <DatePicker
                     style={{ width: "100%" }}
@@ -1330,7 +1468,8 @@ export function POForm({ canEdit = true }: POFormProps) {
                       return false;
                     }}
                     onChange={() => {
-                      const paymentTermCode = form.getFieldValue("paymentTermCode");
+                      const paymentTermCode =
+                        form.getFieldValue("paymentTermCode");
                       if (paymentTermCode) {
                         handlePaymentTermChange(paymentTermCode);
                       }
@@ -1468,13 +1607,23 @@ export function POForm({ canEdit = true }: POFormProps) {
             <Card style={{ flex: 1 }}>
               {/* Tabs: สถานที่ส่งสินค้า / เอกสารอ้างอิง */}
               <Tabs defaultActiveKey="billing">
-                <Tabs.TabPane tab="คลังสินค้า" key="billing" forceRender>
+                <Tabs.TabPane
+                  tab={
+                    <span>
+                      <HomeOutlined /> คลังสินค้า
+                    </span>
+                  }
+                  key="billing"
+                  forceRender
+                >
                   <Flex vertical gap={12}>
                     <Form.Item
                       label="คลังสินค้า"
                       name="billingCode"
                       style={{ marginBottom: 0 }}
-                      rules={[{ required: true, message: "กรุณาเลือกคลังสินค้า" }]}
+                      rules={[
+                        { required: true, message: "กรุณาเลือกคลังสินค้า" },
+                      ]}
                     >
                       <Select
                         placeholder="เลือกคลังสินค้า"
@@ -1485,25 +1634,54 @@ export function POForm({ canEdit = true }: POFormProps) {
                           label: w.nameT,
                         }))}
                         onChange={(value) => {
-                          const selected = warehouses.find((w) => w.code === value);
-                          form.setFieldValue("billingAddress", selected?.addressThai || "");
+                          const selected = warehouses.find(
+                            (w) => w.code === value
+                          );
+                          form.setFieldValue(
+                            "billingAddress",
+                            selected?.addressThai || ""
+                          );
                         }}
                       />
                     </Form.Item>
-                    <Form.Item label="ที่อยู่คลังสินค้า" name="billingAddress" style={{ marginBottom: 0 }}>
+                    <Form.Item
+                      label="ที่อยู่คลังสินค้า"
+                      name="billingAddress"
+                      style={{ marginBottom: 0 }}
+                    >
                       <TextArea rows={3} readOnly />
                     </Form.Item>
                   </Flex>
                 </Tabs.TabPane>
-                <Tabs.TabPane tab="เอกสารอ้างอิง" key="refDoc" forceRender>
+                <Tabs.TabPane
+                  tab={
+                    <span>
+                      <FileTextOutlined /> เอกสารอ้างอิง
+                    </span>
+                  }
+                  key="refDoc"
+                  forceRender
+                >
                   <Flex vertical gap={12}>
-                    <Form.Item label="อ้างอิงผู้ขาย" name="supplierRefDoc" style={{ marginBottom: 0 }}>
+                    <Form.Item
+                      label="อ้างอิงผู้ขาย"
+                      name="supplierRefDoc"
+                      style={{ marginBottom: 0 }}
+                    >
                       <Input />
                     </Form.Item>
-                    <Form.Item label="อ้างอิงบริษัท" name="companyRefDoc" style={{ marginBottom: 0 }}>
+                    <Form.Item
+                      label="อ้างอิงบริษัท"
+                      name="companyRefDoc"
+                      style={{ marginBottom: 0 }}
+                    >
                       <Input />
                     </Form.Item>
-                    <Form.Item label="ใบเสนอราคา" name="quotationRefDoc" style={{ marginBottom: 0 }}>
+                    <Form.Item
+                      label="ใบเสนอราคา"
+                      name="quotationRefDoc"
+                      style={{ marginBottom: 0 }}
+                    >
                       <Input />
                     </Form.Item>
                   </Flex>
@@ -1513,12 +1691,28 @@ export function POForm({ canEdit = true }: POFormProps) {
             <Card style={{ flex: 1 }}>
               {/* Tabs: หมายเหตุ / บันทึก */}
               <Tabs defaultActiveKey="remark">
-                <Tabs.TabPane tab="หมายเหตุ" key="remark" forceRender>
+                <Tabs.TabPane
+                  tab={
+                    <span>
+                      <MessageOutlined /> หมายเหตุ
+                    </span>
+                  }
+                  key="remark"
+                  forceRender
+                >
                   <Form.Item name="note" style={{ marginBottom: 0 }}>
                     <TextArea rows={4} placeholder="หมายเหตุเพิ่มเติม" />
                   </Form.Item>
                 </Tabs.TabPane>
-                <Tabs.TabPane tab="บันทึก" key="note" forceRender>
+                <Tabs.TabPane
+                  tab={
+                    <span>
+                      <EditOutlined /> บันทึก
+                    </span>
+                  }
+                  key="note"
+                  forceRender
+                >
                   <Form.Item name="memo" style={{ marginBottom: 0 }}>
                     <TextArea rows={4} placeholder="บันทึกภายใน" />
                   </Form.Item>
@@ -1529,7 +1723,11 @@ export function POForm({ canEdit = true }: POFormProps) {
 
           {/* Section: รายการสินค้า */}
           <Card style={{ marginTop: isExpanded ? 0 : 16 }}>
-            <Flex align="center" justify="space-between" style={{ marginBottom: 16 }}>
+            <Flex
+              align="center"
+              justify="space-between"
+              style={{ marginBottom: 16 }}
+            >
               <Flex align="center" gap={12}>
                 <div
                   style={{
@@ -1542,7 +1740,9 @@ export function POForm({ canEdit = true }: POFormProps) {
                     justifyContent: "center",
                   }}
                 >
-                  <ShoppingCartOutlined style={{ color: "#fff", fontSize: 16 }} />
+                  <ShoppingCartOutlined
+                    style={{ color: "#fff", fontSize: 16 }}
+                  />
                 </div>
                 <Text strong style={{ fontSize: 16 }}>
                   รายการสินค้า
@@ -1564,7 +1764,9 @@ export function POForm({ canEdit = true }: POFormProps) {
               scroll={{ x: 1200 }}
               rowKey="key"
               loading={isLoadingItem}
-              rowClassName={(record) => (record.statusRow === "D" ? "deleted-row" : "")}
+              rowClassName={(record) =>
+                record.statusRow === "D" ? "deleted-row" : ""
+              }
             />
 
             {!isReadOnly && (
@@ -1573,7 +1775,7 @@ export function POForm({ canEdit = true }: POFormProps) {
                 icon={<PlusOutlined />}
                 onClick={handleAddLine}
                 block
-                style={{ marginTop: 16,outline: "none" }}
+                style={{ marginTop: 16, outline: "none" }}
               >
                 เพิ่มรายการ
               </Button>
@@ -1581,11 +1783,25 @@ export function POForm({ canEdit = true }: POFormProps) {
           </Card>
 
           {/* Summary Section */}
-          <Card style={{ marginTop: 16 }}>
-            <Flex vertical gap={12} align="flex-end">
+          <Flex justify="flex-end" style={{ marginTop: 16 }}>
+            <Card style={{ width: "fit-content", backgroundColor: "#f0f5ff" }}>
+              <Flex vertical gap={12}>
+              {/* Header Row */}
+              <Flex align="center" gap={16}>
+                <div style={{ width: 220 }} />
+                <Text strong style={{ width: 150, textAlign: "right" }}>
+                  {currencyCode || "สกุลเงิน"}
+                </Text>
+                <Text strong style={{ width: 150, textAlign: "right" }}>
+                  บาท
+                </Text>
+              </Flex>
+
               {/* รวมมูลค่า */}
               <Flex align="center" gap={16}>
-                <Text strong style={{ width: 220, textAlign: "left" }}>รวมมูลค่า:</Text>
+                <Text strong style={{ width: 220, textAlign: "left" }}>
+                  รวมมูลค่า:
+                </Text>
                 <Form.Item name="totalAmountCurrency" noStyle>
                   <InputNumber
                     style={{ width: 150 }}
@@ -1601,10 +1817,11 @@ export function POForm({ canEdit = true }: POFormProps) {
                         maximumFractionDigits: 2,
                       });
                     }}
-                    parser={(value) => value?.replace(/,/g, "") as unknown as number}
+                    parser={(value) =>
+                      value?.replace(/,/g, "") as unknown as number
+                    }
                   />
                 </Form.Item>
-                <Text strong style={{ width: 50 }}>สกุลเงิน</Text>
                 <Form.Item name="totalAmountBeforeVATBaht" noStyle>
                   <InputNumber
                     style={{ width: 150 }}
@@ -1620,16 +1837,19 @@ export function POForm({ canEdit = true }: POFormProps) {
                         maximumFractionDigits: 2,
                       });
                     }}
-                    parser={(value) => value?.replace(/,/g, "") as unknown as number}
+                    parser={(value) =>
+                      value?.replace(/,/g, "") as unknown as number
+                    }
                   />
                 </Form.Item>
-                <Text strong style={{ width: 30 }}>บาท</Text>
               </Flex>
 
               {/* ส่วนลด */}
               <Flex align="center" gap={16}>
                 <Flex align="center" gap={8} style={{ width: 220 }}>
-                  <Text strong style={{ textAlign: "left" }}>ส่วนลด:</Text>
+                  <Text strong style={{ textAlign: "left" }}>
+                    ส่วนลด:
+                  </Text>
                   <Form.Item name="discountStringBeforeVAT" noStyle>
                     <Input
                       style={{ width: 80, textAlign: "right" }}
@@ -1647,13 +1867,18 @@ export function POForm({ canEdit = true }: POFormProps) {
                           const num = parseFloat(value);
                           if (!isNaN(num)) {
                             value = num.toFixed(2);
-                            form.setFieldValue("discountStringBeforeVAT", value);
+                            form.setFieldValue(
+                              "discountStringBeforeVAT",
+                              value
+                            );
                           }
                         }
                       }}
                     />
                   </Form.Item>
-                  <Text strong style={{ textAlign: "left" }}>จำนวนลด:</Text>
+                  <Text strong style={{ textAlign: "left" }}>
+                    จำนวนลด:
+                  </Text>
                 </Flex>
                 <Form.Item name="amountDiscountCurrency" noStyle>
                   <InputNumber
@@ -1670,10 +1895,11 @@ export function POForm({ canEdit = true }: POFormProps) {
                         maximumFractionDigits: 2,
                       });
                     }}
-                    parser={(value) => value?.replace(/,/g, "") as unknown as number}
+                    parser={(value) =>
+                      value?.replace(/,/g, "") as unknown as number
+                    }
                   />
                 </Form.Item>
-                <Text strong style={{ width: 50 }}>สกุลเงิน</Text>
                 <Form.Item name="amountDiscountBaht" noStyle>
                   <InputNumber
                     style={{ width: 150 }}
@@ -1689,16 +1915,22 @@ export function POForm({ canEdit = true }: POFormProps) {
                         maximumFractionDigits: 2,
                       });
                     }}
-                    parser={(value) => value?.replace(/,/g, "") as unknown as number}
+                    parser={(value) =>
+                      value?.replace(/,/g, "") as unknown as number
+                    }
                   />
                 </Form.Item>
-                <Text strong style={{ width: 30 }}>บาท</Text>
               </Flex>
 
               {/* ยอดเงินหลังลด */}
               <Flex align="center" gap={16}>
-                <Text strong style={{ width: 220, textAlign: "left" }}>ยอดเงินหลังลด:</Text>
-                <Form.Item name="totalAmountCurrencyAfterDiscountBeforeVAT" noStyle>
+                <Text strong style={{ width: 220, textAlign: "left" }}>
+                  ยอดเงินหลังลด:
+                </Text>
+                <Form.Item
+                  name="totalAmountCurrencyAfterDiscountBeforeVAT"
+                  noStyle
+                >
                   <InputNumber
                     style={{ width: 150 }}
                     className="input-number-right"
@@ -1713,10 +1945,11 @@ export function POForm({ canEdit = true }: POFormProps) {
                         maximumFractionDigits: 2,
                       });
                     }}
-                    parser={(value) => value?.replace(/,/g, "") as unknown as number}
+                    parser={(value) =>
+                      value?.replace(/,/g, "") as unknown as number
+                    }
                   />
                 </Form.Item>
-                <Text strong style={{ width: 50 }}>สกุลเงิน</Text>
                 <Form.Item name="totalAmountBahtAfterDiscountBeforeVAT" noStyle>
                   <InputNumber
                     style={{ width: 150 }}
@@ -1732,22 +1965,76 @@ export function POForm({ canEdit = true }: POFormProps) {
                         maximumFractionDigits: 2,
                       });
                     }}
-                    parser={(value) => value?.replace(/,/g, "") as unknown as number}
+                    parser={(value) =>
+                      value?.replace(/,/g, "") as unknown as number
+                    }
                   />
                 </Form.Item>
-                <Text strong style={{ width: 30 }}>บาท</Text>
+              </Flex>
+
+              {/* ฐานภาษี */}
+              <Flex align="center" gap={16}>
+                <Flex align="center" gap={8} style={{ width: 300 }}>
+                  <Text strong style={{ whiteSpace: "nowrap" }}>
+                    ฐานภาษี:
+                  </Text>
+                  <Form.Item name="vatBasedForVATAmountCurrency" noStyle>
+                    <Input
+                      style={{ width: 80, textAlign: "right" }}
+                      readOnly
+                      onBlur={(e) => {
+                        let value = e.target.value.trim();
+                        if (value) {
+                          const num = parseFloat(value);
+                          if (!isNaN(num)) {
+                            value = num.toFixed(2);
+                            form.setFieldValue("vatBasedForVATAmountCurrency", value);
+                          }
+                        }
+                      }}
+                    />
+                  </Form.Item>
+                  <Form.Item name="adjustVatEnabled" valuePropName="checked" noStyle>
+                    <Checkbox disabled={isReadOnly}>
+                      <Text strong>แก้ไขภาษี</Text>
+                    </Checkbox>
+                  </Form.Item>
+                </Flex>
+                <div style={{ width: 70 }} />
+                <div style={{ width: 150 }} />
               </Flex>
 
               {/* ภาษี */}
               <Flex align="center" gap={16}>
-                <Text  strong style={{ width: 220, textAlign: "left" }}>ภาษี:</Text>
+                <Flex align="center" gap={8} style={{ width: 220 }}>
+                  <Text strong style={{ textAlign: "left" }}>
+                    ฐานภาษีมูลค่าเพิ่ม:
+                  </Text>
+                  <Form.Item name="vatRate" noStyle>
+                    <Input
+                      style={{ width: 50, textAlign: "right" }}
+                      disabled={isReadOnly}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        const regex = /^[0-9]*\.?[0-9]*$/;
+                        if (!regex.test(value) && value !== "") {
+                          e.preventDefault();
+                        }
+                      }}
+                    />
+                  </Form.Item>
+                  <Text strong style={{ textAlign: "left" }}>
+                    %
+                  </Text>
+                </Flex>
+
                 <Form.Item name="vatAmountCurrency" noStyle>
                   <InputNumber
                     style={{ width: 150 }}
                     className="input-number-right"
                     placeholder="0.00"
                     precision={2}
-                    readOnly
+                    readOnly={!adjustVatEnabled || isReadOnly}
                     formatter={(value) => {
                       if (!value && value !== 0) return "";
                       const num = parseFloat(value.toString());
@@ -1756,10 +2043,11 @@ export function POForm({ canEdit = true }: POFormProps) {
                         maximumFractionDigits: 2,
                       });
                     }}
-                    parser={(value) => value?.replace(/,/g, "") as unknown as number}
+                    parser={(value) =>
+                      value?.replace(/,/g, "") as unknown as number
+                    }
                   />
                 </Form.Item>
-                <Text strong style={{ width: 50 }}>สกุลเงิน</Text>
                 <Form.Item name="vatAmountBaht" noStyle>
                   <InputNumber
                     style={{ width: 150 }}
@@ -1775,19 +2063,31 @@ export function POForm({ canEdit = true }: POFormProps) {
                         maximumFractionDigits: 2,
                       });
                     }}
-                    parser={(value) => value?.replace(/,/g, "") as unknown as number}
+                    parser={(value) =>
+                      value?.replace(/,/g, "") as unknown as number
+                    }
                   />
                 </Form.Item>
-                <Text strong style={{ width: 30 }}>บาท</Text>
               </Flex>
 
               {/* รวมเงินทั้งสิ้น */}
-              <Flex align="center" gap={16}>
-                <Text strong style={{ width: 220, textAlign: "left" }}>รวมเงินทั้งสิ้น:</Text>
+              <Flex
+                align="center"
+                gap={16}
+                style={{
+                  backgroundColor: "#1e3a5f",
+                  padding: "12px 16px",
+                  margin: "8px -24px -24px -24px",
+                  borderRadius: "0 0 8px 8px",
+                }}
+              >
+                <Text strong style={{ width: 220, textAlign: "left", color: "#fff", fontSize: 18 }}>
+                  รวมเงินทั้งสิ้น
+                </Text>
                 <Form.Item name="totalAmountCurrencyAfterVAT" noStyle>
                   <InputNumber
-                    style={{ width: 150 }}
-                    className="input-number-right"
+                    style={{ width: 150, fontSize: 18, fontWeight: "bold" }}
+                    className="input-number-right summary-total-input"
                     placeholder="0.00"
                     precision={2}
                     readOnly
@@ -1799,14 +2099,15 @@ export function POForm({ canEdit = true }: POFormProps) {
                         maximumFractionDigits: 2,
                       });
                     }}
-                    parser={(value) => value?.replace(/,/g, "") as unknown as number}
+                    parser={(value) =>
+                      value?.replace(/,/g, "") as unknown as number
+                    }
                   />
                 </Form.Item>
-                <Text strong style={{ width: 50 }}>สกุลเงิน</Text>
                 <Form.Item name="totalAmountAfterVATBaht" noStyle>
                   <InputNumber
-                    style={{ width: 150 }}
-                    className="input-number-right"
+                    style={{ width: 150, fontSize: 18, fontWeight: "bold" }}
+                    className="input-number-right summary-total-input"
                     placeholder="0.00"
                     precision={2}
                     readOnly
@@ -1818,13 +2119,15 @@ export function POForm({ canEdit = true }: POFormProps) {
                         maximumFractionDigits: 2,
                       });
                     }}
-                    parser={(value) => value?.replace(/,/g, "") as unknown as number}
+                    parser={(value) =>
+                      value?.replace(/,/g, "") as unknown as number
+                    }
                   />
                 </Form.Item>
-                <Text strong style={{ width: 30 }}>บาท</Text>
               </Flex>
-            </Flex>
-          </Card>
+              </Flex>
+            </Card>
+          </Flex>
         </Form>
       </div>
 
@@ -1847,8 +2150,14 @@ export function POForm({ canEdit = true }: POFormProps) {
         open={confirmModalOpen}
         title={
           <Flex align="center" gap={8}>
-            <ExclamationCircleOutlined style={{ color: "#faad14", fontSize: 22 }} />
-            <span>{confirmModalType === "save" ? "ยืนยันการบันทึก" : "ยืนยันการยกเลิก"}</span>
+            <ExclamationCircleOutlined
+              style={{ color: "#faad14", fontSize: 22 }}
+            />
+            <span>
+              {confirmModalType === "save"
+                ? "ยืนยันการบันทึก"
+                : "ยืนยันการยกเลิก"}
+            </span>
           </Flex>
         }
         footer={
@@ -1899,7 +2208,11 @@ export function POForm({ canEdit = true }: POFormProps) {
           <Result
             status="success"
             title="บันทึกสำเร็จ"
-            subTitle={isEditMode ? "อัปเดตใบสั่งซื้อเรียบร้อยแล้ว" : "สร้างใบสั่งซื้อเรียบร้อยแล้ว"}
+            subTitle={
+              isEditMode
+                ? "อัปเดตใบสั่งซื้อเรียบร้อยแล้ว"
+                : "สร้างใบสั่งซื้อเรียบร้อยแล้ว"
+            }
           />
         )}
         {saveStatus === "error" && (
@@ -1920,6 +2233,19 @@ export function POForm({ canEdit = true }: POFormProps) {
       <style>{`
         .input-number-right .ant-input-number-input {
           text-align: right;
+        }
+        .summary-total-input {
+          background-color: transparent !important;
+          border: none !important;
+        }
+        .summary-total-input .ant-input-number-input {
+          color: #fff !important;
+          text-align: right;
+          font-size: 18px;
+          font-weight: bold;
+        }
+        .summary-total-input.ant-input-number-disabled {
+          background-color: transparent !important;
         }
         .deleted-row {
           background-color: #fff2f0 !important;

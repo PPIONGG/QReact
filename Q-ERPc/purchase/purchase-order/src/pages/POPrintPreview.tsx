@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Flex, Spin, Button, Typography } from 'antd'
 import { PrinterOutlined, CloseOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
@@ -82,7 +83,11 @@ export function POPrintPreview({ runNo, open, onClose }: POPrintPreviewProps) {
   }, [open, runNo, username, accessToken, companyCode, selectedDocumentTypeCode])
 
   const handlePrint = () => {
+    // Add class to body for print styling
+    document.body.classList.add('printing-po-preview')
     window.print()
+    // Remove class after print dialog closes
+    document.body.classList.remove('printing-po-preview')
   }
 
   if (!open) return null
@@ -100,7 +105,7 @@ export function POPrintPreview({ runNo, open, onClose }: POPrintPreviewProps) {
   const totalPages = 1
   const currentPage = 1
 
-  return (
+  const content = (
     <div className="print-preview-overlay">
       {/* Toolbar - hidden when printing */}
       <div className="print-toolbar no-print">
@@ -210,7 +215,7 @@ export function POPrintPreview({ runNo, open, onClose }: POPrintPreviewProps) {
                     <th>รายการ</th>
                     <th style={{ width: '60px' }}>จำนวน</th>
                     <th style={{ width: '50px' }}>หน่วย</th>
-                    <th style={{ width: '80px' }}>หน่วยละ</th>
+                    <th style={{ width: '80px' }}>ราคา/ต่อหน่วย</th>
                     <th style={{ width: '60px' }}>ส่วนลด</th>
                     <th style={{ width: '90px' }}>จำนวนเงิน</th>
                   </tr>
@@ -624,23 +629,25 @@ export function POPrintPreview({ runNo, open, onClose }: POPrintPreviewProps) {
           }
 
           .print-preview-overlay {
-            position: static;
-            background: white;
+            position: static !important;
+            background: white !important;
+            overflow: visible !important;
           }
 
           .print-content-wrapper {
-            padding: 0;
+            padding: 0 !important;
           }
 
           .document-page {
-            width: 100%;
-            min-height: auto;
-            box-shadow: none;
-            padding: 5mm;
+            width: 100% !important;
+            min-height: auto !important;
+            box-shadow: none !important;
+            padding: 5mm !important;
+            margin: 0 !important;
           }
 
           .document-border {
-            min-height: auto;
+            min-height: auto !important;
           }
 
           @page {
@@ -649,6 +656,27 @@ export function POPrintPreview({ runNo, open, onClose }: POPrintPreviewProps) {
           }
         }
       `}</style>
+
+      {/* Global Print Styles - inject to head */}
+      <style>{`
+        @media print {
+          body.printing-po-preview > *:not(.print-preview-overlay) {
+            display: none !important;
+            visibility: hidden !important;
+          }
+
+          body.printing-po-preview .print-preview-overlay {
+            display: block !important;
+            visibility: visible !important;
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+          }
+        }
+      `}</style>
     </div>
   )
+
+  return createPortal(content, document.body)
 }

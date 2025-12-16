@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Card, Table, Typography, Tag, Flex, Button, Select, Input, Tooltip, Modal, message } from 'antd'
-import { PlusOutlined, EditOutlined, EyeOutlined, SearchOutlined, PrinterOutlined, StopOutlined, ExclamationCircleOutlined } from '@ant-design/icons'
+import { Card, Table, Typography, Tag, Flex, Button, Select, Input, Dropdown, Modal, message } from 'antd'
+import { PlusOutlined, EditOutlined, EyeOutlined, SearchOutlined, PrinterOutlined, StopOutlined, ExclamationCircleOutlined, EllipsisOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore, usePOStore, useDocumentTypes, useSelectedDocumentType, usePOHeaders, useSearchText } from '../stores'
@@ -315,52 +315,61 @@ export function POList({ canInsert = true }: POListProps) {
       width: 100,
     },
     {
-      title: 'จัดการ',
+      title: 'ตัวเลือกเพิ่มเติม',
       key: 'action',
-      width: 160,
+      width: 120,
       align: 'center',
       fixed: 'right',
-      render: (_, record) => (
-        <Flex gap={4} justify="center">
-          <Tooltip title={record.recStatus === 1 ? "ยกเลิกแล้ว" : "ดูรายละเอียด"}>
+      render: (_, record) => {
+        const isDisabled = record.recStatus === 1
+        const menuItems = [
+          {
+            key: 'edit',
+            label: 'แก้ไข',
+            icon: <EditOutlined />,
+            disabled: isDisabled,
+            onClick: () => handleEdit(record.runNo),
+          },
+          {
+            key: 'cancel',
+            label: 'ยกเลิกเอกสาร',
+            icon: <StopOutlined />,
+            // danger: true,
+            disabled: isDisabled,
+            onClick: () => handleCancel(record),
+          },
+          {
+            key: 'view',
+            label: 'ดูรายละเอียด',
+            icon: <EyeOutlined />,
+            disabled: isDisabled,
+            onClick: () => handleView(record),
+          },
+          {
+            key: 'print',
+            label: 'พิมพ์',
+            icon: <PrinterOutlined />,
+            disabled: isDisabled,
+            onClick: () => handlePrint(record),
+          },
+        ]
+
+        return (
+          <Dropdown
+            menu={{ items: menuItems }}
+            trigger={['hover']}
+            placement="bottomRight"
+            disabled={isDisabled}
+          >
             <Button
               type="text"
               size="small"
-              icon={<EyeOutlined />}
-              onClick={() => handleView(record)}
-              disabled={record.recStatus === 1}
+              icon={<EllipsisOutlined style={{ fontSize: 18 }} />}
+              disabled={isDisabled}
             />
-          </Tooltip>
-          <Tooltip title={record.recStatus === 1 ? "ยกเลิกแล้ว" : "แก้ไข"}>
-            <Button
-              type="text"
-              size="small"
-              icon={<EditOutlined />}
-              onClick={() => handleEdit(record.runNo)}
-              disabled={record.recStatus === 1}
-            />
-          </Tooltip>
-          <Tooltip title={record.recStatus === 1 ? "ยกเลิกแล้ว" : "ยกเลิก"}>
-            <Button
-              type="text"
-              size="small"
-              danger
-              icon={<StopOutlined />}
-              onClick={() => handleCancel(record)}
-              disabled={record.recStatus === 1}
-            />
-          </Tooltip>
-          <Tooltip title={record.recStatus === 1 ? "ยกเลิกแล้ว" : "พิมพ์"}>
-            <Button
-              type="text"
-              size="small"
-              icon={<PrinterOutlined />}
-              onClick={() => handlePrint(record)}
-              disabled={record.recStatus === 1}
-            />
-          </Tooltip>
-        </Flex>
-      ),
+          </Dropdown>
+        )
+      },
     },
   ]
 
@@ -369,7 +378,7 @@ export function POList({ canInsert = true }: POListProps) {
       <Flex justify="space-between" align="center" style={{ marginBottom: 16 }}>
         <div>
           <Title level={4} style={{ margin: 0 }}>
-            รายการใบสั่งซื้อ (Purchase Order)
+            รายการใบสั่งซื้อ
           </Title>
         </div>
         {canInsert && (
