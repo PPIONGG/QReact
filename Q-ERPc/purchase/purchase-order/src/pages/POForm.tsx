@@ -422,6 +422,7 @@ export function POForm({ canEdit = true }: POFormProps) {
               poOrder.totalAmountCurrencyAfterDiscountBeforeVat,
             vatAmountCurrency: poOrder.vatamountCurrency,
             totalAmountCurrencyAfterVAT: poOrder.totalAmountCurrencyAfterVat,
+            adjustVatEnabled: poOrder.adjustVATYesNo === "Y",
           });
 
           // Set line items from poDetails
@@ -581,7 +582,7 @@ export function POForm({ canEdit = true }: POFormProps) {
           noDigitUnitPrice: companyInfo?.noDigitUnitPrice ?? 2,
           noDigitTotal: companyInfo?.noDigitTotal ?? 2,
           adjustVATYesNo: adjustVatEnabled ? "Y" : "",
-          adjustTotalYesNo: adjustVatEnabled || false,
+          adjustTotalYesNo: false,
           exchangeRate: rate,
           vatRate: parseFloat(vatRate) || 7,
           includeVATTrueFalse: false,
@@ -817,6 +818,7 @@ export function POForm({ canEdit = true }: POFormProps) {
         paymentTermRefDoc: (values.paymentTermRefDoc as string) || "",
         memo: (values.memo as string) || "",
         sellerRefNo: (values.quotationRefDoc as string) || "",
+        adjustVATYesNo: values.adjustVatEnabled ? "Y" : "",
         poDetails: poDetails,
       },
     };

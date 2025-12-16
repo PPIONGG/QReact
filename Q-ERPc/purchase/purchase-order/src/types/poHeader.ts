@@ -78,6 +78,7 @@ export interface POOrder {
   paymentTermRefDoc: string
   memo: string
   sellerRefNo: string
+  adjustVATYesNo: string
   poDetails: PODetail[]
 }
 
