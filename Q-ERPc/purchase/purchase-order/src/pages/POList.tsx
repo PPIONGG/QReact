@@ -257,12 +257,12 @@ export function POList({ canInsert = true }: POListProps) {
       width: 110,
       render: (date: string) => dayjs(date).format('DD/MM/YYYY'),
     },
-    {
-      title: 'รหัสผู้ขาย',
-      dataIndex: 'supplierCode',
-      key: 'supplierCode',
-      width: 100,
-    },
+    // {
+    //   title: 'รหัสผู้ขาย',
+    //   dataIndex: 'supplierCode',
+    //   key: 'supplierCode',
+    //   width: 100,
+    // },
     {
       title: 'ชื่อผู้ขาย',
       dataIndex: 'supplierName',
@@ -313,11 +313,12 @@ export function POList({ canInsert = true }: POListProps) {
       dataIndex: 'updatedUser',
       key: 'updatedUser',
       width: 100,
+      align: 'center',
     },
     {
-      title: 'ตัวเลือกเพิ่มเติม',
+      title: 'ตัวเลือก',
       key: 'action',
-      width: 120,
+      width: 80,
       align: 'center',
       fixed: 'right',
       render: (_, record) => {

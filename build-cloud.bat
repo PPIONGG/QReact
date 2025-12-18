@@ -3,7 +3,7 @@ echo ==========================================
 echo   QReact Cloud Build Script
 echo ==========================================
 echo.
-echo   API Server: http://10.153.53.240:2006
+echo   API Server: http://203.150.53.240:2006
 echo   UI Server:  http://203.150.53.240:2004
 echo.
 echo ==========================================

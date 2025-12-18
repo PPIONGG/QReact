@@ -920,7 +920,7 @@ export function POForm({ canEdit = true }: POFormProps) {
     setLineItems([
       ...lineItems,
       {
-        key: crypto.randomUUID(), // Use UUID for unique key
+        key: `new-${Date.now()}-${Math.random().toString(36).slice(2)}`, // Use timestamp + random for unique key
         noLine: 0, // New row - will be assigned by API
         vline: newVline,
         transactionCode: "",
@@ -984,13 +984,13 @@ export function POForm({ canEdit = true }: POFormProps) {
   };
 
   const handleLineChange = (
-    vline: number,
+    key: string,
     field: keyof POLineItem,
     value: unknown
   ) => {
     setLineItems((prev) =>
       prev.map((item) =>
-        item.vline === vline ? { ...item, [field]: value } : item
+        item.key === key ? { ...item, [field]: value } : item
       )
     );
   };
@@ -1131,7 +1131,7 @@ export function POForm({ canEdit = true }: POFormProps) {
           }}
           parser={(value) => value?.replace(/,/g, "") as unknown as number}
           onChange={(value) =>
-            handleLineChange(record.vline, "quantity", value || 0)
+            handleLineChange(record.key, "quantity", value || 0)
           }
         />
       ),
@@ -1150,7 +1150,7 @@ export function POForm({ canEdit = true }: POFormProps) {
             isReadOnly || !record.transactionCode || record.statusRow === "D"
           }
           onChange={(value) =>
-            handleLineChange(record.vline, "purchaseUnitCode", value)
+            handleLineChange(record.key, "purchaseUnitCode", value)
           }
           options={
             record.unitOptions?.map((unit) => ({
@@ -1191,7 +1191,7 @@ export function POForm({ canEdit = true }: POFormProps) {
           }}
           parser={(value) => value?.replace(/,/g, "") as unknown as number}
           onChange={(value) =>
-            handleLineChange(record.vline, "unitPriceCurrency", value || 0)
+            handleLineChange(record.key, "unitPriceCurrency", value || 0)
           }
         />
       ),
@@ -1216,7 +1216,7 @@ export function POForm({ canEdit = true }: POFormProps) {
               const value = e.target.value;
               const regex = /^[0-9]*\.?[0-9]*%?$/;
               if (regex.test(value) || value === "") {
-                handleLineChange(record.vline, "discount", value);
+                handleLineChange(record.key, "discount", value);
               }
             }}
             onBlur={(e) => {
@@ -1238,7 +1238,7 @@ export function POForm({ canEdit = true }: POFormProps) {
                   value = "100%";
                 }
               }
-              handleLineChange(record.vline, "discount", value);
+              handleLineChange(record.key, "discount", value);
             }}
           />
         );
