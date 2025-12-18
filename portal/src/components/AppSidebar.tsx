@@ -204,12 +204,11 @@ export function AppSidebar({ selectedMenu, onMenuClick, onLogout, collapsed = fa
         <Button
           type="primary"
           block={!collapsed}
-          icon={<LogoutOutlined />}
           onClick={onLogout}
           style={{
             height: 40,
             fontWeight: 500,
-            width: collapsed ? 40 : undefined,
+            width: collapsed ? 48 : undefined,
             transition: 'all 0.2s',
             overflow: 'hidden',
             display: 'flex',
@@ -229,16 +228,17 @@ export function AppSidebar({ selectedMenu, onMenuClick, onLogout, collapsed = fa
             e.currentTarget.style.borderColor = COLORS.danger
           }}
         >
-          <span
-            style={{
-              opacity: collapsed ? 0 : 1,
-              transition: 'opacity 0.2s',
-              whiteSpace: 'nowrap',
-              marginLeft: collapsed ? 0 : 8,
-            }}
-          >
-            ออกจากระบบ
-          </span>
+          <LogoutOutlined style={{ fontSize: 16, flexShrink: 0 }} />
+          {!collapsed && (
+            <span
+              style={{
+                whiteSpace: 'nowrap',
+                marginLeft: 8,
+              }}
+            >
+              ออกจากระบบ
+            </span>
+          )}
         </Button>
       </div>
     </div>

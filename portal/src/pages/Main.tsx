@@ -241,7 +241,7 @@ function Main() {
           collapsible
           collapsed={!sidebarVisible}
           trigger={null}
-          width={250}
+          width={200}
           collapsedWidth={64}
           style={{
             background: '#001529',
@@ -268,7 +268,7 @@ function Main() {
         onClose={() => setDrawerVisible(false)}
         open={isMobile && drawerVisible}
         styles={{
-          wrapper: { width: 250 },
+          wrapper: { width: 200 },
           body: { padding: 0 },
         }}
         closeIcon={null}
@@ -282,7 +282,7 @@ function Main() {
 
       <Layout
         style={{
-          marginLeft: !isMobile ? (sidebarVisible ? 250 : 64) : 0,
+          marginLeft: !isMobile ? (sidebarVisible ? 200 : 64) : 0,
           transition: 'margin-left 0.2s',
         }}
       >
@@ -371,7 +371,7 @@ function Main() {
 
         <Content
           style={{
-            padding: 24,
+            padding: 12,
             background: '#f5f5f5',
             minHeight: 'calc(100vh - 64px)',
           }}
