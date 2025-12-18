@@ -60,6 +60,10 @@ coverage
 
 # Deploy output (generated files)
 deploy/output
+deploy/output-cloud
+
+# Cloud environment files
+.env.cloud
 
 # Misc
 nul
