@@ -50,7 +50,7 @@ function Login() {
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      background: 'linear-gradient(135deg, #ff6b6b 0%, #b30000 50%, #4a0000 100%)',
       padding: '20px'
     }}>
       <Card
@@ -64,8 +64,8 @@ function Login() {
       >
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
           <div style={{ textAlign: 'center' }}>
-            <Title level={2} style={{ margin: 0, color: '#333' }}>
-              เข้าสู่ระบบ
+            <Title level={2} style={{ margin: 0, color: '#b30000' }}>
+              Q-ERPc
             </Title>
             <Text type="secondary">ยินดีต้อนรับสู่ระบบ QERP</Text>
           </div>
@@ -96,6 +96,7 @@ function Login() {
                   label: option.label,
                   value: option.value,
                 }))}
+                disabled={isLoading}
               />
             </Form.Item>
 
@@ -132,7 +133,7 @@ function Login() {
                 block
                 style={{
                   height: 48,
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  background: 'linear-gradient(135deg, #b30000 0%, #7a0000 100%)',
                   border: 'none',
                   fontWeight: 600,
                   outline: 'none',
