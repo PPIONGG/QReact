@@ -12,24 +12,19 @@ import {
   Col,
   Badge,
   Select,
-  Table,
   Modal,
   Result,
   Spin,
   message,
   Checkbox,
 } from "antd";
-import type { ColumnsType } from "antd/es/table";
 import {
   SaveOutlined,
   CloseOutlined,
   UserOutlined,
   SearchOutlined,
   PlusOutlined,
-  DeleteOutlined,
-  EllipsisOutlined,
   ShoppingCartOutlined,
-  UndoOutlined,
   ExclamationCircleOutlined,
   ExpandAltOutlined,
   CompressOutlined,
@@ -39,7 +34,7 @@ import {
   EditOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import dayjs from "dayjs";
 import weekday from "dayjs/plugin/weekday";
 import localeData from "dayjs/plugin/localeData";
@@ -64,7 +59,8 @@ import {
   getSupplier,
   getCompanyInfo,
 } from "../services";
-import { SupplierSearchModal, ItemSearchModal } from "../components";
+import { SupplierSearchModal, ItemSearchModal, POLineItemTable } from "../components";
+import type { POLineItem } from "../components/POLineItemTable";
 import type {
   SeriesAndGroupDocResult,
   Supplier,
@@ -91,19 +87,7 @@ interface POFormProps {
   canEdit?: boolean;
 }
 
-interface POLineItem {
-  key: string;
-  noLine: number; // Original line number from DB (for edit/delete)
-  vline: number; // Display line number
-  transactionCode: string;
-  transactionDescription: string;
-  quantity: number;
-  purchaseUnitCode: string;
-  unitPriceCurrency: number;
-  discount: string;
-  unitOptions?: { code: string; t: string }[];
-  statusRow: "N" | "E" | "D"; // N = New, E = Edit, D = Delete
-}
+// POLineItem type is imported from POLineItemTable component
 
 export function POForm({ canEdit = true }: POFormProps) {
   const navigate = useNavigate();
@@ -502,7 +486,10 @@ export function POForm({ canEdit = true }: POFormProps) {
     }
   }, [isPrintMode, isViewMode, lineItems]);
 
-  // Calculate VAT when lineItems or discount changes
+  // Debounce timer ref
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Calculate VAT when lineItems or discount changes (with debounce)
   useEffect(() => {
     if (!accessToken || !companyCode) return;
 
@@ -643,7 +630,22 @@ export function POForm({ canEdit = true }: POFormProps) {
       }
     };
 
-    calculateTotals();
+    // Clear previous timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    // Debounce: wait 300ms before calling API
+    debounceTimerRef.current = setTimeout(() => {
+      calculateTotals();
+    }, 300);
+
+    // Cleanup on unmount or dependency change
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
   }, [
     lineItems,
     discountStringBeforeVAT,
@@ -995,17 +997,6 @@ export function POForm({ canEdit = true }: POFormProps) {
     );
   };
 
-  const calculateDiscountPerUnit = (
-    discount: string,
-    pricePerUnit: number
-  ): number => {
-    if (!discount) return 0;
-    if (discount.includes("%")) {
-      const percent = parseFloat(discount.replace("%", ""));
-      return (pricePerUnit * percent) / 100;
-    }
-    return parseFloat(discount) || 0;
-  };
 
   const openModalProductList = (key: string) => {
     setSelectedLineKey(key);
@@ -1053,255 +1044,6 @@ export function POForm({ canEdit = true }: POFormProps) {
     setIsLoadingItem(false);
   };
 
-  // Table columns
-  const columns: ColumnsType<POLineItem> = [
-    {
-      title: "No.",
-      key: "vline",
-      width: 60,
-      align: "center",
-      render: (_, record) => {
-        // For deleted rows, show "-"
-        if (record.statusRow === "D") {
-          return "-";
-        }
-        // For visible rows, show vline
-        return record.vline;
-      },
-    },
-    {
-      title: "รหัสสินค้า",
-      dataIndex: "transactionCode",
-      key: "transactionCode",
-      width: 150,
-      render: (text, record) => (
-        <Input
-          value={text}
-          placeholder="รหัสสินค้า"
-          readOnly
-          disabled={record.statusRow === "D"}
-          suffix={
-            <Button
-              type="text"
-              icon={<EllipsisOutlined />}
-              size="small"
-              onClick={() => openModalProductList(record.key)}
-              disabled={isReadOnly || record.statusRow === "D"}
-            />
-          }
-        />
-      ),
-    },
-    {
-      title: "ชื่อสินค้า",
-      dataIndex: "transactionDescription",
-      key: "transactionDescription",
-      width: 250,
-      render: (text, record) => (
-        <Input
-          value={text}
-          placeholder="ชื่อสินค้า"
-          readOnly
-          disabled={record.statusRow === "D"}
-        />
-      ),
-    },
-    {
-      title: "จำนวน",
-      dataIndex: "quantity",
-      key: "quantity",
-      width: 120,
-      align: "right",
-      render: (text, record) => (
-        <InputNumber
-          value={text}
-          min={0}
-          placeholder="0.00"
-          style={{ width: "100%" }}
-          className="input-number-right"
-          precision={2}
-          disabled={isReadOnly || record.statusRow === "D"}
-          formatter={(value) => {
-            if (!value && value !== 0) return "";
-            const num = parseFloat(value.toString());
-            return num.toLocaleString("en-US", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            });
-          }}
-          parser={(value) => value?.replace(/,/g, "") as unknown as number}
-          onChange={(value) =>
-            handleLineChange(record.key, "quantity", value || 0)
-          }
-        />
-      ),
-    },
-    {
-      title: "หน่วย",
-      dataIndex: "purchaseUnitCode",
-      key: "purchaseUnitCode",
-      width: 150,
-      render: (text, record) => (
-        <Select
-          value={text || undefined}
-          placeholder="เลือกหน่วย"
-          style={{ width: "100%" }}
-          disabled={
-            isReadOnly || !record.transactionCode || record.statusRow === "D"
-          }
-          onChange={(value) =>
-            handleLineChange(record.key, "purchaseUnitCode", value)
-          }
-          options={
-            record.unitOptions?.map((unit) => ({
-              label: unit.t,
-              value: unit.code,
-            })) || []
-          }
-          showSearch
-          optionFilterProp="label"
-          notFoundContent={
-            !record.transactionCode ? "กรุณาเลือกสินค้าก่อน" : "ไม่พบข้อมูล"
-          }
-        />
-      ),
-    },
-    {
-      title: "ราคา/หน่วย",
-      dataIndex: "unitPriceCurrency",
-      key: "unitPriceCurrency",
-      width: 150,
-      align: "right",
-      render: (text, record) => (
-        <InputNumber
-          value={text}
-          min={0}
-          placeholder="0.00"
-          style={{ width: "100%" }}
-          className="input-number-right"
-          precision={2}
-          disabled={isReadOnly || record.statusRow === "D"}
-          formatter={(value) => {
-            if (!value && value !== 0) return "";
-            const num = parseFloat(value.toString());
-            return num.toLocaleString("en-US", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            });
-          }}
-          parser={(value) => value?.replace(/,/g, "") as unknown as number}
-          onChange={(value) =>
-            handleLineChange(record.key, "unitPriceCurrency", value || 0)
-          }
-        />
-      ),
-    },
-    {
-      title: "ส่วนลด/หน่วย",
-      dataIndex: "discount",
-      key: "discount",
-      width: 150,
-      align: "right",
-      render: (text, record) => {
-        const pricePerUnit = record.unitPriceCurrency || 0;
-        const hasNoPrice = pricePerUnit <= 0;
-
-        return (
-          <Input
-            value={text}
-            style={{ width: "100%", textAlign: "right" }}
-            disabled={isReadOnly || record.statusRow === "D" || hasNoPrice}
-            placeholder={hasNoPrice ? "กรอกราคาก่อน" : ""}
-            onChange={(e) => {
-              const value = e.target.value;
-              const regex = /^[0-9]*\.?[0-9]*%?$/;
-              if (regex.test(value) || value === "") {
-                handleLineChange(record.key, "discount", value);
-              }
-            }}
-            onBlur={(e) => {
-              let value = e.target.value.trim();
-              if (value && !value.includes("%")) {
-                const num = parseFloat(value);
-                if (!isNaN(num)) {
-                  // ตรวจสอบว่าส่วนลดต้องไม่เกินราคา/หน่วย
-                  if (num > pricePerUnit) {
-                    value = pricePerUnit.toFixed(2);
-                  } else {
-                    value = num.toFixed(2);
-                  }
-                }
-              } else if (value.includes("%")) {
-                // ตรวจสอบว่า % ต้องไม่เกิน 100
-                const percent = parseFloat(value.replace("%", ""));
-                if (!isNaN(percent) && percent > 100) {
-                  value = "100%";
-                }
-              }
-              handleLineChange(record.key, "discount", value);
-            }}
-          />
-        );
-      },
-    },
-    {
-      title: "ยอดรวม",
-      dataIndex: "totalAmountAfterDiscount",
-      key: "totalAmountAfterDiscount",
-      width: 150,
-      align: "right",
-      render: (_, record) => {
-        const pricePerUnit = record.unitPriceCurrency || 0;
-        const quantity = record.quantity || 0;
-        const discountPerUnit = calculateDiscountPerUnit(
-          record.discount,
-          pricePerUnit
-        );
-        const priceAfterDiscount = pricePerUnit - discountPerUnit;
-        const amount = priceAfterDiscount * quantity;
-
-        return (
-          <span>
-            {amount.toLocaleString("en-US", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
-          </span>
-        );
-      },
-    },
-    {
-      title: "",
-      key: "action",
-      width: 60,
-      align: "center",
-      render: (_, record) => {
-        if (isReadOnly) return null;
-
-        // Show undo button for deleted rows
-        if (record.statusRow === "D") {
-          return (
-            <Button
-              type="text"
-              icon={<UndoOutlined />}
-              onClick={() => handleUndoDelete(record.key)}
-              title="ยกเลิกการลบ"
-            />
-          );
-        }
-
-        // Show delete button for non-deleted rows (N or E)
-        return (
-          <Button
-            type="text"
-            danger
-            icon={<DeleteOutlined />}
-            onClick={() => handleDeleteLine(record.key)}
-          />
-        );
-      },
-    },
-  ];
 
   const handlePaymentTermChange = async (paymentTermCode: string) => {
     if (!paymentTermCode || !accessToken || !companyCode) {
@@ -1758,17 +1500,14 @@ export function POForm({ canEdit = true }: POFormProps) {
               />
             </Flex>
 
-            <Table
-              columns={columns}
-              dataSource={lineItems}
-              pagination={false}
-              size="small"
-              scroll={{ x: 1200 }}
-              rowKey="key"
-              loading={isLoadingItem}
-              rowClassName={(record) =>
-                record.statusRow === "D" ? "deleted-row" : ""
-              }
+            <POLineItemTable
+              lineItems={lineItems}
+              isReadOnly={isReadOnly}
+              isLoadingItem={isLoadingItem}
+              onLineChange={handleLineChange}
+              onDeleteLine={handleDeleteLine}
+              onUndoDelete={handleUndoDelete}
+              onOpenProductModal={openModalProductList}
             />
 
             {!isReadOnly && (
