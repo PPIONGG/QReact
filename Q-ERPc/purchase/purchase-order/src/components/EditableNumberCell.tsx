@@ -98,9 +98,9 @@ export const EditableNumberCell = memo(function EditableNumberCell({
     setEditingValue(formattedValue);
 
     // Restore cursor position after React updates
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       input.setSelectionRange(newCursorPos, newCursorPos);
-    }, 0);
+    });
   };
 
   const handleBlur = () => {
@@ -123,9 +123,9 @@ export const EditableNumberCell = memo(function EditableNumberCell({
     // Start editing with current formatted value
     setEditingValue(formatNumber(value));
     // Select all after a microtask to ensure value is set
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       e.target.select();
-    }, 0);
+    });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -139,9 +139,9 @@ export const EditableNumberCell = memo(function EditableNumberCell({
     if (e.key === ".") {
       e.preventDefault();
       if (dotIndex !== -1) {
-        setTimeout(() => {
+        requestAnimationFrame(() => {
           input.setSelectionRange(dotIndex + 1, dotIndex + 1);
-        }, 0);
+        });
       }
       return;
     }
@@ -153,9 +153,9 @@ export const EditableNumberCell = memo(function EditableNumberCell({
         e.preventDefault();
         const newValue = e.key + currentValue.slice(1);
         setEditingValue(newValue);
-        setTimeout(() => {
+        requestAnimationFrame(() => {
           input.setSelectionRange(1, 1);
-        }, 0);
+        });
         return;
       }
 
@@ -179,12 +179,12 @@ export const EditableNumberCell = memo(function EditableNumberCell({
           // Move cursor to next position
           const newCursorPos = selectionStart + 1;
           const maxPos = formatted.indexOf(".") + precision + 1;
-          setTimeout(() => {
+          requestAnimationFrame(() => {
             input.setSelectionRange(
               Math.min(newCursorPos, maxPos),
               Math.min(newCursorPos, maxPos)
             );
-          }, 0);
+          });
         } else {
           e.preventDefault();
         }
