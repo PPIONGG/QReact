@@ -1,5 +1,6 @@
 export type {
   ApiResponse,
+  PaginatedApiResponse,
   Company,
   Permission,
   MenuPermission,

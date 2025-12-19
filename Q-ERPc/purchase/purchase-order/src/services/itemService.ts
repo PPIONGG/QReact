@@ -2,17 +2,24 @@ import { httpClient } from './httpClient'
 import type { ItemListResponse, UnitConversionListResponse } from '../types'
 
 /**
- * Get item list
+ * Get item list with pagination
  * Calls /api/Item/ItemList API
  */
 export async function getItemList(
   accessToken: string,
-  packageCode: string
+  packageCode: string,
+  page: number = 1,
+  pageSize: number = 20,
+  search?: string
 ): Promise<ItemListResponse> {
-  return httpClient.get<ItemListResponse>(`/api/Item/ItemList`, {
-    accessToken,
-    packageCode,
-  })
+  const searchParam = search ? `&search=${encodeURIComponent(search)}` : ''
+  return httpClient.get<ItemListResponse>(
+    `/api/Item/ItemList?page=${page}&pageSize=${pageSize}${searchParam}`,
+    {
+      accessToken,
+      packageCode,
+    }
+  )
 }
 
 /**

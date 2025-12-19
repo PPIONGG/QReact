@@ -9,6 +9,7 @@ import federation from '@originjs/vite-plugin-federation'
 // IIS Path: C:\inetpub\Web PO
 
 const PRODUCTION_URL = 'http://192.168.0.131:1005'
+const VERSION = '1.0.0' // เปลี่ยน version นี้ทุกครั้งที่ deploy เพื่อ bust cache
 
 export default defineConfig({
   plugins: [
@@ -17,8 +18,8 @@ export default defineConfig({
       name: 'portal',
       remotes: {
         // Production URLs (sub-folder)
-        salesVisitor: `${PRODUCTION_URL}/sv/assets/remoteEntry.js`,
-        purchaseOrder: `${PRODUCTION_URL}/po/assets/remoteEntry.js`,
+        salesVisitor: `${PRODUCTION_URL}/sv/assets/remoteEntry.js?v=${VERSION}`,
+        purchaseOrder: `${PRODUCTION_URL}/po/assets/remoteEntry.js?v=${VERSION}`,
       },
       shared: ['react', 'react-dom', 'react-router-dom', 'antd']
     })

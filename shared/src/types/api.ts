@@ -5,6 +5,17 @@ export interface ApiResponse<T> {
   result: T | null
 }
 
+/** Paginated API response wrapper */
+export interface PaginatedApiResponse<T> {
+  code: number
+  msg: string | null
+  result: T | null
+  totalCount: number
+  page: number
+  pageSize: number
+  totalPages: number
+}
+
 /** Company info from LoginJWT */
 export interface Company {
   companyCode: string

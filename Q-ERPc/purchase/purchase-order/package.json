@@ -8,7 +8,7 @@
     "dev:integrated": "run-p build:watch preview",
     "build": "tsc -b && vite build",
     "build:cloud": "tsc -b && vite build --mode cloud",
-    "build:watch": "vite build --watch",
+    "build:watch": "vite build --watch --mode development",
     "lint": "eslint .",
     "preview": "vite preview"
   },

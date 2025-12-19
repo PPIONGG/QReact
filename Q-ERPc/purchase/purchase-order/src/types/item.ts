@@ -1,4 +1,4 @@
-import type { ApiResponse } from '@qerp/shared'
+import type { ApiResponse, PaginatedApiResponse } from '@qerp/shared'
 
 export interface ItemListItem {
   documentModuleCode: string
@@ -23,7 +23,7 @@ export interface ItemListItem {
   itemImagePath: string | null
 }
 
-export type ItemListResponse = ApiResponse<ItemListItem[]>
+export type ItemListResponse = PaginatedApiResponse<ItemListItem[]>
 
 export interface UnitConversion {
   code: string
