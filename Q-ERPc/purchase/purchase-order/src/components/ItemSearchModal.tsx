@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { Modal, Table, Input, Flex, Button, Alert } from 'antd'
+import { Modal, Table, Input, Flex, Alert } from 'antd'
 import { SearchOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { useAuthStore } from '../stores'
@@ -82,21 +82,6 @@ export function ItemSearchModal({ open, onCancel, onSelect }: ItemSearchModalPro
       key: 'purchaseNameE',
       width: 180,
     },
-    {
-      title: 'เลือก',
-      key: 'action',
-      width: 80,
-      align: 'center',
-      render: (_, record) => (
-        <Button
-          type="primary"
-          size="small"
-          onClick={() => handleSelect(record)}
-        >
-          เลือก
-        </Button>
-      ),
-    },
   ]
 
   return (
@@ -128,6 +113,10 @@ export function ItemSearchModal({ open, onCancel, onSelect }: ItemSearchModalPro
           pagination={{ pageSize: 10 }}
           size="small"
           rowClassName="item-row-hover"
+          onRow={(record) => ({
+            onDoubleClick: () => handleSelect(record),
+            style: { cursor: 'pointer' },
+          })}
           scroll={{ y: 400 }}
         />
         <style>{`

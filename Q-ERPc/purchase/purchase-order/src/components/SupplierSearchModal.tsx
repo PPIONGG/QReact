@@ -119,7 +119,7 @@ export function SupplierSearchModal({ open, onCancel, onSelect }: SupplierSearch
           size="small"
           rowClassName="supplier-row-hover"
           onRow={(record) => ({
-            onClick: () => handleRowClick(record),
+            onDoubleClick: () => handleRowClick(record),
             style: { cursor: 'pointer' },
           })}
           scroll={{ y: 400 }}

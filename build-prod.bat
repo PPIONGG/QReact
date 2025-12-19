@@ -12,6 +12,7 @@ echo.
 
 set DEPLOY_DIR=deploy\output
 set "IIS_DIR=C:\inetpub\Web PO"
+set "BACKUP_DIR=C:\inetpub\Web PO_backup"
 set PORTAL_DIR=portal
 set PO_DIR=Q-ERPc\purchase\purchase-order
 
@@ -150,10 +151,40 @@ if not exist %DEPLOY_DIR% (
     goto :end
 )
 
-if not exist "%IIS_DIR%" mkdir "%IIS_DIR%"
-if not exist "%IIS_DIR%\po" mkdir "%IIS_DIR%\po"
+REM Create backup directory if not exists
+if not exist "%BACKUP_DIR%" mkdir "%BACKUP_DIR%"
 
-echo Copying files...
+REM Backup existing IIS folder if exists
+if exist "%IIS_DIR%" (
+    echo.
+    echo [Backup] Creating backup of existing IIS files...
+
+    REM Generate timestamp for backup filename
+    for /f "tokens=2 delims==" %%I in ('wmic os get localdatetime /value') do set datetime=%%I
+    set BACKUP_NAME=WebPO_%datetime:~0,8%_%datetime:~8,6%.zip
+
+    echo [Backup] Zipping to: %BACKUP_DIR%\%BACKUP_NAME%
+
+    REM Use PowerShell to create zip
+    powershell -Command "Compress-Archive -Path '%IIS_DIR%\*' -DestinationPath '%BACKUP_DIR%\%BACKUP_NAME%' -Force"
+
+    if errorlevel 1 (
+        echo ERROR: Backup failed!
+        pause
+        goto :end
+    )
+
+    echo [Backup] Backup created successfully!
+    echo.
+    echo [Cleanup] Removing old files from IIS...
+    rmdir /s /q "%IIS_DIR%"
+)
+
+REM Create fresh IIS directory
+mkdir "%IIS_DIR%"
+
+echo.
+echo [Deploy] Copying new files to IIS...
 xcopy /s /e /y /q %DEPLOY_DIR%\* "%IIS_DIR%\"
 
 echo.
@@ -161,7 +192,8 @@ echo ==========================================
 echo   Copy to IIS Complete!
 echo ==========================================
 echo.
-echo Files at: %IIS_DIR%
+echo Backup:   %BACKUP_DIR%\%BACKUP_NAME%
+echo Deployed: %IIS_DIR%
 echo.
 echo Test URLs:
 echo   http://192.168.0.131:1005/
@@ -171,16 +203,7 @@ goto :end
 
 :build_and_copy
 call :build_all
-echo.
-echo Copying to IIS...
-if not exist "%IIS_DIR%" mkdir "%IIS_DIR%"
-xcopy /s /e /y /q %DEPLOY_DIR%\* "%IIS_DIR%\"
-echo.
-echo ==========================================
-echo   Build + Copy Complete!
-echo ==========================================
-echo.
-goto :end
+goto :copy_to_iis
 
 :end
 echo.
