@@ -35,6 +35,21 @@ const { Header, Content, Sider } = Layout
 const { Text } = Typography
 const { useBreakpoint } = Grid
 
+const SIDEBAR_VISIBLE_KEY = 'portal-sidebar-visible'
+
+// Load sidebar state from localStorage
+const loadSidebarVisible = (): boolean => {
+  try {
+    const stored = localStorage.getItem(SIDEBAR_VISIBLE_KEY)
+    if (stored !== null) {
+      return JSON.parse(stored)
+    }
+  } catch {
+    // Ignore parse errors
+  }
+  return true // Default to visible
+}
+
 // Dynamically import remote components
 const SalesVisitorApp = lazy(() => import('salesVisitor/App'))
 const PurchaseOrderApp = lazy(() => import('purchaseOrder/App'))
@@ -107,7 +122,7 @@ function Main() {
   const navigate = useNavigate()
   const location = useLocation()
   const { username, accessToken, permission, menuPermission, logout, updateCompany } = useAuth()
-  const [sidebarVisible, setSidebarVisible] = useState(true)
+  const [sidebarVisible, setSidebarVisible] = useState(loadSidebarVisible)
   const [drawerVisible, setDrawerVisible] = useState(false)
   const [selectedCompanyCode, setSelectedCompanyCode] = useState<string | undefined>(
     permission?.companys?.[0]?.companyCode
@@ -126,6 +141,11 @@ function Main() {
       setSelectedCompanyCode(menuPermission.companyCode)
     }
   }, [menuPermission])
+
+  // Save sidebar state to localStorage
+  useEffect(() => {
+    localStorage.setItem(SIDEBAR_VISIBLE_KEY, JSON.stringify(sidebarVisible))
+  }, [sidebarVisible])
 
   // Determine if we should use drawer (mobile) or sider (desktop)
   const isMobile = !screens.lg
