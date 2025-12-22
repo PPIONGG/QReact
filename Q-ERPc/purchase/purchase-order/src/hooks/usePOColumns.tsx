@@ -2,10 +2,11 @@ import { useMemo } from 'react'
 import { Tag, Button, Dropdown } from 'antd'
 import { EditOutlined, EyeOutlined, PrinterOutlined, StopOutlined, EllipsisOutlined } from '@ant-design/icons'
 import type { ColumnsType, ColumnType } from 'antd/es/table'
-import type { POHeader } from '../types'
+import type { POHeader, ApprovedAction } from '../types'
 import dayjs from 'dayjs'
-import { getApprovalStatus, getDeliveryStatus, getRecStatus } from '../utils'
+import { getDeliveryStatus, getRecStatus } from '../utils'
 import { ColumnSelector, type ColumnConfig } from '../components/ColumnSelector'
+import { ApprovalStatusTag, type ApprovalActionParams } from '../components/ApprovalStatusTag'
 
 // Column configurations for the selector
 export const PO_COLUMN_CONFIGS: ColumnConfig[] = [
@@ -14,6 +15,11 @@ export const PO_COLUMN_CONFIGS: ColumnConfig[] = [
   { key: 'podate', title: 'วันที่เอกสาร' },
   { key: 'supplierName', title: 'ชื่อผู้ขาย' },
   { key: 'approvedStatus01', title: 'สถานะอนุมัติ' },
+  { key: 'approvedByName01', title: 'ชื่อผู้อนุมัติ' },
+  { key: 'approvedByLastDated01', title: 'วันที่อนุมัติ' },
+  { key: 'approvedStatus02', title: 'สถานะอนุมัติผู้บริหาร' },
+  { key: 'approvedByName02', title: 'ชื่อผู้อนุมัติผู้บริหาร' },
+  { key: 'approvedByLastDated02', title: 'วันที่อนุมัติผู้บริหาร' },
   { key: 'deliveryStatus', title: 'สถานะรับสินค้า' },
   { key: 'recStatus', title: 'สถานะ' },
   { key: 'lastUpdated', title: 'แก้ไขล่าสุด' },
@@ -29,8 +35,11 @@ interface UsePOColumnsProps {
   onView: (record: POHeader) => void
   onCancel: (record: POHeader) => void
   onPrint: (record: POHeader) => void
+  onApprovalAction?: (params: ApprovalActionParams) => void
   visibleColumns?: string[]
   onVisibleColumnsChange?: (columns: string[]) => void
+  approvedActions01?: ApprovedAction[]
+  approvedActions02?: ApprovedAction[]
 }
 
 export function usePOColumns({
@@ -38,8 +47,11 @@ export function usePOColumns({
   onView,
   onCancel,
   onPrint,
+  onApprovalAction,
   visibleColumns,
   onVisibleColumnsChange,
+  approvedActions01 = [],
+  approvedActions02 = [],
 }: UsePOColumnsProps) {
   const allColumns: ColumnsType<POHeader> = useMemo(
     () => [
@@ -76,10 +88,59 @@ export function usePOColumns({
         key: 'approvedStatus01',
         width: 100,
         align: 'center',
-        render: (status: string) => {
-          const { text, color } = getApprovalStatus(status)
-          return <Tag color={color}>{text}</Tag>
-        },
+        render: (status: string, record: POHeader) => (
+          <ApprovalStatusTag
+            status={status}
+            actions={approvedActions01}
+            runNo={record.runNo}
+            level={1}
+            disabled={record.recStatus === 1 || record.approvedStatus02 === 'Y' || record.approvedStatus02 === 'N'}
+            onAction={onApprovalAction}
+          />
+        ),
+      },
+      {
+        title: 'ชื่อผู้อนุมัติ',
+        dataIndex: 'approvedByName01',
+        key: 'approvedByName01',
+        width: 120,
+      },
+      {
+        title: 'วันที่อนุมัติ',
+        dataIndex: 'approvedByLastDated01',
+        key: 'approvedByLastDated01',
+        width: 140,
+        render: (date: string | null) => (date ? dayjs(date).format('DD/MM/YYYY HH:mm') : '-'),
+      },
+      {
+        title: 'สถานะอนุมัติผู้บริหาร',
+        dataIndex: 'approvedStatus02',
+        key: 'approvedStatus02',
+        width: 140,
+        align: 'center',
+        render: (status: string, record: POHeader) => (
+          <ApprovalStatusTag
+            status={status}
+            actions={approvedActions02}
+            runNo={record.runNo}
+            level={2}
+            disabled={record.recStatus === 1 || record.approvedStatus01 !== 'Y'}
+            onAction={onApprovalAction}
+          />
+        ),
+      },
+      {
+        title: 'ชื่อผู้อนุมัติผู้บริหาร',
+        dataIndex: 'approvedByName02',
+        key: 'approvedByName02',
+        width: 140,
+      },
+      {
+        title: 'วันที่อนุมัติผู้บริหาร',
+        dataIndex: 'approvedByLastDated02',
+        key: 'approvedByLastDated02',
+        width: 150,
+        render: (date: string | null) => (date ? dayjs(date).format('DD/MM/YYYY HH:mm') : '-'),
       },
       {
         title: 'สถานะรับสินค้า',
@@ -184,7 +245,7 @@ export function usePOColumns({
         },
       },
     ],
-    [onEdit, onView, onCancel, onPrint, onVisibleColumnsChange, visibleColumns]
+    [onEdit, onView, onCancel, onPrint, onApprovalAction, onVisibleColumnsChange, visibleColumns, approvedActions01, approvedActions02]
   )
 
   // Filter columns based on visibility

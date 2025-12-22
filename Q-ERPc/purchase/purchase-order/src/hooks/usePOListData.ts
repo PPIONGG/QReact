@@ -1,7 +1,8 @@
 import { useEffect, useRef, useMemo, useState, useCallback } from 'react'
 import { message } from 'antd'
 import { useAuthStore, usePOStore, useDocumentTypes, useSelectedDocumentType, usePOHeaders, useSearchText } from '../stores'
-import { getDocumentTypeRightList, getPOHeaderList, poCancel } from '../services'
+import { getDocumentTypeRightList, getPOHeaderList, poCancel, submitApproval } from '../services'
+import type { ApprovalRequest } from '../types'
 import type { POHeader } from '../types'
 import dayjs from 'dayjs'
 
@@ -26,6 +27,9 @@ export function usePOListData() {
 
   // Cancel state
   const [isCancelling, setIsCancelling] = useState(false)
+
+  // Approval state
+  const [isSubmittingApproval, setIsSubmittingApproval] = useState(false)
 
   // Memoize document type options
   const documentTypeOptions = useMemo(
@@ -151,6 +155,53 @@ export function usePOListData() {
     [username, accessToken, companyCode, selectedDocumentType, setIsLoadingPOHeaders, setPOHeaders]
   )
 
+  // Submit approval action
+  const handleApprovalAction = useCallback(
+    async (params: { runNo: number; level: number; action: 'approve' | 'reject' | 'cancel'; comment?: string }) => {
+      if (!username || !accessToken || !companyCode || !selectedDocumentType) return false
+
+      setIsSubmittingApproval(true)
+      try {
+        const request: ApprovalRequest = {
+          moduleCode: 'PO',
+          documentTypeCode: selectedDocumentType,
+          runNo: params.runNo,
+          level: params.level,
+          action: params.action === 'approve' ? 'Y' : params.action === 'reject' ? 'N' : 'W',
+          comment: params.comment || '',
+          userName: username,
+        }
+
+        const response = await submitApproval(request, accessToken, companyCode)
+
+        if (response.status) {
+          const actionText =
+            params.action === 'approve' ? 'อนุมัติ' : params.action === 'reject' ? 'ไม่อนุมัติ' : 'ยกเลิกอนุมัติ'
+          message.success(`${actionText}สำเร็จ`)
+
+          // Refresh PO list
+          setIsLoadingPOHeaders(true)
+          const listResponse = await getPOHeaderList(selectedDocumentType, accessToken, companyCode)
+          if (listResponse.code === 0 && listResponse.result) {
+            setPOHeaders(listResponse.result)
+          }
+          setIsLoadingPOHeaders(false)
+          return true
+        } else {
+          message.error(response.message || 'เกิดข้อผิดพลาด')
+          return false
+        }
+      } catch (error) {
+        console.error('Failed to submit approval:', error)
+        message.error('เกิดข้อผิดพลาดในการส่งคำขอ')
+        return false
+      } finally {
+        setIsSubmittingApproval(false)
+      }
+    },
+    [username, accessToken, companyCode, selectedDocumentType, setIsLoadingPOHeaders, setPOHeaders]
+  )
+
   return {
     // Data
     documentTypeOptions,
@@ -161,9 +212,11 @@ export function usePOListData() {
     isLoadingDocTypes,
     isLoadingPOHeaders,
     isCancelling,
+    isSubmittingApproval,
     // Actions
     setSelectedDocumentTypeCode,
     setSearchText,
     cancelPO,
+    handleApprovalAction,
   }
 }

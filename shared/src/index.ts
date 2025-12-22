@@ -15,3 +15,7 @@ export type {
   LoginRequest,
   LoginType,
 } from './types'
+
+// Components
+export { ConfirmModal } from './components'
+export type { ConfirmModalProps, ConfirmModalType } from './components'

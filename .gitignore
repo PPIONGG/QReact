@@ -44,6 +44,7 @@ Desktop.ini
 
 # Claude Code settings (local only)
 .claude/settings.local.json
+.clinerules
 
 # Temporary files
 *.tmp

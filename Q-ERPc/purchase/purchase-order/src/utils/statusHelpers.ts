@@ -2,13 +2,23 @@
  * Status helper functions for displaying status tags
  */
 
+import type { ApprovedAction } from '../types'
+
 export interface StatusResult {
   text: string
   color: string
 }
 
+// Color mapping based on action type
+const ACTION_TYPE_COLORS: Record<string, string> = {
+  Complete: 'green',
+  UnComplete: 'red',
+  Process: 'orange',
+  Request: 'blue',
+}
+
 /**
- * Get approval status display info
+ * Get approval status display info (default fallback)
  */
 export const getApprovalStatus = (status: string): StatusResult => {
   switch (status) {
@@ -18,9 +28,25 @@ export const getApprovalStatus = (status: string): StatusResult => {
       return { text: 'รออนุมัติ', color: 'orange' }
     case 'N':
       return { text: 'ไม่อนุมัติ', color: 'red' }
+    case 'P':
+      return { text: 'ขอร้อง', color: 'blue' }
     default:
-      return { text: 'ร่าง', color: 'blue' }
+      return { text: '', color: 'default' }
   }
+}
+
+/**
+ * Get approval status display info from config actions
+ */
+export const getApprovalStatusFromConfig = (status: string, actions: ApprovedAction[]): StatusResult => {
+  const action = actions.find((a) => a.value === status)
+  if (action) {
+    return {
+      text: action.labelTH,
+      color: ACTION_TYPE_COLORS[action.type] || 'default',
+    }
+  }
+  return getApprovalStatus(status)
 }
 
 /**

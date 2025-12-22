@@ -16,12 +16,12 @@ import {
   SupplierSearchModal,
   ItemSearchModal,
   POLineItemTable,
-  ConfirmModal,
   SaveStatusModal,
   POSummarySection,
   SupplierSection,
   POFormTabs,
 } from '../components'
+import { ConfirmModal } from '../../../../../shared/src'
 import type { POLineItem } from '../components/POLineItemTable'
 import type { SaveStatus } from '../components/SaveStatusModal'
 import { usePOFormData } from '../hooks/usePOFormData'
@@ -612,8 +612,18 @@ export function POForm({ canEdit = true }: POFormProps) {
 
       <ConfirmModal
         open={confirmModalOpen}
-        type={confirmModalType}
-        isEditMode={isEditMode}
+        title={confirmModalType === 'save' ? 'ยืนยันการบันทึก' : 'ยืนยันการยกเลิก'}
+        message={
+          confirmModalType === 'save'
+            ? isEditMode
+              ? 'ต้องการบันทึกการแก้ไขใบสั่งซื้อหรือไม่?'
+              : 'ต้องการบันทึกใบสั่งซื้อหรือไม่?'
+            : isEditMode
+            ? 'ต้องการยกเลิกการแก้ไขใบสั่งซื้อหรือไม่?'
+            : 'ต้องการยกเลิกการสร้างใบสั่งซื้อหรือไม่?'
+        }
+        confirmText={confirmModalType === 'save' ? 'บันทึก' : 'ยืนยัน'}
+        cancelText={confirmModalType === 'save' ? 'ยกเลิก' : 'ไม่'}
         onConfirm={handleConfirmOk}
         onCancel={handleConfirmCancel}
       />

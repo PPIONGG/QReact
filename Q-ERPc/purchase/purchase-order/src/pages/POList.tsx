@@ -4,8 +4,12 @@ import { PlusOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { POSearchFilter } from '../components/POSearchFilter'
 import { CancelPOModal } from '../components/CancelPOModal'
+import { RejectReasonModal } from '../components/RejectReasonModal'
+import { ConfirmModal } from '../../../../../shared/src/components/ConfirmModal'
+import type { ApprovalActionParams } from '../components/ApprovalStatusTag'
 import { usePOColumns, getDefaultVisibleColumns } from '../hooks/usePOColumns'
 import { usePOListData } from '../hooks/usePOListData'
+import { useApprovedConfig } from '../hooks/useApprovedConfig'
 import { POPrintPreview } from './POPrintPreview'
 import type { POHeader } from '../types'
 
@@ -50,6 +54,14 @@ export function POList({ canInsert = true }: POListProps) {
   const [printPreviewOpen, setPrintPreviewOpen] = useState(false)
   const [selectedRunNoForPrint, setSelectedRunNoForPrint] = useState<number | null>(null)
 
+  // Reject reason modal state
+  const [rejectModalOpen, setRejectModalOpen] = useState(false)
+  const [pendingRejectParams, setPendingRejectParams] = useState<ApprovalActionParams | null>(null)
+
+  // Approval confirmation modal state
+  const [approvalConfirmOpen, setApprovalConfirmOpen] = useState(false)
+  const [pendingApprovalParams, setPendingApprovalParams] = useState<ApprovalActionParams | null>(null)
+
   // Data hook
   const {
     documentTypeOptions,
@@ -59,10 +71,15 @@ export function POList({ canInsert = true }: POListProps) {
     isLoadingDocTypes,
     isLoadingPOHeaders,
     isCancelling,
+    isSubmittingApproval,
     setSelectedDocumentTypeCode,
     setSearchText,
     cancelPO,
+    handleApprovalAction,
   } = usePOListData()
+
+  // Approved config hook
+  const { getActionsForLevel } = useApprovedConfig()
 
   // Handlers
   const handleCreate = useCallback(() => {
@@ -111,14 +128,71 @@ export function POList({ canInsert = true }: POListProps) {
     setSelectedRunNoForPrint(null)
   }, [])
 
+  // Approval action handler
+  const handleApprovalClick = useCallback(
+    (params: ApprovalActionParams) => {
+      if (params.action === 'reject') {
+        // Open modal to get reason
+        setPendingRejectParams(params)
+        setRejectModalOpen(true)
+      } else {
+        // Approve or cancel - show confirmation modal
+        setPendingApprovalParams(params)
+        setApprovalConfirmOpen(true)
+      }
+    },
+    []
+  )
+
+  // Approval confirmation handler
+  const handleApprovalConfirm = useCallback(async () => {
+    if (!pendingApprovalParams) return
+
+    const success = await handleApprovalAction(pendingApprovalParams)
+    if (success) {
+      setApprovalConfirmOpen(false)
+      setPendingApprovalParams(null)
+    }
+  }, [pendingApprovalParams, handleApprovalAction])
+
+  const handleApprovalConfirmClose = useCallback(() => {
+    setApprovalConfirmOpen(false)
+    setPendingApprovalParams(null)
+  }, [])
+
+  const handleRejectConfirm = useCallback(
+    async (reason: string) => {
+      if (!pendingRejectParams) return
+
+      const success = await handleApprovalAction({
+        ...pendingRejectParams,
+        comment: reason,
+      })
+
+      if (success) {
+        setRejectModalOpen(false)
+        setPendingRejectParams(null)
+      }
+    },
+    [pendingRejectParams, handleApprovalAction]
+  )
+
+  const handleRejectModalClose = useCallback(() => {
+    setRejectModalOpen(false)
+    setPendingRejectParams(null)
+  }, [])
+
   // Table columns
   const columns = usePOColumns({
     onEdit: handleEdit,
     onView: handleView,
     onCancel: handleCancel,
     onPrint: handlePrint,
+    onApprovalAction: handleApprovalClick,
     visibleColumns,
     onVisibleColumnsChange: setVisibleColumns,
+    approvedActions01: getActionsForLevel(1),
+    approvedActions02: getActionsForLevel(2),
   })
 
   return (
@@ -169,6 +243,43 @@ export function POList({ canInsert = true }: POListProps) {
         runNo={selectedRunNoForPrint ?? 0}
         open={printPreviewOpen}
         onClose={handleClosePrintPreview}
+      />
+
+      <RejectReasonModal
+        open={rejectModalOpen}
+        confirmLoading={isSubmittingApproval}
+        onConfirm={handleRejectConfirm}
+        onCancel={handleRejectModalClose}
+      />
+
+      <ConfirmModal
+        open={approvalConfirmOpen}
+        title={
+          pendingApprovalParams?.action === 'approve'
+            ? 'ยืนยันการอนุมัติ'
+            : pendingApprovalParams?.level === 2
+              ? 'ยืนยันรออนุมัติ'
+              : 'ยืนยันการยกเลิก'
+        }
+        message={
+          pendingApprovalParams?.action === 'approve'
+            ? 'คุณต้องการอนุมัติเอกสารนี้ใช่หรือไม่?'
+            : pendingApprovalParams?.level === 2
+              ? 'คุณต้องการเปลี่ยนสถานะเป็นรออนุมัติใช่หรือไม่?'
+              : 'คุณต้องการยกเลิกการอนุมัติเอกสารนี้ใช่หรือไม่?'
+        }
+        type={pendingApprovalParams?.action === 'approve' ? 'info' : 'warning'}
+        confirmText={
+          pendingApprovalParams?.action === 'approve'
+            ? 'อนุมัติ'
+            : pendingApprovalParams?.level === 2
+              ? 'รออนุมัติ'
+              : 'ยกเลิก'
+        }
+        cancelText="ปิด"
+        confirmLoading={isSubmittingApproval}
+        onConfirm={handleApprovalConfirm}
+        onCancel={handleApprovalConfirmClose}
       />
     </Card>
   )

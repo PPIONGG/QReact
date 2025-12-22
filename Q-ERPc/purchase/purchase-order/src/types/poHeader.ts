@@ -15,6 +15,11 @@ export interface POHeader {
   supplierCode: string
   supplierName: string
   approvedStatus01: string
+  approvedByName01: string
+  approvedByLastDated01: string | null
+  approvedStatus02: string
+  approvedByName02: string
+  approvedByLastDated02: string | null
   deliveryStatus: string
   recStatus: number
   lastUpdated: string
