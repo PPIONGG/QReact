@@ -53,12 +53,21 @@ const loadSidebarVisible = (): boolean => {
 // Dynamically import remote components
 const SalesVisitorApp = lazy(() => import('salesVisitor/App'))
 const PurchaseOrderApp = lazy(() => import('purchaseOrder/App'))
+const DashboardApp = lazy(() => import('dashboard/App'))
 
-// Page components
-const HomePage = () => (
-  <Flex justify="center" align="center" style={{ height: '50vh' }}>
-    <Text type="secondary">ยินดีต้อนรับสู่ QERP Portal</Text>
-  </Flex>
+// Page components - HomePage now uses Dashboard remote
+interface DashboardPageWrapperProps {
+  username: string
+  accessToken: string
+  companyCode: string
+}
+
+const DashboardPageWrapper = ({ username, accessToken, companyCode }: DashboardPageWrapperProps) => (
+  <DashboardApp
+    username={username}
+    accessToken={accessToken}
+    companyCode={companyCode}
+  />
 )
 
 const QuotationPage = () => (
@@ -407,7 +416,18 @@ function Main() {
           >
             <Routes>
               <Route path="/" element={<Navigate to="home" replace />} />
-              <Route path="home" element={<HomePage />} />
+              <Route
+                path="home"
+                element={
+                  <ErrorBoundary>
+                    <DashboardPageWrapper
+                      username={username || ''}
+                      accessToken={accessToken || ''}
+                      companyCode={menuPermission?.companyCode || ''}
+                    />
+                  </ErrorBoundary>
+                }
+              />
               <Route path="unauthorized" element={<Unauthorized />} />
               <Route
                 path="sales/sales-visitor"

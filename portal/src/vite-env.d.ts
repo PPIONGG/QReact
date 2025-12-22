@@ -28,3 +28,8 @@ declare module 'purchaseOrder/App' {
   const App: React.ComponentType<RemoteAppProps>
   export default App
 }
+
+declare module 'dashboard/App' {
+  const App: React.ComponentType<RemoteAppProps>
+  export default App
+}
