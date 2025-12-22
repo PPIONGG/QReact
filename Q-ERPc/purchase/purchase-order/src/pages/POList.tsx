@@ -1,13 +1,15 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Card, Table, Typography, Flex, Button } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { POSearchFilter } from '../components/POSearchFilter'
 import { CancelPOModal } from '../components/CancelPOModal'
-import { usePOColumns } from '../hooks/usePOColumns'
+import { usePOColumns, getDefaultVisibleColumns } from '../hooks/usePOColumns'
 import { usePOListData } from '../hooks/usePOListData'
 import { POPrintPreview } from './POPrintPreview'
 import type { POHeader } from '../types'
+
+const VISIBLE_COLUMNS_STORAGE_KEY = 'po-list-visible-columns'
 
 const { Title } = Typography
 
@@ -16,8 +18,29 @@ interface POListProps {
   canEdit?: boolean
 }
 
+// Load visible columns from localStorage
+const loadVisibleColumns = (): string[] => {
+  try {
+    const stored = localStorage.getItem(VISIBLE_COLUMNS_STORAGE_KEY)
+    if (stored) {
+      return JSON.parse(stored)
+    }
+  } catch {
+    // Ignore parse errors
+  }
+  return getDefaultVisibleColumns()
+}
+
 export function POList({ canInsert = true }: POListProps) {
   const navigate = useNavigate()
+
+  // Column visibility state
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(loadVisibleColumns)
+
+  // Save to localStorage when visible columns change
+  useEffect(() => {
+    localStorage.setItem(VISIBLE_COLUMNS_STORAGE_KEY, JSON.stringify(visibleColumns))
+  }, [visibleColumns])
 
   // Cancel modal state
   const [cancelModalOpen, setCancelModalOpen] = useState(false)
@@ -94,6 +117,8 @@ export function POList({ canInsert = true }: POListProps) {
     onView: handleView,
     onCancel: handleCancel,
     onPrint: handlePrint,
+    visibleColumns,
+    onVisibleColumnsChange: setVisibleColumns,
   })
 
   return (
@@ -128,7 +153,7 @@ export function POList({ canInsert = true }: POListProps) {
         size="middle"
         bordered
         loading={isLoadingPOHeaders}
-        scroll={{ x: 1200 }}
+        scroll={{ x: 'max-content' }}
       />
 
       <CancelPOModal
