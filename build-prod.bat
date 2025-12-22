@@ -202,7 +202,46 @@ echo.
 goto :end
 
 :build_and_copy
-call :build_all
+echo.
+echo [1/4] Building Purchase Order...
+cd %PO_DIR%
+call npx vite build --config vite.config.prod.ts
+if errorlevel 1 (
+    echo ERROR: Build PO failed!
+    cd ..\..\..
+    pause
+    goto :end
+)
+cd ..\..\..
+
+echo.
+echo [2/4] Building Portal...
+cd %PORTAL_DIR%
+call npx vite build --config vite.config.prod.ts
+if errorlevel 1 (
+    echo ERROR: Build Portal failed!
+    cd ..
+    pause
+    goto :end
+)
+cd ..
+
+echo.
+echo [3/4] Creating Deploy folder...
+if exist %DEPLOY_DIR% rmdir /s /q %DEPLOY_DIR%
+mkdir %DEPLOY_DIR%
+mkdir "%DEPLOY_DIR%\po"
+
+echo.
+echo [4/4] Copying files...
+xcopy /s /e /y /q %PORTAL_DIR%\dist\* %DEPLOY_DIR%\
+copy /y deploy\web.config %DEPLOY_DIR%\web.config >nul
+
+xcopy /s /e /y /q %PO_DIR%\dist\* "%DEPLOY_DIR%\po\"
+copy /y deploy\web.config.po "%DEPLOY_DIR%\po\web.config" >nul
+
+echo.
+echo Build Complete! Now copying to IIS...
 goto :copy_to_iis
 
 :end

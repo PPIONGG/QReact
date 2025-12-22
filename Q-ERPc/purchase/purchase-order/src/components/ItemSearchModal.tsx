@@ -29,6 +29,7 @@ export function ItemSearchModal({ open, onCancel, onSelect }: ItemSearchModalPro
   })
 
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isInitialFetch = useRef(false)
 
   const fetchItems = useCallback(async (page: number, pageSize: number, search?: string) => {
     if (!accessToken || !companyCode) return
@@ -57,14 +58,21 @@ export function ItemSearchModal({ open, onCancel, onSelect }: ItemSearchModalPro
 
   // Fetch items when modal opens
   useEffect(() => {
-    if (!open) return
+    if (!open) {
+      isInitialFetch.current = false
+      return
+    }
     setSearchText('')
+    isInitialFetch.current = true
     fetchItems(1, PAGE_SIZE)
   }, [open, fetchItems])
 
-  // Debounced search
+  // Debounced search - only for user typing, not initial load
   useEffect(() => {
-    if (!open) return
+    if (!open || isInitialFetch.current) {
+      isInitialFetch.current = false
+      return
+    }
 
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current)

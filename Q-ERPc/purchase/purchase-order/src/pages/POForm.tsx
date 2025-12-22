@@ -1,1085 +1,476 @@
-import {
-  Card,
-  Form,
-  Input,
-  InputNumber,
-  DatePicker,
-  Button,
-  Flex,
-  Typography,
-  Tabs,
-  Row,
-  Col,
-  Badge,
-  Select,
-  Modal,
-  Result,
-  Spin,
-  message,
-  Checkbox,
-} from "antd";
+import { Card, Form, Button, Flex, Typography, Badge, message } from 'antd'
 import {
   SaveOutlined,
   CloseOutlined,
-  UserOutlined,
-  SearchOutlined,
   PlusOutlined,
   ShoppingCartOutlined,
-  ExclamationCircleOutlined,
   ExpandAltOutlined,
   CompressOutlined,
-  HomeOutlined,
-  FileTextOutlined,
-  MessageOutlined,
-  EditOutlined,
-} from "@ant-design/icons";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { useEffect, useState, useRef } from "react";
-import dayjs from "dayjs";
-import weekday from "dayjs/plugin/weekday";
-import localeData from "dayjs/plugin/localeData";
+} from '@ant-design/icons'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useEffect, useState, useCallback } from 'react'
+import dayjs from 'dayjs'
+import weekday from 'dayjs/plugin/weekday'
+import localeData from 'dayjs/plugin/localeData'
 import {
-  useAuthStore,
-  usePOStore,
-  useDocumentTypes,
-  useSelectedDocumentType,
-} from "../stores";
+  SupplierSearchModal,
+  ItemSearchModal,
+  POLineItemTable,
+  ConfirmModal,
+  SaveStatusModal,
+  POSummarySection,
+  SupplierSection,
+  POFormTabs,
+} from '../components'
+import type { POLineItem } from '../components/POLineItemTable'
+import type { SaveStatus } from '../components/SaveStatusModal'
+import { usePOFormData } from '../hooks/usePOFormData'
+import { useVATCalculation } from '../hooks/useVATCalculation'
 import {
-  getSeriesAndGroupDoc,
-  getDocumentTypeRightList,
-  getPaymentTermList,
   calculatePaymentDueDate,
-  getCurrencyList,
   getUnitConversionList,
-  getWarehouseList,
-  calculateVatAmount,
+  getSupplier,
   poInsert,
   poUpdate,
-  getPOOrder,
-  getSupplier,
-  getCompanyInfo,
-} from "../services";
-import { SupplierSearchModal, ItemSearchModal, POLineItemTable } from "../components";
-import type { POLineItem } from "../components/POLineItemTable";
-import type {
-  SeriesAndGroupDocResult,
-  Supplier,
-  PaymentTerm,
-  Currency,
-  ItemListItem,
-  UnitConversion,
-  Warehouse,
-  CalculateVatRequest,
-  CalculateDetail,
-  POInsertRequest,
-  PODetail,
-  CompanyInfo,
-} from "../types";
+} from '../services'
+import type { Supplier, ItemListItem, UnitConversion, PODetail, POInsertRequest } from '../types'
 
 // Extend dayjs for antd DatePicker
-dayjs.extend(weekday);
-dayjs.extend(localeData);
+dayjs.extend(weekday)
+dayjs.extend(localeData)
 
-const { Text } = Typography;
-const { TextArea } = Input;
+const { Text } = Typography
 
 interface POFormProps {
-  canEdit?: boolean;
+  canEdit?: boolean
 }
 
-// POLineItem type is imported from POLineItemTable component
-
 export function POForm({ canEdit = true }: POFormProps) {
-  const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
-  const [searchParams] = useSearchParams();
-  const [form] = Form.useForm();
+  const navigate = useNavigate()
+  const { id } = useParams<{ id: string }>()
+  const [searchParams] = useSearchParams()
+  const [form] = Form.useForm()
 
-  // Auth & document type from store
-  const { username, accessToken, companyCode } = useAuthStore();
-  const documentTypes = useDocumentTypes();
-  const selectedDocumentTypeCode = useSelectedDocumentType();
-  const { setDocumentTypes, setSelectedDocumentTypeCode } = usePOStore();
+  const isEditMode = !!id
+  const isViewMode = searchParams.get('view') === 'true'
+  const isPrintMode = searchParams.get('print') === 'true'
+  const isReadOnly = isViewMode || !canEdit
 
-  // Serie info state
-  const [serieInfo, setSerieInfo] = useState<SeriesAndGroupDocResult | null>(
-    null
-  );
-  const [isLoadingSerie, setIsLoadingSerie] = useState(false);
+  // Use custom hook for data fetching
+  const {
+    username,
+    accessToken,
+    companyCode,
+    selectedDocumentTypeCode,
+    serieInfo,
+    isLoadingSerie,
+    paymentTerms,
+    currencies,
+    warehouses,
+    companyInfo,
+    lineItems,
+    setLineItems,
+  } = usePOFormData({ form, isEditMode, id })
 
-  // Payment term state
-  const [paymentTerms, setPaymentTerms] = useState<PaymentTerm[]>([]);
-
-  // Currency state
-  const [currencies, setCurrencies] = useState<Currency[]>([]);
-
-  // Warehouse state
-  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
-
-  // Company info state (for noDigit settings)
-  const [companyInfo, setCompanyInfo] = useState<CompanyInfo | null>(null);
-
-  // Supplier modal state
-  const [supplierModalOpen, setSupplierModalOpen] = useState(false);
-
-  // Item modal state
-  const [itemModalOpen, setItemModalOpen] = useState(false);
-  const [selectedLineKey, setSelectedLineKey] = useState<string | null>(null);
-  const [isLoadingItem, setIsLoadingItem] = useState(false);
+  // Modal states
+  const [supplierModalOpen, setSupplierModalOpen] = useState(false)
+  const [itemModalOpen, setItemModalOpen] = useState(false)
+  const [selectedLineKey, setSelectedLineKey] = useState<string | null>(null)
+  const [isLoadingItem, setIsLoadingItem] = useState(false)
 
   // Save modal state
-  const [saveModalOpen, setSaveModalOpen] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<"saving" | "success" | "error">(
-    "saving"
-  );
-  const [saveErrorMessage, setSaveErrorMessage] = useState("");
+  const [saveModalOpen, setSaveModalOpen] = useState(false)
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('saving')
+  const [saveErrorMessage, setSaveErrorMessage] = useState('')
 
   // Confirm modal state
-  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
-  const [confirmModalType, setConfirmModalType] = useState<"save" | "cancel">(
-    "save"
-  );
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false)
+  const [confirmModalType, setConfirmModalType] = useState<'save' | 'cancel'>('save')
 
   // Expand card state
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false)
 
-  // Product line items state
-  const [lineItems, setLineItems] = useState<POLineItem[]>([
-    {
-      key: "1",
-      noLine: 1,
-      vline: 1,
-      transactionCode: "",
-      transactionDescription: "",
-      quantity: 0,
-      purchaseUnitCode: "",
-      unitPriceCurrency: 0,
-      discount: "",
-      statusRow: "N",
-    },
-  ]);
+  // Watch form fields
+  const poDate = Form.useWatch('podate', form)
+  const targetShippingDate = Form.useWatch('targetShippingDate', form)
+  const discountStringBeforeVAT = Form.useWatch('discountStringBeforeVAT', form)
+  const exchangeRate = Form.useWatch('exchangeRate', form)
+  const currencyCode = Form.useWatch('currencyCode', form)
+  const vatRate = Form.useWatch('vatRate', form)
+  const adjustVatEnabled = Form.useWatch('adjustVatEnabled', form)
+  const vatBasedForVATAmountCurrency = Form.useWatch('vatBasedForVATAmountCurrency', form)
+  const vatAmountCurrencyWatch = Form.useWatch('vatAmountCurrency', form)
 
-  // Watch date fields for validation
-  const poDate = Form.useWatch("podate", form);
-  const targetShippingDate = Form.useWatch("targetShippingDate", form);
-
-  // Watch fields for calculation
-  const discountStringBeforeVAT = Form.useWatch(
-    "discountStringBeforeVAT",
-    form
-  );
-  const exchangeRate = Form.useWatch("exchangeRate", form);
-  const currencyCode = Form.useWatch("currencyCode", form);
-  const vatRate = Form.useWatch("vatRate", form);
-  const adjustVatEnabled = Form.useWatch("adjustVatEnabled", form);
-  const vatBasedForVATAmountCurrency = Form.useWatch("vatBasedForVATAmountCurrency", form);
-  const vatAmountCurrencyWatch = Form.useWatch("vatAmountCurrency", form);
-
-  const isEditMode = !!id;
-  const isViewMode = searchParams.get("view") === "true";
-  const isPrintMode = searchParams.get("print") === "true";
-  const isReadOnly = isViewMode || !canEdit;
-
-  const pageTitle = isViewMode
-    ? "ดูรายละเอียดใบสั่งซื้อ"
-    : isEditMode
-    ? "แก้ไขใบสั่งซื้อ"
-    : "สร้างใบสั่งซื้อ";
-
-  // Fetch document types if not loaded (e.g., direct F5 on this page)
-  useEffect(() => {
-    if (isEditMode || !username || !accessToken || !companyCode) return;
-    if (documentTypes.length > 0) return; // Already loaded
-
-    const fetchDocTypes = async () => {
-      try {
-        const response = await getDocumentTypeRightList(
-          "PO",
-          username,
-          accessToken,
-          companyCode
-        );
-        if (response.code === 0 && response.result) {
-          setDocumentTypes(response.result);
-          // Auto-select first if none selected
-          if (!selectedDocumentTypeCode && response.result.length > 0) {
-            setSelectedDocumentTypeCode(response.result[0].documentTypeCode);
-          }
-        }
-      } catch (error) {
-        console.error("Failed to fetch document types:", error);
-      }
-    };
-
-    fetchDocTypes();
-  }, [
-    isEditMode,
-    username,
-    accessToken,
-    companyCode,
-    documentTypes.length,
-    selectedDocumentTypeCode,
-    setDocumentTypes,
-    setSelectedDocumentTypeCode,
-  ]);
-
-  // Fetch serie info when creating new PO
-  useEffect(() => {
-    if (isEditMode || !accessToken || !companyCode || !selectedDocumentTypeCode)
-      return;
-
-    // Find selected document type to get description
-    const selectedDocType = documentTypes.find(
-      (dt) => dt.documentTypeCode === selectedDocumentTypeCode
-    );
-    if (!selectedDocType) return;
-
-    const fetchSerieInfo = async () => {
-      setIsLoadingSerie(true);
-      try {
-        // Get current Thai Buddhist year
-        const currentYear = new Date().getFullYear() + 543;
-
-        const response = await getSeriesAndGroupDoc(
-          {
-            documentTypeCode: selectedDocumentTypeCode,
-            yearForRunNo: currentYear,
-            descT: selectedDocType.documentTypeCodeDescriptionT,
-            descEng: selectedDocType.documentTypeCodeDescriptionE,
-          },
-          accessToken,
-          companyCode
-        );
-
-        if (response.code === 0 && response.result) {
-          setSerieInfo(response.result);
-          // Set document number to form
-          form.setFieldValue("pono", response.result.documentNo);
-        }
-      } catch (error) {
-        console.error("Failed to fetch serie info:", error);
-      } finally {
-        setIsLoadingSerie(false);
-      }
-    };
-
-    fetchSerieInfo();
-  }, [
-    isEditMode,
-    accessToken,
-    companyCode,
-    selectedDocumentTypeCode,
-    documentTypes,
+  // VAT calculation hook
+  useVATCalculation({
     form,
-  ]);
-
-  // Fetch payment terms and currencies
-  useEffect(() => {
-    if (!accessToken || !companyCode) return;
-
-    const fetchPaymentTerms = async () => {
-      try {
-        const response = await getPaymentTermList(accessToken, companyCode);
-        if (response.code === 0 && response.result) {
-          setPaymentTerms(response.result);
-        }
-      } catch (error) {
-        console.error("Failed to fetch payment terms:", error);
-      }
-    };
-
-    const fetchCurrencies = async () => {
-      try {
-        const response = await getCurrencyList(accessToken, companyCode);
-        if (response.code === 0 && response.result) {
-          setCurrencies(response.result);
-        }
-      } catch (error) {
-        console.error("Failed to fetch currencies:", error);
-      }
-    };
-
-    const fetchWarehouses = async () => {
-      try {
-        const response = await getWarehouseList(accessToken, companyCode);
-        if (response.code === 0 && response.result) {
-          setWarehouses(response.result);
-        }
-      } catch (error) {
-        console.error("Failed to fetch warehouses:", error);
-      }
-    };
-
-    const fetchCompanyInfo = async () => {
-      try {
-        const response = await getCompanyInfo(accessToken, companyCode);
-        if (response.code === 0 && response.result) {
-          setCompanyInfo(response.result);
-        }
-      } catch (error) {
-        console.error("Failed to fetch company info:", error);
-      }
-    };
-
-    fetchPaymentTerms();
-    fetchCurrencies();
-    fetchWarehouses();
-    fetchCompanyInfo();
-  }, [accessToken, companyCode]);
-
-  // Fetch PO data for edit mode
-  useEffect(() => {
-    if (
-      !isEditMode ||
-      !id ||
-      !username ||
-      !accessToken ||
-      !companyCode ||
-      !selectedDocumentTypeCode
-    )
-      return;
-
-    const fetchPOOrder = async () => {
-      try {
-        const response = await getPOOrder(
-          "PO",
-          selectedDocumentTypeCode,
-          parseInt(id),
-          username,
-          accessToken,
-          companyCode
-        );
-
-        if (response.code === 0 && response.result) {
-          const poOrder = response.result;
-
-          // Fetch supplier detail to get fullAddress and phone
-          if (poOrder.supplierCode) {
-            try {
-              const supplierResponse = await getSupplier(
-                poOrder.supplierCode,
-                accessToken,
-                companyCode
-              );
-              if (supplierResponse.code === 0 && supplierResponse.result) {
-                form.setFieldsValue({
-                  fullAddress: supplierResponse.result.fullAddress || "",
-                  supplierPhone: supplierResponse.result.phone || "",
-                });
-              }
-            } catch (error) {
-              console.error("Failed to fetch supplier detail:", error);
-            }
-          }
-
-          // Set form values
-          form.setFieldsValue({
-            supplierCode: poOrder.supplierCode,
-            supplierName: poOrder.supplierName,
-            pono: poOrder.pono,
-            podate: poOrder.podate ? dayjs(poOrder.podate) : null,
-            targetShippingDate: poOrder.targetShippingDate
-              ? dayjs(poOrder.targetShippingDate)
-              : null,
-            paymentTermCode: poOrder.paymentTermCode,
-            paymentDueDate: poOrder.paymentDueDate
-              ? dayjs(poOrder.paymentDueDate)
-              : null,
-            paymentTermRefDoc: poOrder.paymentTermRefDoc,
-            currencyCode: poOrder.currencyCode,
-            exchangeRate: poOrder.exchangeRate,
-            contactName: poOrder.contactName,
-            supplierRefDoc: poOrder.refNoYours,
-            companyRefDoc: poOrder.refNoOurs,
-            quotationRefDoc: poOrder.sellerRefNo,
-            note: poOrder.note,
-            memo: poOrder.memo,
-            billingCode: poOrder.billingCode,
-            // Lookup billingAddress from warehouses
-            billingAddress:
-              warehouses.find((w) => w.code === poOrder.billingCode)
-                ?.addressThai || "",
-            discountStringBeforeVAT: poOrder.discountStringBeforeVat,
-            totalAmountCurrency: poOrder.totalAmountCurrency,
-            amountDiscountCurrency: poOrder.amountDiscountCurrency,
-            totalAmountCurrencyAfterDiscountBeforeVAT:
-              poOrder.totalAmountCurrencyAfterDiscountBeforeVat,
-            vatAmountCurrency: poOrder.vatamountCurrency,
-            totalAmountCurrencyAfterVAT: poOrder.totalAmountCurrencyAfterVat,
-            adjustVatEnabled: poOrder.adjustVATYesNo === "Y",
-          });
-
-          // Set line items from poDetails
-          if (poOrder.poDetails && poOrder.poDetails.length > 0) {
-            const items: POLineItem[] = await Promise.all(
-              poOrder.poDetails.map(async (detail: PODetail, index: number) => {
-                // Fetch unit options for each item
-                let unitOptions: { code: string; t: string }[] = [];
-                if (detail.defaultUnitCode) {
-                  try {
-                    const unitResponse = await getUnitConversionList(
-                      detail.defaultUnitCode,
-                      accessToken,
-                      companyCode
-                    );
-                    if (unitResponse.code === 0 && unitResponse.result) {
-                      unitOptions = unitResponse.result.map(
-                        (u: UnitConversion) => ({ code: u.code, t: u.t })
-                      );
-                    }
-                  } catch (error) {
-                    console.error(
-                      "Failed to fetch unit conversion list:",
-                      error
-                    );
-                  }
-                }
-
-                return {
-                  key: String(detail.noLine), // Use noLine as key for tracking original line
-                  noLine: detail.noLine, // Keep original noLine from DB
-                  vline: index + 1, // Renumber vline for display (1, 2, 3, ...)
-                  transactionCode: detail.transactionCode,
-                  transactionDescription: detail.transactionDescription,
-                  quantity: detail.quantity,
-                  purchaseUnitCode: detail.purchaseUnitCode,
-                  unitPriceCurrency: detail.unitPriceCurrency,
-                  discount: detail.discount,
-                  unitOptions,
-                  statusRow: "E" as const, // Edit mode - existing row
-                };
-              })
-            );
-            setLineItems(items);
-          }
-        }
-      } catch (error) {
-        console.error("Failed to fetch PO order:", error);
-      }
-    };
-
-    fetchPOOrder();
-  }, [
-    isEditMode,
-    id,
-    username,
-    accessToken,
-    companyCode,
-    selectedDocumentTypeCode,
-    form,
-    warehouses,
-  ]);
-
-  // Auto print when in print mode and data is loaded
-  useEffect(() => {
-    if (
-      isPrintMode &&
-      isViewMode &&
-      lineItems.length > 0 &&
-      lineItems[0].transactionCode
-    ) {
-      // Wait a bit for the page to fully render
-      const timer = setTimeout(() => {
-        window.print();
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [isPrintMode, isViewMode, lineItems]);
-
-  // Debounce timer ref
-  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Calculate VAT when lineItems or discount changes (with debounce)
-  useEffect(() => {
-    if (!accessToken || !companyCode) return;
-
-    // Check if there are any items with transactionCode (exclude deleted items)
-    const hasValidItems = lineItems.some(
-      (item) => item.transactionCode && item.statusRow !== "D"
-    );
-    if (!hasValidItems) {
-      // Reset all summary fields
-      form.setFieldsValue({
-        totalAmountCurrency: 0,
-        totalAmountBeforeVATBaht: 0,
-        amountDiscountCurrency: 0,
-        amountDiscountBaht: 0,
-        totalAmountCurrencyAfterDiscountBeforeVAT: 0,
-        totalAmountBahtAfterDiscountBeforeVAT: 0,
-        vatAmountCurrency: 0,
-        vatAmountBaht: 0,
-        totalAmountCurrencyAfterVAT: 0,
-        totalAmountAfterVATBaht: 0,
-      });
-      return;
-    }
-
-    const calculateTotals = async () => {
-      const rate = parseFloat(exchangeRate) || 1;
-
-      // Build calculate details from lineItems (exclude deleted items)
-      const calculateDetails: CalculateDetail[] = lineItems
-        .filter((item) => item.transactionCode && item.statusRow !== "D")
-        .map((item) => {
-          const qty = item.quantity || 0;
-          const unitPrice = item.unitPriceCurrency || 0;
-          const totalAmount = qty * unitPrice;
-          return {
-            useExpenseSameLocalCurrencyTrueFalse: false,
-            excludeVATTrueFalse: false,
-            flagExcludeExpenseExport: false,
-            vLine: item.vline,
-            transactionType: "I",
-            transactionCode: item.transactionCode,
-            quantity: qty,
-            unitPriceCurrency: unitPrice,
-            discount: item.discount || "",
-            totalAmountCurrency: totalAmount,
-            unitPriceAfterDiscount: unitPrice,
-            unitPriceLocalCurrencyAfterDiscount: unitPrice * rate,
-            totalAmountCurrencyAfterDiscount: totalAmount,
-            totalAmountAfterDiscountLocalCurrency: totalAmount * rate,
-            vatBasedAmountCurrency: totalAmount,
-            transactionTotalAmountBaht: totalAmount * rate,
-            transactionTotalAmountBahtAfterDiscountBeforeVAT: totalAmount * rate,
-            transactionVATAmountBaht: 0,
-            transactionTotalAmountAfterVATBaht: 0,
-          };
-        });
-
-      // Calculate total amount from details
-      const totalFromDetails = calculateDetails.reduce((sum, item) => sum + item.totalAmountCurrency, 0);
-
-      // Parse vatBasedForVATAmountCurrency value
-      // Convert to string first to handle both number and string types
-      let vatBasedValue = 0;
-      if (adjustVatEnabled && vatBasedForVATAmountCurrency !== undefined && vatBasedForVATAmountCurrency !== null && vatBasedForVATAmountCurrency !== '') {
-        vatBasedValue = parseFloat(String(vatBasedForVATAmountCurrency)) || 0;
-      }
-
-      // Parse vatAmountCurrency value when adjustVatEnabled
-      let vatAmountValue = 0;
-      if (adjustVatEnabled && vatAmountCurrencyWatch !== undefined && vatAmountCurrencyWatch !== null) {
-        vatAmountValue = parseFloat(String(vatAmountCurrencyWatch)) || 0;
-      }
-
-      const request: CalculateVatRequest = {
-        calculateHeader: {
-          noDigitQty: companyInfo?.noDigitQty ?? 2,
-          noDigitUnitPrice: companyInfo?.noDigitUnitPrice ?? 2,
-          noDigitTotal: companyInfo?.noDigitTotal ?? 2,
-          adjustVATYesNo: adjustVatEnabled ? "Y" : "",
-          adjustTotalYesNo: false,
-          exchangeRate: rate,
-          vatRate: parseFloat(vatRate) || 7,
-          includeVATTrueFalse: false,
-          totalAmountCurrency: totalFromDetails,
-          totalAmountBeforeVATLocalCurrency: totalFromDetails * rate,
-          discountStringBeforeVAT: discountStringBeforeVAT || "",
-          amountDiscountCurrency: 0,
-          amountDiscountBaht: 0,
-          totalAmountCurrencyAfterDiscountBeforeVAT: totalFromDetails,
-          totalAmountBahtAfterDiscountBeforeVAT: totalFromDetails * rate,
-          vatAmountCurrency: vatAmountValue,
-          vatAmountLocalCurrency: vatAmountValue * rate,
-          vatBasedForVATAmountCurrency: vatBasedValue,
-          vatBasedForVATAmountBaht: vatBasedValue * rate,
-          totalAmountCurrencyAfterVAT: 0,
-          totalAmountAfterVATLocalCurrency: 0,
-        },
-        calculateDetails,
-      };
-
-      try {
-        const response = await calculateVatAmount(
-          request,
-          accessToken,
-          companyCode
-        );
-        if (response.code === 0 && response.result) {
-          const header = response.result.calculateHeader;
-          // Build fields to update based on adjustVatEnabled
-          const fieldsToUpdate: Record<string, unknown> = {
-            totalAmountCurrency: header.totalAmountCurrency,
-            totalAmountBeforeVATBaht: header.totalAmountBeforeVATLocalCurrency,
-            amountDiscountCurrency: header.amountDiscountCurrency,
-            amountDiscountBaht: header.amountDiscountBaht,
-            totalAmountCurrencyAfterDiscountBeforeVAT:
-              header.totalAmountCurrencyAfterDiscountBeforeVAT,
-            totalAmountBahtAfterDiscountBeforeVAT:
-              header.totalAmountBahtAfterDiscountBeforeVAT,
-            totalAmountCurrencyAfterVAT: header.totalAmountCurrencyAfterVAT,
-            totalAmountAfterVATBaht: header.totalAmountCurrencyAfterVAT * rate,
-          };
-
-          // If adjustVatEnabled is false, update vatAmountCurrency and vatBasedForVATAmountCurrency from API
-          if (!adjustVatEnabled) {
-            fieldsToUpdate.vatAmountCurrency = header.vatAmountCurrency;
-            fieldsToUpdate.vatAmountBaht = header.vatAmountCurrency * rate;
-            fieldsToUpdate.vatBasedForVATAmountCurrency = header.vatBasedForVATAmountCurrency;
-          } else {
-            // When adjustVatEnabled is true, only update vatAmountBaht (local currency)
-            fieldsToUpdate.vatAmountBaht = header.vatAmountLocalCurrency;
-          }
-
-          form.setFieldsValue(fieldsToUpdate);
-        }
-      } catch (error) {
-        console.error("Failed to calculate VAT:", error);
-        message.warning("ไม่สามารถคำนวณ VAT ได้ กรุณาตรวจสอบข้อมูล");
-      }
-    };
-
-    // Clear previous timer
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
-
-    // Debounce: wait 300ms before calling API
-    debounceTimerRef.current = setTimeout(() => {
-      calculateTotals();
-    }, 300);
-
-    // Cleanup on unmount or dependency change
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-    };
-  }, [
     lineItems,
+    accessToken,
+    companyCode,
+    companyInfo,
     discountStringBeforeVAT,
     exchangeRate,
-    accessToken,
-    companyCode,
-    form,
-    companyInfo,
     vatRate,
     adjustVatEnabled,
     vatBasedForVATAmountCurrency,
     vatAmountCurrencyWatch,
-  ]);
+  })
 
-  const handleCancel = () => {
+  // Auto print when in print mode
+  useEffect(() => {
+    if (isPrintMode && isViewMode && lineItems.length > 0 && lineItems[0].transactionCode) {
+      const timer = setTimeout(() => {
+        window.print()
+      }, 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [isPrintMode, isViewMode, lineItems])
+
+  const pageTitle = isViewMode
+    ? 'ดูรายละเอียดใบสั่งซื้อ'
+    : isEditMode
+    ? 'แก้ไขใบสั่งซื้อ'
+    : 'สร้างใบสั่งซื้อ'
+
+  // Handlers
+  const handleCancel = useCallback(() => {
     if (isReadOnly) {
-      navigate("..");
-      return;
+      navigate('..')
+      return
     }
-    setConfirmModalType("cancel");
-    setConfirmModalOpen(true);
-  };
+    setConfirmModalType('cancel')
+    setConfirmModalOpen(true)
+  }, [isReadOnly, navigate])
 
-  const handleSaveClick = async () => {
+  const handleSaveClick = useCallback(async () => {
     try {
-      // Validate form fields first
-      await form.validateFields();
+      await form.validateFields()
 
-      // Validate: must have at least 1 line item with transactionCode (exclude deleted items)
-      const validLineItems = lineItems.filter(
-        (item) => item.transactionCode && item.statusRow !== "D"
-      );
+      const validLineItems = lineItems.filter((item) => item.transactionCode && item.statusRow !== 'D')
       if (validLineItems.length === 0) {
-        message.error("กรุณาเพิ่มรายการสินค้าอย่างน้อย 1 รายการ");
-        return;
+        message.error('กรุณาเพิ่มรายการสินค้าอย่างน้อย 1 รายการ')
+        return
       }
 
-      // Validate: quantity must be greater than 0 for all items with transactionCode
-      const invalidQuantityItems = validLineItems.filter(
-        (item) => !item.quantity || item.quantity <= 0
-      );
+      const invalidQuantityItems = validLineItems.filter((item) => !item.quantity || item.quantity <= 0)
       if (invalidQuantityItems.length > 0) {
-        const lineNumbers = invalidQuantityItems
-          .map((item) => item.vline)
-          .join(", ");
-        message.error(
-          `กรุณาระบุจำนวนสินค้าให้มากกว่า 0 (รายการที่ ${lineNumbers})`
-        );
-        return;
+        const lineNumbers = invalidQuantityItems.map((item) => item.vline).join(', ')
+        message.error(`กรุณาระบุจำนวนสินค้าให้มากกว่า 0 (รายการที่ ${lineNumbers})`)
+        return
       }
 
-      // If all validation passes, show confirm modal
-      setConfirmModalType("save");
-      setConfirmModalOpen(true);
+      setConfirmModalType('save')
+      setConfirmModalOpen(true)
     } catch {
-      // Validation failed - form will show error messages automatically
+      // Validation failed
     }
-  };
+  }, [form, lineItems])
 
-  const handleConfirmOk = () => {
-    setConfirmModalOpen(false);
-    if (confirmModalType === "save") {
-      form.submit();
+  const handleConfirmOk = useCallback(() => {
+    setConfirmModalOpen(false)
+    if (confirmModalType === 'save') {
+      form.submit()
     } else {
-      navigate("..");
+      navigate('..')
     }
-  };
+  }, [confirmModalType, form, navigate])
 
-  const handleConfirmCancel = () => {
-    setConfirmModalOpen(false);
-  };
+  const handleConfirmCancel = useCallback(() => {
+    setConfirmModalOpen(false)
+  }, [])
 
-  const handleSubmit = async (values: Record<string, unknown>) => {
-    // For new mode, require serieInfo
-    if (
-      !isEditMode &&
-      (!username || !accessToken || !companyCode || !serieInfo)
-    ) {
-      console.error("Missing required data for submit");
-      return;
-    }
-
-    // For edit mode, only require basic auth
-    if (isEditMode && (!username || !accessToken || !companyCode)) {
-      console.error("Missing required data for submit");
-      return;
-    }
-
-    // Build poDetails from lineItems - include all items (N, E, D)
-    // For deleted items (D), keep original noLine so API knows which record to delete
-    // For non-deleted items (N, E), use vline for display order
-    const poDetails: PODetail[] = lineItems
-      .filter((item) => item.transactionCode || item.statusRow === "D") // Include deleted items too
-      .map((item) => {
-        const pricePerUnit = item.unitPriceCurrency || 0;
-        const quantity = item.quantity || 0;
-        const discount = item.discount || "";
-        let discountPerUnit = 0;
-        if (discount.includes("%")) {
-          const percent = parseFloat(discount.replace("%", ""));
-          discountPerUnit = (pricePerUnit * percent) / 100;
-        } else {
-          discountPerUnit = parseFloat(discount) || 0;
-        }
-        const totalAmountCurrency = pricePerUnit * quantity;
-        const totalAmountAfterDiscount =
-          (pricePerUnit - discountPerUnit) * quantity;
-
-        return {
-          // For deleted/existing items, use original noLine from DB
-          // For new items (N), use vline as noLine
-          noLine: item.statusRow === "N" ? item.vline : item.noLine,
-          vline: item.vline,
-          transactionCode: item.transactionCode,
-          transactionDescription: item.transactionDescription,
-          transactionCodeSupplier: "",
-          quantity: quantity,
-          defaultUnitCode: item.purchaseUnitCode,
-          purchaseUnitCode: item.purchaseUnitCode,
-          unitPriceCurrency: pricePerUnit,
-          discount: discount,
-          totalAmountCurrency: totalAmountCurrency,
-          totalAmountAfterDiscount: totalAmountAfterDiscount,
-          statusRow: item.statusRow, // Use actual statusRow (N, E, D)
-          excludeVATTrueFalse: false,
-        };
-      });
-
-    const request: POInsertRequest = {
-      userName: username,
-      poOrder: {
-        documentModuleCode: "PO",
-        documentTypeCode: selectedDocumentTypeCode || "",
-        runNo: isEditMode ? parseInt(id || "0") : 0, // Use runNo from URL in edit mode
-        pono: (values.pono as string) || "",
-        podate: values.podate
-          ? (values.podate as dayjs.Dayjs).format("YYYY-MM-DDTHH:mm:ss")
-          : dayjs().format("YYYY-MM-DDTHH:mm:ss"),
-        refNoYours: (values.supplierRefDoc as string) || "",
-        refNoOurs: (values.companyRefDoc as string) || "",
-        supplierCode: (values.supplierCode as string) || "",
-        supplierPrefix: "",
-        supplierName: (values.supplierName as string) || "",
-        supplierSuffix: "",
-        targetShippingDate: values.targetShippingDate
-          ? (values.targetShippingDate as dayjs.Dayjs).format(
-              "YYYY-MM-DDTHH:mm:ss"
-            )
-          : null,
-        paymentTermCode: (values.paymentTermCode as string) || "",
-        paymentDueDate: values.paymentDueDate
-          ? (values.paymentDueDate as dayjs.Dayjs).format("YYYY-MM-DDTHH:mm:ss")
-          : null,
-        currencyCode: (values.currencyCode as string) || "THB",
-        exchangeRate: parseFloat(values.exchangeRate as string) || 1,
-        totalAmountCurrency: (values.totalAmountCurrency as number) || 0,
-        vatrate: 7,
-        vatamountCurrency: (values.vatAmountCurrency as number) || 0,
-        totalAmountCurrencyAfterVat:
-          (values.totalAmountCurrencyAfterVAT as number) || 0,
-        amountDiscountCurrency: (values.amountDiscountCurrency as number) || 0,
-        totalAmountCurrencyAfterDiscountBeforeVat:
-          (values.totalAmountCurrencyAfterDiscountBeforeVAT as number) || 0,
-        discountStringBeforeVat:
-          (values.discountStringBeforeVAT as string) || "",
-        note: (values.note as string) || "",
-        totalAmountIncludeVattrueFalse: false,
-        costCenterCode: "",
-        costCenterName: "",
-        billingCode: (values.billingCode as string) || "",
-        contactName: (values.contactName as string) || "",
-        paymentTermRefDoc: (values.paymentTermRefDoc as string) || "",
-        memo: (values.memo as string) || "",
-        sellerRefNo: (values.quotationRefDoc as string) || "",
-        adjustVATYesNo: values.adjustVatEnabled ? "Y" : "",
-        poDetails: poDetails,
-      },
-    };
-
-    console.log("=== Form Values ===");
-    console.log("billingCode:", values.billingCode);
-    console.log("=== Mode ===", isEditMode ? "EDIT" : "NEW");
-    console.log("=== Request ===");
-    console.log(JSON.stringify(request, null, 2));
-
-    // Show saving modal
-    setSaveModalOpen(true);
-    setSaveStatus("saving");
-    setSaveErrorMessage("");
-
-    try {
-      if (isEditMode) {
-        // Edit mode - call POUpdate API
-        const response = await poUpdate(request, accessToken, companyCode);
-        console.log("=== POUpdate Response ===");
-        console.log(JSON.stringify(response, null, 2));
-
-        if (response.code === 0) {
-          // Success
-          setSaveStatus("success");
-          // Wait a moment to show success then navigate
-          setTimeout(() => {
-            setSaveModalOpen(false);
-            navigate("..");
-          }, 1500);
-        } else {
-          setSaveStatus("error");
-          setSaveErrorMessage(response.msg || "เกิดข้อผิดพลาดในการบันทึก");
-        }
-      } else {
-        // New mode - call POInsert API
-        const response = await poInsert(request, accessToken, companyCode);
-        console.log("=== POInsert Response ===");
-        console.log(JSON.stringify(response, null, 2));
-
-        if (response.code === 0) {
-          // Success
-          setSaveStatus("success");
-          // Wait a moment to show success then navigate
-          setTimeout(() => {
-            setSaveModalOpen(false);
-            navigate("..");
-          }, 1500);
-        } else {
-          setSaveStatus("error");
-          setSaveErrorMessage(response.msg || "เกิดข้อผิดพลาดในการบันทึก");
-        }
+  const handleSubmit = useCallback(
+    async (values: Record<string, unknown>) => {
+      if (!isEditMode && (!username || !accessToken || !companyCode || !serieInfo)) {
+        console.error('Missing required data for submit')
+        return
       }
-    } catch (error) {
-      console.error(isEditMode ? "POUpdate error:" : "POInsert error:", error);
-      setSaveStatus("error");
-      setSaveErrorMessage("เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง");
-    }
-  };
 
-  const handleSupplierSelect = async (supplier: Supplier) => {
-    form.setFieldsValue({
-      supplierCode: supplier.code,
-      supplierName: supplier.nameThai,
-      paymentTermCode: supplier.paymentTermCode,
-    });
+      if (isEditMode && (!username || !accessToken || !companyCode)) {
+        console.error('Missing required data for submit')
+        return
+      }
 
-    // Fetch supplier detail to get fullAddress and phone
-    if (accessToken && companyCode) {
+      // Build poDetails
+      const poDetails: PODetail[] = lineItems
+        .filter((item) => item.transactionCode || item.statusRow === 'D')
+        .map((item) => {
+          const pricePerUnit = item.unitPriceCurrency || 0
+          const quantity = item.quantity || 0
+          const discount = item.discount || ''
+          let discountPerUnit = 0
+          if (discount.includes('%')) {
+            const percent = parseFloat(discount.replace('%', ''))
+            discountPerUnit = (pricePerUnit * percent) / 100
+          } else {
+            discountPerUnit = parseFloat(discount) || 0
+          }
+          const totalAmountCurrency = pricePerUnit * quantity
+          const totalAmountAfterDiscount = (pricePerUnit - discountPerUnit) * quantity
+
+          return {
+            noLine: item.statusRow === 'N' ? item.vline : item.noLine,
+            vline: item.vline,
+            transactionCode: item.transactionCode,
+            transactionDescription: item.transactionDescription,
+            transactionCodeSupplier: '',
+            quantity: quantity,
+            defaultUnitCode: item.purchaseUnitCode,
+            purchaseUnitCode: item.purchaseUnitCode,
+            unitPriceCurrency: pricePerUnit,
+            discount: discount,
+            totalAmountCurrency: totalAmountCurrency,
+            totalAmountAfterDiscount: totalAmountAfterDiscount,
+            statusRow: item.statusRow,
+            excludeVATTrueFalse: false,
+          }
+        })
+
+      const request: POInsertRequest = {
+        userName: username,
+        poOrder: {
+          documentModuleCode: 'PO',
+          documentTypeCode: selectedDocumentTypeCode || '',
+          runNo: isEditMode ? parseInt(id || '0') : 0,
+          pono: (values.pono as string) || '',
+          podate: values.podate
+            ? (values.podate as dayjs.Dayjs).format('YYYY-MM-DDTHH:mm:ss')
+            : dayjs().format('YYYY-MM-DDTHH:mm:ss'),
+          refNoYours: (values.supplierRefDoc as string) || '',
+          refNoOurs: (values.companyRefDoc as string) || '',
+          supplierCode: (values.supplierCode as string) || '',
+          supplierPrefix: '',
+          supplierName: (values.supplierName as string) || '',
+          supplierSuffix: '',
+          targetShippingDate: values.targetShippingDate
+            ? (values.targetShippingDate as dayjs.Dayjs).format('YYYY-MM-DDTHH:mm:ss')
+            : null,
+          paymentTermCode: (values.paymentTermCode as string) || '',
+          paymentDueDate: values.paymentDueDate
+            ? (values.paymentDueDate as dayjs.Dayjs).format('YYYY-MM-DDTHH:mm:ss')
+            : null,
+          currencyCode: (values.currencyCode as string) || 'THB',
+          exchangeRate: parseFloat(values.exchangeRate as string) || 1,
+          totalAmountCurrency: (values.totalAmountCurrency as number) || 0,
+          vatrate: 7,
+          vatamountCurrency: (values.vatAmountCurrency as number) || 0,
+          totalAmountCurrencyAfterVat: (values.totalAmountCurrencyAfterVAT as number) || 0,
+          amountDiscountCurrency: (values.amountDiscountCurrency as number) || 0,
+          totalAmountCurrencyAfterDiscountBeforeVat:
+            (values.totalAmountCurrencyAfterDiscountBeforeVAT as number) || 0,
+          discountStringBeforeVat: (values.discountStringBeforeVAT as string) || '',
+          note: (values.note as string) || '',
+          totalAmountIncludeVattrueFalse: false,
+          costCenterCode: '',
+          costCenterName: '',
+          billingCode: (values.billingCode as string) || '',
+          contactName: (values.contactName as string) || '',
+          paymentTermRefDoc: (values.paymentTermRefDoc as string) || '',
+          memo: (values.memo as string) || '',
+          sellerRefNo: (values.quotationRefDoc as string) || '',
+          adjustVATYesNo: values.adjustVatEnabled ? 'Y' : '',
+          poDetails: poDetails,
+        },
+      }
+
+      setSaveModalOpen(true)
+      setSaveStatus('saving')
+      setSaveErrorMessage('')
+
       try {
-        const response = await getSupplier(
-          supplier.code,
-          accessToken,
-          companyCode
-        );
-        if (response.code === 0 && response.result) {
-          form.setFieldsValue({
-            fullAddress: response.result.fullAddress || "",
-            supplierPhone: response.result.phone || "",
-          });
+        const response = isEditMode
+          ? await poUpdate(request, accessToken, companyCode)
+          : await poInsert(request, accessToken, companyCode)
+
+        if (response.code === 0) {
+          setSaveStatus('success')
+          setTimeout(() => {
+            setSaveModalOpen(false)
+            navigate('..')
+          }, 1500)
+        } else {
+          setSaveStatus('error')
+          setSaveErrorMessage(response.msg || 'เกิดข้อผิดพลาดในการบันทึก')
         }
       } catch (error) {
-        console.error("Failed to fetch supplier detail:", error);
+        console.error(isEditMode ? 'POUpdate error:' : 'POInsert error:', error)
+        setSaveStatus('error')
+        setSaveErrorMessage('เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง')
       }
-    }
+    },
+    [username, accessToken, companyCode, serieInfo, isEditMode, id, selectedDocumentTypeCode, lineItems, navigate]
+  )
 
-    // Calculate payment due date if supplier has paymentTermCode
-    if (supplier.paymentTermCode) {
-      handlePaymentTermChange(supplier.paymentTermCode);
-    }
-  };
+  const handleSupplierSelect = useCallback(
+    async (supplier: Supplier) => {
+      form.setFieldsValue({
+        supplierCode: supplier.code,
+        supplierName: supplier.nameThai,
+        paymentTermCode: supplier.paymentTermCode,
+      })
 
-  // Line items handlers
-  const handleAddLine = () => {
-    // Find max vline from visible items (not deleted)
-    const visibleItems = lineItems.filter((item) => item.statusRow !== "D");
-    const newVline = visibleItems.length + 1;
-    // For new items, noLine will be assigned by API, use 0 as placeholder
+      if (accessToken && companyCode) {
+        try {
+          const response = await getSupplier(supplier.code, accessToken, companyCode)
+          if (response.code === 0 && response.result) {
+            form.setFieldsValue({
+              fullAddress: response.result.fullAddress || '',
+              supplierPhone: response.result.phone || '',
+            })
+          }
+        } catch (error) {
+          console.error('Failed to fetch supplier detail:', error)
+        }
+      }
+
+      if (supplier.paymentTermCode) {
+        handlePaymentTermChange(supplier.paymentTermCode)
+      }
+    },
+    [form, accessToken, companyCode]
+  )
+
+  const handlePaymentTermChange = useCallback(
+    async (paymentTermCode: string) => {
+      if (!paymentTermCode || !accessToken || !companyCode) {
+        form.setFieldValue('paymentDueDate', null)
+        return
+      }
+
+      const poDateValue = form.getFieldValue('podate') as dayjs.Dayjs | null
+      const refDate = poDateValue ? poDateValue.format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD')
+
+      try {
+        const response = await calculatePaymentDueDate(paymentTermCode, refDate, accessToken, companyCode)
+        if (response.code === 0 && response.result) {
+          form.setFieldValue('paymentDueDate', dayjs(response.result))
+        }
+      } catch (error) {
+        console.error('Failed to calculate payment due date:', error)
+      }
+    },
+    [form, accessToken, companyCode]
+  )
+
+  // Line item handlers
+  const handleAddLine = useCallback(() => {
+    const visibleItems = lineItems.filter((item) => item.statusRow !== 'D')
+    const newVline = visibleItems.length + 1
     setLineItems([
       ...lineItems,
       {
-        key: `new-${Date.now()}-${Math.random().toString(36).slice(2)}`, // Use timestamp + random for unique key
-        noLine: 0, // New row - will be assigned by API
+        key: `new-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        noLine: 0,
         vline: newVline,
-        transactionCode: "",
-        transactionDescription: "",
+        transactionCode: '',
+        transactionDescription: '',
         quantity: 0,
-        purchaseUnitCode: "",
+        purchaseUnitCode: '',
         unitPriceCurrency: 0,
-        discount: "",
-        statusRow: "N", // New row
+        discount: '',
+        statusRow: 'N',
       },
-    ]);
-  };
+    ])
+  }, [lineItems, setLineItems])
 
-  const handleDeleteLine = (key: string) => {
-    const itemToDelete = lineItems.find((item) => item.key === key);
-    if (!itemToDelete) return;
+  const handleDeleteLine = useCallback(
+    (key: string) => {
+      const itemToDelete = lineItems.find((item) => item.key === key)
+      if (!itemToDelete) return
 
-    if (itemToDelete.statusRow === "E") {
-      // Edit mode item - mark as deleted instead of removing, then renumber vline
+      if (itemToDelete.statusRow === 'E') {
+        const updated = lineItems.map((item) =>
+          item.key === key ? { ...item, statusRow: 'D' as const } : item
+        )
+        let vlineCounter = 1
+        const renumbered = updated.map((item) => {
+          if (item.statusRow === 'D') return item
+          return { ...item, vline: vlineCounter++ }
+        })
+        setLineItems(renumbered)
+      } else {
+        const filtered = lineItems.filter((item) => item.key !== key)
+        let vlineCounter = 1
+        const renumbered = filtered.map((item) => {
+          if (item.statusRow === 'D') return item
+          return { ...item, vline: vlineCounter++ }
+        })
+        setLineItems(renumbered)
+      }
+    },
+    [lineItems, setLineItems]
+  )
+
+  const handleUndoDelete = useCallback(
+    (key: string) => {
       const updated = lineItems.map((item) =>
-        item.key === key ? { ...item, statusRow: "D" as const } : item
-      );
-      // Renumber vline for visible items
-      let vlineCounter = 1;
+        item.key === key ? { ...item, statusRow: 'E' as const } : item
+      )
+      let vlineCounter = 1
       const renumbered = updated.map((item) => {
-        if (item.statusRow === "D") {
-          return item; // Keep deleted items as is (keep original vline for noLine)
-        }
-        return { ...item, vline: vlineCounter++ };
-      });
-      setLineItems(renumbered);
-    } else {
-      // New item - remove from array and renumber
-      const filtered = lineItems.filter((item) => item.key !== key);
-      // Renumber vline for visible items only
-      let vlineCounter = 1;
-      const renumbered = filtered.map((item) => {
-        if (item.statusRow === "D") {
-          return item; // Keep deleted items as is
-        }
-        return { ...item, vline: vlineCounter++ };
-      });
-      setLineItems(renumbered);
-    }
-  };
+        if (item.statusRow === 'D') return item
+        return { ...item, vline: vlineCounter++ }
+      })
+      setLineItems(renumbered)
+    },
+    [lineItems, setLineItems]
+  )
 
-  const handleUndoDelete = (key: string) => {
-    // Restore deleted row back to E status and renumber vline
-    const updated = lineItems.map((item) =>
-      item.key === key ? { ...item, statusRow: "E" as const } : item
-    );
-    // Renumber vline for visible items
-    let vlineCounter = 1;
-    const renumbered = updated.map((item) => {
-      if (item.statusRow === "D") {
-        return item; // Keep deleted items as is
+  const handleLineChange = useCallback(
+    (key: string, field: keyof POLineItem, value: unknown) => {
+      setLineItems((prev) => prev.map((item) => (item.key === key ? { ...item, [field]: value } : item)))
+    },
+    [setLineItems]
+  )
+
+  const openModalProductList = useCallback((key: string) => {
+    setSelectedLineKey(key)
+    setItemModalOpen(true)
+  }, [])
+
+  const handleItemSelect = useCallback(
+    async (item: ItemListItem) => {
+      if (selectedLineKey === null) return
+      if (!accessToken || !companyCode) return
+
+      setIsLoadingItem(true)
+
+      let unitOptions: UnitConversion[] = []
+      if (item.defaultUnitCode) {
+        try {
+          const response = await getUnitConversionList(item.defaultUnitCode, accessToken, companyCode)
+          if (response.code === 0 && response.result) {
+            unitOptions = response.result
+          }
+        } catch (error) {
+          console.error('Failed to fetch unit conversion list:', error)
+          message.warning('ไม่สามารถโหลดหน่วยสินค้าได้')
+        }
       }
-      return { ...item, vline: vlineCounter++ };
-    });
-    setLineItems(renumbered);
-  };
 
-  const handleLineChange = (
-    key: string,
-    field: keyof POLineItem,
-    value: unknown
-  ) => {
-    setLineItems((prev) =>
-      prev.map((item) =>
-        item.key === key ? { ...item, [field]: value } : item
+      setLineItems((prev) =>
+        prev.map((lineItem) =>
+          lineItem.key === selectedLineKey
+            ? {
+                ...lineItem,
+                transactionCode: item.code,
+                transactionDescription: item.purchaseNameT || item.t,
+                purchaseUnitCode: item.purchaseUnitCode || '',
+                unitOptions: unitOptions.map((u) => ({ code: u.code, t: u.t })),
+              }
+            : lineItem
+        )
       )
-    );
-  };
 
-
-  const openModalProductList = (key: string) => {
-    setSelectedLineKey(key);
-    setItemModalOpen(true);
-  };
-
-  const handleItemSelect = async (item: ItemListItem) => {
-    if (selectedLineKey === null) return;
-    if (!accessToken || !companyCode) return;
-
-    setIsLoadingItem(true);
-
-    // Fetch unit conversion list for this item
-    let unitOptions: UnitConversion[] = [];
-    if (item.defaultUnitCode) {
-      try {
-        const response = await getUnitConversionList(
-          item.defaultUnitCode,
-          accessToken,
-          companyCode
-        );
-        if (response.code === 0 && response.result) {
-          unitOptions = response.result;
-        }
-      } catch (error) {
-        console.error("Failed to fetch unit conversion list:", error);
-        message.warning("ไม่สามารถโหลดหน่วยสินค้าได้");
-      }
-    }
-
-    setLineItems((prev) =>
-      prev.map((lineItem) =>
-        lineItem.key === selectedLineKey
-          ? {
-              ...lineItem,
-              transactionCode: item.code,
-              transactionDescription: item.purchaseNameT || item.t,
-              purchaseUnitCode: item.purchaseUnitCode || "",
-              unitOptions: unitOptions.map((u) => ({ code: u.code, t: u.t })),
-            }
-          : lineItem
-      )
-    );
-
-    setIsLoadingItem(false);
-  };
-
-
-  const handlePaymentTermChange = async (paymentTermCode: string) => {
-    if (!paymentTermCode || !accessToken || !companyCode) {
-      form.setFieldValue("paymentDueDate", null);
-      return;
-    }
-
-    // Get reference date from podate field (format: YYYY-MM-DD for API)
-    const poDate = form.getFieldValue("podate") as dayjs.Dayjs | null;
-    const refDate = poDate
-      ? poDate.format("YYYY-MM-DD")
-      : dayjs().format("YYYY-MM-DD");
-
-    try {
-      const response = await calculatePaymentDueDate(
-        paymentTermCode,
-        refDate,
-        accessToken,
-        companyCode
-      );
-      if (response.code === 0 && response.result) {
-        form.setFieldValue("paymentDueDate", dayjs(response.result));
-      }
-    } catch (error) {
-      console.error("Failed to calculate payment due date:", error);
-    }
-  };
+      setIsLoadingItem(false)
+    },
+    [selectedLineKey, accessToken, companyCode, setLineItems]
+  )
 
   return (
-    <Flex vertical style={{ height: "calc(100vh - 120px)" }}>
+    <Flex vertical style={{ height: 'calc(100vh - 120px)' }}>
       {/* Header */}
-      <Flex
-        justify="space-between"
-        align="center"
-        style={{ flexShrink: 0, marginBottom: 12 }}
-      >
+      <Flex justify="space-between" align="center" style={{ flexShrink: 0, marginBottom: 12 }}>
         <Flex align="center" gap={8}>
           <Text strong style={{ fontSize: 16 }}>
             {pageTitle}
@@ -1087,23 +478,16 @@ export function POForm({ canEdit = true }: POFormProps) {
           {!isEditMode && serieInfo && (
             <Badge
               count={`เลขที่ ${serieInfo.yearForRunNo}/${serieInfo.nextNumber}`}
-              style={{ backgroundColor: "#52c41a",fontSize: 16 }}
+              style={{ backgroundColor: '#52c41a', fontSize: 16 }}
             />
           )}
           {!isEditMode && isLoadingSerie && (
-            <Badge
-              count="กำลังโหลด..."
-              style={{ backgroundColor: "#1890ff" }}
-            />
+            <Badge count="กำลังโหลด..." style={{ backgroundColor: '#1890ff' }} />
           )}
         </Flex>
         {!isReadOnly && (
           <Flex gap={8}>
-            <Button
-              type="primary"
-              icon={<SaveOutlined />}
-              onClick={handleSaveClick}
-            >
+            <Button type="primary" icon={<SaveOutlined />} onClick={handleSaveClick}>
               บันทึก
             </Button>
             <Button icon={<CloseOutlined />} onClick={handleCancel}>
@@ -1114,8 +498,8 @@ export function POForm({ canEdit = true }: POFormProps) {
         {isReadOnly && <Button onClick={handleCancel}>กลับ</Button>}
       </Flex>
 
-      {/* Content - มี scrollbar เมื่อเนื้อหาเยอะ */}
-      <div className="antd-scrollbar" style={{ flex: 1, overflow: "auto" }}>
+      {/* Content */}
+      <div className="antd-scrollbar" style={{ flex: 1, overflow: 'auto' }}>
         <Form
           form={form}
           layout="vertical"
@@ -1123,370 +507,50 @@ export function POForm({ canEdit = true }: POFormProps) {
           disabled={isReadOnly}
           initialValues={{
             podate: dayjs(),
-            currencyCode: "THB",
+            currencyCode: 'THB',
             exchangeRate: 1,
             vatRate: 7,
             adjustVatEnabled: false,
           }}
           onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
+            if (e.key === 'Enter') {
+              e.preventDefault()
             }
           }}
         >
-          {/* Section: ผู้ขาย */}
-          <Card
-            style={{ marginBottom: 16, display: isExpanded ? "none" : "block" }}
-          >
-            <Flex align="center" gap={12} style={{ marginBottom: 16 }}>
-              <div
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: "50%",
-                  backgroundColor: "#1890ff",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <UserOutlined style={{ color: "#fff", fontSize: 16 }} />
-              </div>
-              <Text strong style={{ fontSize: 16 }}>
-                ผู้ขาย
-              </Text>
-            </Flex>
+          {/* Supplier Section */}
+          <SupplierSection
+            form={form}
+            isReadOnly={isReadOnly}
+            isExpanded={isExpanded}
+            paymentTerms={paymentTerms}
+            currencies={currencies}
+            currencyCode={currencyCode}
+            poDate={poDate}
+            targetShippingDate={targetShippingDate}
+            onSupplierSearch={() => setSupplierModalOpen(true)}
+            onPaymentTermChange={handlePaymentTermChange}
+          />
 
-            <Row gutter={[16, 0]}>
-              {/* Row 1 */}
-              <Col span={8}>
-                <Form.Item
-                  label="รหัสผู้ขาย"
-                  name="supplierCode"
-                  rules={[{ required: true, message: "กรุณาเลือกผู้ขาย" }]}
-                >
-                  <Input
-                    placeholder="รหัสผู้ขาย"
-                    readOnly
-                    suffix={
-                      <Button
-                        type="text"
-                        size="small"
-                        icon={<SearchOutlined />}
-                        onClick={() => setSupplierModalOpen(true)}
-                        disabled={isReadOnly}
-                        style={{ margin: -4 }}
-                      />
-                    }
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={8}>
-                <Form.Item
-                  label="เลขที่ใบสั่งซื้อ"
-                  name="pono"
-                  rules={[
-                    { required: true, message: "กรุณาระบุเลขที่ใบสั่งซื้อ" },
-                  ]}
-                >
-                  <Input placeholder="Auto" readOnly />
-                </Form.Item>
-              </Col>
-              <Col span={8}>
-                <Form.Item
-                  label="วันที่ใบสั่งซื้อ"
-                  name="podate"
-                  rules={[
-                    { required: true, message: "กรุณาเลือกวันที่ใบสั่งซื้อ" },
-                  ]}
-                >
-                  <DatePicker
-                    style={{ width: "100%" }}
-                    placeholder="เลือกวันที่"
-                    format="DD/MM/YYYY"
-                    disabledDate={(current) => {
-                      // ต้องไม่เกินวันที่กำหนดส่งผู้สั่งซื้อ
-                      if (targetShippingDate && current) {
-                        return current.isAfter(targetShippingDate, "day");
-                      }
-                      return false;
-                    }}
-                    onChange={() => {
-                      const paymentTermCode =
-                        form.getFieldValue("paymentTermCode");
-                      if (paymentTermCode) {
-                        handlePaymentTermChange(paymentTermCode);
-                      }
-                    }}
-                  />
-                </Form.Item>
-              </Col>
+          {/* Tabs Section */}
+          <POFormTabs form={form} isExpanded={isExpanded} warehouses={warehouses} />
 
-              {/* Row 2 */}
-              <Col span={8}>
-                <Form.Item label="ชื่อผู้ขาย" name="supplierName">
-                  <Input placeholder="ชื่อผู้ขาย" readOnly />
-                </Form.Item>
-              </Col>
-              <Col span={8}>
-                <Form.Item
-                  label="กำหนดส่งผู้สั่งซื้อ"
-                  name="targetShippingDate"
-                >
-                  <DatePicker
-                    style={{ width: "100%" }}
-                    placeholder="เลือกวันที่"
-                    format="DD/MM/YYYY"
-                    disabledDate={(current) => {
-                      // ต้องไม่น้อยกว่าวันที่ใบสั่งซื้อ
-                      if (poDate && current) {
-                        return current.isBefore(poDate, "day");
-                      }
-                      return false;
-                    }}
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={8} />
-              {/* Row 3 */}
-              <Col span={8}>
-                <Form.Item label="ที่อยู่" name="fullAddress">
-                  <TextArea rows={3} placeholder="ที่อยู่" readOnly />
-                </Form.Item>
-              </Col>
-              <Col span={8}>
-                <Form.Item
-                  label="รหัสชำระ"
-                  name="paymentTermCode"
-                  rules={[{ required: true, message: "กรุณาเลือกรหัสชำระ" }]}
-                >
-                  <Select
-                    placeholder="เลือกรหัสชำระ"
-                    allowClear
-                    showSearch
-                    optionFilterProp="label"
-                    options={paymentTerms.map((pt) => ({
-                      value: pt.code,
-                      label: pt.descriptionOnSalesThai,
-                    }))}
-                    onChange={handlePaymentTermChange}
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={8} />
-
-              {/* Row 4 */}
-              <Col span={8}>
-                <Form.Item label="โทรศัพท์" name="supplierPhone">
-                  <Input placeholder="เบอร์โทร" readOnly />
-                </Form.Item>
-              </Col>
-              <Col span={8}>
-                <Form.Item label="วันที่ชำระ" name="paymentDueDate">
-                  <DatePicker
-                    style={{ width: "100%" }}
-                    placeholder="เลือกวันที่"
-                    format="DD/MM/YYYY"
-                    disabledDate={(current) => {
-                      // ต้องไม่ย้อนหลังจากวันที่ใบสั่งซื้อ
-                      if (poDate && current) {
-                        return current.isBefore(poDate, "day");
-                      }
-                      return false;
-                    }}
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={8}>
-                <Form.Item label="อ้างอิงชำระ" name="paymentTermRefDoc">
-                  <Input placeholder="อ้างอิงชำระ" />
-                </Form.Item>
-              </Col>
-
-              {/* Row 5 */}
-              <Col span={8}>
-                <Form.Item label="ผู้ติดต่อ" name="contactName">
-                  <Input placeholder="ชื่อผู้ติดต่อ" />
-                </Form.Item>
-              </Col>
-              <Col span={4}>
-                <Form.Item
-                  label="สกุลเงิน"
-                  name="currencyCode"
-                  rules={[{ required: true, message: "กรุณาเลือกสกุลเงิน" }]}
-                >
-                  <Select
-                    placeholder="เลือกสกุลเงิน"
-                    showSearch
-                    optionFilterProp="label"
-                    options={currencies.map((c) => ({
-                      value: c.code,
-                      label: `${c.code} - ${c.t}`,
-                    }))}
-                    onChange={(value) => {
-                      if (value === "THB") {
-                        form.setFieldValue("exchangeRate", 1);
-                      }
-                    }}
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={4}>
-                <Form.Item label="อัตราแลกเปลี่ยน" name="exchangeRate">
-                  <InputNumber
-                    style={{ width: "100%" }}
-                    className="input-number-right"
-                    placeholder="1"
-                    min={0}
-                    precision={4}
-                    disabled={isReadOnly || currencyCode === "THB"}
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={8} />
-            </Row>
-          </Card>
-
-          <Flex gap={16} style={{ display: isExpanded ? "none" : "flex" }}>
-            <Card style={{ flex: 1 }}>
-              {/* Tabs: สถานที่ส่งสินค้า / เอกสารอ้างอิง */}
-              <Tabs defaultActiveKey="billing">
-                <Tabs.TabPane
-                  tab={
-                    <span>
-                      <HomeOutlined /> คลังสินค้า
-                    </span>
-                  }
-                  key="billing"
-                  forceRender
-                >
-                  <Flex vertical gap={12}>
-                    <Form.Item
-                      label="คลังสินค้า"
-                      name="billingCode"
-                      style={{ marginBottom: 0 }}
-                      rules={[
-                        { required: true, message: "กรุณาเลือกคลังสินค้า" },
-                      ]}
-                    >
-                      <Select
-                        placeholder="เลือกคลังสินค้า"
-                        showSearch
-                        optionFilterProp="label"
-                        options={warehouses.map((w) => ({
-                          value: w.code,
-                          label: w.nameT,
-                        }))}
-                        onChange={(value) => {
-                          const selected = warehouses.find(
-                            (w) => w.code === value
-                          );
-                          form.setFieldValue(
-                            "billingAddress",
-                            selected?.addressThai || ""
-                          );
-                        }}
-                      />
-                    </Form.Item>
-                    <Form.Item
-                      label="ที่อยู่คลังสินค้า"
-                      name="billingAddress"
-                      style={{ marginBottom: 0 }}
-                    >
-                      <TextArea rows={3} readOnly />
-                    </Form.Item>
-                  </Flex>
-                </Tabs.TabPane>
-                <Tabs.TabPane
-                  tab={
-                    <span>
-                      <FileTextOutlined /> เอกสารอ้างอิง
-                    </span>
-                  }
-                  key="refDoc"
-                  forceRender
-                >
-                  <Flex vertical gap={12}>
-                    <Form.Item
-                      label="อ้างอิงผู้ขาย"
-                      name="supplierRefDoc"
-                      style={{ marginBottom: 0 }}
-                    >
-                      <Input />
-                    </Form.Item>
-                    <Form.Item
-                      label="อ้างอิงบริษัท"
-                      name="companyRefDoc"
-                      style={{ marginBottom: 0 }}
-                    >
-                      <Input />
-                    </Form.Item>
-                    <Form.Item
-                      label="ใบเสนอราคา"
-                      name="quotationRefDoc"
-                      style={{ marginBottom: 0 }}
-                    >
-                      <Input />
-                    </Form.Item>
-                  </Flex>
-                </Tabs.TabPane>
-              </Tabs>
-            </Card>
-            <Card style={{ flex: 1 }}>
-              {/* Tabs: หมายเหตุ / บันทึก */}
-              <Tabs defaultActiveKey="remark">
-                <Tabs.TabPane
-                  tab={
-                    <span>
-                      <MessageOutlined /> หมายเหตุ
-                    </span>
-                  }
-                  key="remark"
-                  forceRender
-                >
-                  <Form.Item name="note" style={{ marginBottom: 0 }}>
-                    <TextArea rows={4} placeholder="หมายเหตุเพิ่มเติม" />
-                  </Form.Item>
-                </Tabs.TabPane>
-                <Tabs.TabPane
-                  tab={
-                    <span>
-                      <EditOutlined /> บันทึก
-                    </span>
-                  }
-                  key="note"
-                  forceRender
-                >
-                  <Form.Item name="memo" style={{ marginBottom: 0 }}>
-                    <TextArea rows={4} placeholder="บันทึกภายใน" />
-                  </Form.Item>
-                </Tabs.TabPane>
-              </Tabs>
-            </Card>
-          </Flex>
-
-          {/* Section: รายการสินค้า */}
+          {/* Line Items Section */}
           <Card style={{ marginTop: isExpanded ? 0 : 16 }}>
-            <Flex
-              align="center"
-              justify="space-between"
-              style={{ marginBottom: 16 }}
-            >
+            <Flex align="center" justify="space-between" style={{ marginBottom: 16 }}>
               <Flex align="center" gap={12}>
                 <div
                   style={{
                     width: 32,
                     height: 32,
-                    borderRadius: "50%",
-                    backgroundColor: "#52c41a",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
+                    borderRadius: '50%',
+                    backgroundColor: '#52c41a',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                 >
-                  <ShoppingCartOutlined
-                    style={{ color: "#fff", fontSize: 16 }}
-                  />
+                  <ShoppingCartOutlined style={{ color: '#fff', fontSize: 16 }} />
                 </div>
                 <Text strong style={{ fontSize: 16 }}>
                   รายการสินค้า
@@ -1496,7 +560,7 @@ export function POForm({ canEdit = true }: POFormProps) {
                 type="text"
                 icon={isExpanded ? <CompressOutlined /> : <ExpandAltOutlined />}
                 onClick={() => setIsExpanded(!isExpanded)}
-                title={isExpanded ? "ย่อ" : "ขยาย"}
+                title={isExpanded ? 'ย่อ' : 'ขยาย'}
               />
             </Flex>
 
@@ -1516,7 +580,7 @@ export function POForm({ canEdit = true }: POFormProps) {
                 icon={<PlusOutlined />}
                 onClick={handleAddLine}
                 block
-                style={{ marginTop: 16, outline: "none" }}
+                style={{ marginTop: 16, outline: 'none' }}
               >
                 เพิ่มรายการ
               </Button>
@@ -1524,455 +588,45 @@ export function POForm({ canEdit = true }: POFormProps) {
           </Card>
 
           {/* Summary Section */}
-          <Flex justify="flex-end" style={{ marginTop: 16 }}>
-            <Card style={{ width: "fit-content", backgroundColor: "#f0f5ff" }}>
-              <Flex vertical gap={12}>
-              {/* Header Row */}
-              <Flex align="center" gap={16}>
-                <div style={{ width: 270 }} />
-                <Text strong style={{ width: 150, textAlign: "right" }}>
-                  {currencyCode || "สกุลเงิน"}
-                </Text>
-                <Text strong style={{ width: 150, textAlign: "right" }}>
-                  บาท
-                </Text>
-              </Flex>
-
-              {/* รวมมูลค่า */}
-              <Flex align="center" gap={16}>
-                <Text strong style={{ width: 270, textAlign: "left" }}>
-                  รวมมูลค่า:
-                </Text>
-                <Form.Item name="totalAmountCurrency" noStyle>
-                  <InputNumber
-                    style={{ width: 150 }}
-                    className="input-number-right"
-                    placeholder="0.00"
-                    precision={2}
-                    readOnly
-                    formatter={(value) => {
-                      if (!value && value !== 0) return "";
-                      const num = parseFloat(value.toString());
-                      return num.toLocaleString("en-US", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      });
-                    }}
-                    parser={(value) =>
-                      value?.replace(/,/g, "") as unknown as number
-                    }
-                  />
-                </Form.Item>
-                <Form.Item name="totalAmountBeforeVATBaht" noStyle>
-                  <InputNumber
-                    style={{ width: 150 }}
-                    className="input-number-right"
-                    placeholder="0.00"
-                    precision={2}
-                    readOnly
-                    formatter={(value) => {
-                      if (!value && value !== 0) return "";
-                      const num = parseFloat(value.toString());
-                      return num.toLocaleString("en-US", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      });
-                    }}
-                    parser={(value) =>
-                      value?.replace(/,/g, "") as unknown as number
-                    }
-                  />
-                </Form.Item>
-              </Flex>
-
-              {/* ส่วนลด */}
-              <Flex align="center" gap={16}>
-                <Flex align="center" gap={8} style={{ width: 270 }}>
-                  <Text strong style={{ textAlign: "left" }}>
-                    ส่วนลด:
-                  </Text>
-                  <Form.Item name="discountStringBeforeVAT" noStyle>
-                    <Input
-                      style={{ width: 80, textAlign: "right" }}
-                      disabled={isReadOnly}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        const regex = /^[0-9]*\.?[0-9]*%?$/;
-                        if (!regex.test(value) && value !== "") {
-                          e.preventDefault();
-                        }
-                      }}
-                      onBlur={(e) => {
-                        let value = e.target.value.trim();
-                        if (value && !value.includes("%")) {
-                          const num = parseFloat(value);
-                          if (!isNaN(num)) {
-                            value = num.toFixed(2);
-                            form.setFieldValue(
-                              "discountStringBeforeVAT",
-                              value
-                            );
-                          }
-                        }
-                      }}
-                    />
-                  </Form.Item>
-                  <Text strong style={{ textAlign: "left", color: "red" }}>
-                    จำนวนลด:
-                  </Text>
-                </Flex>
-                <Form.Item name="amountDiscountCurrency" noStyle>
-                  <InputNumber
-                    style={{ width: 150 }}
-                    className="input-number-right input-number-red"
-                    placeholder="0.00"
-                    precision={2}
-                    readOnly
-                    formatter={(value) => {
-                      if (!value && value !== 0) return "";
-                      const num = parseFloat(value.toString());
-                      const formatted = num.toLocaleString("en-US", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      });
-                      return num > 0 ? `-${formatted}` : formatted;
-                    }}
-                    parser={(value) =>
-                      value?.replace(/,/g, "").replace(/-/g, "") as unknown as number
-                    }
-                  />
-                </Form.Item>
-                <Form.Item name="amountDiscountBaht" noStyle>
-                  <InputNumber
-                    style={{ width: 150 }}
-                    className="input-number-right input-number-red"
-                    placeholder="0.00"
-                    precision={2}
-                    readOnly
-                    formatter={(value) => {
-                      if (!value && value !== 0) return "";
-                      const num = parseFloat(value.toString());
-                      const formatted = num.toLocaleString("en-US", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      });
-                      return num > 0 ? `-${formatted}` : formatted;
-                    }}
-                    parser={(value) =>
-                      value?.replace(/,/g, "").replace(/-/g, "") as unknown as number
-                    }
-                  />
-                </Form.Item>
-              </Flex>
-
-              {/* ยอดเงินหลังลด */}
-              <Flex align="center" gap={16}>
-                <Text strong style={{ width: 270, textAlign: "left" }}>
-                  ยอดเงินหลังลด:
-                </Text>
-                <Form.Item
-                  name="totalAmountCurrencyAfterDiscountBeforeVAT"
-                  noStyle
-                >
-                  <InputNumber
-                    style={{ width: 150 }}
-                    className="input-number-right"
-                    placeholder="0.00"
-                    precision={2}
-                    readOnly
-                    formatter={(value) => {
-                      if (!value && value !== 0) return "";
-                      const num = parseFloat(value.toString());
-                      return num.toLocaleString("en-US", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      });
-                    }}
-                    parser={(value) =>
-                      value?.replace(/,/g, "") as unknown as number
-                    }
-                  />
-                </Form.Item>
-                <Form.Item name="totalAmountBahtAfterDiscountBeforeVAT" noStyle>
-                  <InputNumber
-                    style={{ width: 150 }}
-                    className="input-number-right"
-                    placeholder="0.00"
-                    precision={2}
-                    readOnly
-                    formatter={(value) => {
-                      if (!value && value !== 0) return "";
-                      const num = parseFloat(value.toString());
-                      return num.toLocaleString("en-US", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      });
-                    }}
-                    parser={(value) =>
-                      value?.replace(/,/g, "") as unknown as number
-                    }
-                  />
-                </Form.Item>
-              </Flex>
-
-              {/* ภาษีมูลค่าเพิ่ม */}
-              <Flex align="center" gap={16}>
-                <Flex align="center" gap={8} style={{ width: 300 }}>
-                  <Text strong style={{ textAlign: "left" }}>
-                    ภาษีมูลค่าเพิ่ม:
-                  </Text>
-                  <Form.Item name="vatRate" noStyle>
-                    <Input
-                      style={{ width:70, textAlign: "right" }}
-                      disabled={isReadOnly}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        const regex = /^[0-9]*\.?[0-9]*$/;
-                        if (!regex.test(value) && value !== "") {
-                          e.preventDefault();
-                        }
-                      }}
-                    />
-                  </Form.Item>
-                  <Text strong style={{ textAlign: "left" }}>
-                    %
-                  </Text>
-                </Flex>
-                <div style={{ width: 100 }} />
-                <div style={{ width: 150 }} />
-              </Flex>
-
-              {/* ฐานภาษี */}
-              <Flex align="center" gap={16}>
-                <Flex align="center" gap={8} style={{ width: 270 }}>
-                  <Text strong style={{ whiteSpace: "nowrap" }}>
-                    ฐานภาษี:
-                  </Text>
-                  <Form.Item name="vatBasedForVATAmountCurrency" noStyle>
-                    <Input
-                      style={{ width: 100, textAlign: "right" }}
-                      readOnly
-                      onBlur={(e) => {
-                        let value = e.target.value.trim();
-                        if (value) {
-                          const num = parseFloat(value);
-                          if (!isNaN(num)) {
-                            value = num.toFixed(2);
-                            form.setFieldValue("vatBasedForVATAmountCurrency", value);
-                          }
-                        }
-                      }}
-                    />
-                  </Form.Item>
-                  <Form.Item name="adjustVatEnabled" valuePropName="checked" noStyle>
-                    <Checkbox disabled={isReadOnly}>
-                      <Text strong>แก้ไขภาษี</Text>
-                    </Checkbox>
-                  </Form.Item>
-                </Flex>
-
-                <Form.Item name="vatAmountCurrency" noStyle>
-                  <InputNumber
-                    style={{ width: 150 }}
-                    className="input-number-right"
-                    placeholder="0.00"
-                    precision={2}
-                    readOnly={!adjustVatEnabled || isReadOnly}
-                    formatter={(value) => {
-                      if (!value && value !== 0) return "";
-                      const num = parseFloat(value.toString());
-                      return num.toLocaleString("en-US", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      });
-                    }}
-                    parser={(value) =>
-                      value?.replace(/,/g, "") as unknown as number
-                    }
-                  />
-                </Form.Item>
-                <Form.Item name="vatAmountBaht" noStyle>
-                  <InputNumber
-                    style={{ width: 150 }}
-                    className="input-number-right"
-                    placeholder="0.00"
-                    precision={2}
-                    readOnly
-                    formatter={(value) => {
-                      if (!value && value !== 0) return "";
-                      const num = parseFloat(value.toString());
-                      return num.toLocaleString("en-US", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      });
-                    }}
-                    parser={(value) =>
-                      value?.replace(/,/g, "") as unknown as number
-                    }
-                  />
-                </Form.Item>
-              </Flex>
-
-              {/* รวมเงินทั้งสิ้น */}
-              <Flex
-                align="center"
-                gap={16}
-                style={{
-                  backgroundColor: "#1e3a5f",
-                  padding: "12px 16px",
-                  margin: "8px -24px -24px -24px",
-                  borderRadius: "0 0 8px 8px",
-                }}
-              >
-                <Text strong style={{ width: 220, textAlign: "left", color: "#fff", fontSize: 18 }}>
-                  รวมเงินทั้งสิ้น
-                </Text>
-                <Form.Item name="totalAmountCurrencyAfterVAT" noStyle>
-                  <InputNumber
-                    style={{ width: 150, fontSize: 18, fontWeight: "bold" }}
-                    className="input-number-right summary-total-input"
-                    placeholder="0.00"
-                    precision={2}
-                    readOnly
-                    formatter={(value) => {
-                      if (!value && value !== 0) return "";
-                      const num = parseFloat(value.toString());
-                      return num.toLocaleString("en-US", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      });
-                    }}
-                    parser={(value) =>
-                      value?.replace(/,/g, "") as unknown as number
-                    }
-                  />
-                </Form.Item>
-                <Form.Item name="totalAmountAfterVATBaht" noStyle>
-                  <InputNumber
-                    style={{ width: 150, fontSize: 18, fontWeight: "bold" }}
-                    className="input-number-right summary-total-input"
-                    placeholder="0.00"
-                    precision={2}
-                    readOnly
-                    formatter={(value) => {
-                      if (!value && value !== 0) return "";
-                      const num = parseFloat(value.toString());
-                      return num.toLocaleString("en-US", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      });
-                    }}
-                    parser={(value) =>
-                      value?.replace(/,/g, "") as unknown as number
-                    }
-                  />
-                </Form.Item>
-              </Flex>
-              </Flex>
-            </Card>
-          </Flex>
+          <POSummarySection
+            form={form}
+            currencyCode={currencyCode}
+            isReadOnly={isReadOnly}
+            adjustVatEnabled={adjustVatEnabled}
+          />
         </Form>
       </div>
 
-      {/* Supplier Search Modal */}
+      {/* Modals */}
       <SupplierSearchModal
         open={supplierModalOpen}
         onCancel={() => setSupplierModalOpen(false)}
         onSelect={handleSupplierSelect}
       />
 
-      {/* Item Search Modal */}
       <ItemSearchModal
         open={itemModalOpen}
         onCancel={() => setItemModalOpen(false)}
         onSelect={handleItemSelect}
       />
 
-      {/* Confirm Modal */}
-      <Modal
+      <ConfirmModal
         open={confirmModalOpen}
-        title={
-          <Flex align="center" gap={8}>
-            <ExclamationCircleOutlined
-              style={{ color: "#faad14", fontSize: 22 }}
-            />
-            <span>
-              {confirmModalType === "save"
-                ? "ยืนยันการบันทึก"
-                : "ยืนยันการยกเลิก"}
-            </span>
-          </Flex>
-        }
-        footer={
-          <Flex gap={8} justify="flex-end">
-            <Button type="primary" onClick={handleConfirmOk}>
-              {confirmModalType === "save" ? "บันทึก" : "ยืนยัน"}
-            </Button>
-            <Button onClick={handleConfirmCancel}>
-              {confirmModalType === "save" ? "ยกเลิก" : "ไม่"}
-            </Button>
-          </Flex>
-        }
+        type={confirmModalType}
+        isEditMode={isEditMode}
+        onConfirm={handleConfirmOk}
         onCancel={handleConfirmCancel}
-        centered
-        width={400}
-        destroyOnClose
-        maskClosable={false}
-      >
-        <Typography.Text style={{ marginLeft: 30 }}>
-          {confirmModalType === "save"
-            ? isEditMode
-              ? "ต้องการบันทึกการแก้ไขใบสั่งซื้อหรือไม่?"
-              : "ต้องการบันทึกใบสั่งซื้อหรือไม่?"
-            : isEditMode
-            ? "ต้องการยกเลิกการแก้ไขใบสั่งซื้อหรือไม่?"
-            : "ต้องการยกเลิกการสร้างใบสั่งซื้อหรือไม่?"}
-        </Typography.Text>
-      </Modal>
+      />
 
-      {/* Save Status Modal */}
-      <Modal
+      <SaveStatusModal
         open={saveModalOpen}
-        footer={null}
-        closable={saveStatus === "error"}
-        onCancel={() => setSaveModalOpen(false)}
-        centered
-        width={400}
-      >
-        {saveStatus === "saving" && (
-          <Flex vertical align="center" gap={16} style={{ padding: "24px 0" }}>
-            <Spin size="large" />
-            <Typography.Text style={{ fontSize: 16 }}>
-              กำลังบันทึกข้อมูล...
-            </Typography.Text>
-          </Flex>
-        )}
-        {saveStatus === "success" && (
-          <Result
-            status="success"
-            title="บันทึกสำเร็จ"
-            subTitle={
-              isEditMode
-                ? "อัปเดตใบสั่งซื้อเรียบร้อยแล้ว"
-                : "สร้างใบสั่งซื้อเรียบร้อยแล้ว"
-            }
-          />
-        )}
-        {saveStatus === "error" && (
-          <Result
-            status="error"
-            title="บันทึกไม่สำเร็จ"
-            subTitle={saveErrorMessage}
-            extra={
-              <Button type="primary" onClick={() => setSaveModalOpen(false)}>
-                ปิด
-              </Button>
-            }
-          />
-        )}
-      </Modal>
+        status={saveStatus}
+        errorMessage={saveErrorMessage}
+        isEditMode={isEditMode}
+        onClose={() => setSaveModalOpen(false)}
+      />
 
-      {/* Style for right-aligned input numbers and deleted rows */}
+      {/* Styles */}
       <style>{`
         .input-number-right .ant-input-number-input {
           text-align: right;
@@ -2002,5 +656,5 @@ export function POForm({ canEdit = true }: POFormProps) {
         }
       `}</style>
     </Flex>
-  );
+  )
 }

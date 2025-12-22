@@ -5,7 +5,9 @@ import { PrinterOutlined, CloseOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { useAuthStore, useSelectedDocumentType } from '../stores'
 import { getPOOrder, getSupplier } from '../services'
+import { formatNumber } from '../utils'
 import type { POOrder } from '../types'
+import '../styles/printPreview.css'
 
 const { Text } = Typography
 
@@ -66,11 +68,14 @@ export function POPrintPreview({ runNo, open, onClose }: POPrintPreviewProps) {
           }
 
           // Set PO data with supplier details
-          setPOData({
+          console.log('poOrder.poDetails:', poOrder.poDetails)
+          const newPoData = {
             ...poOrder,
             fullAddress,
             phone,
-          })
+          }
+          console.log('newPoData.poDetails:', newPoData.poDetails)
+          setPOData(newPoData)
         }
       } catch (error) {
         console.error('Failed to fetch PO data:', error)
@@ -90,11 +95,9 @@ export function POPrintPreview({ runNo, open, onClose }: POPrintPreviewProps) {
     document.body.classList.remove('printing-po-preview')
   }
 
-  if (!open) return null
+  console.log('POPrintPreview render - open:', open, 'loading:', loading, 'poData:', poData, 'poDetails:', poData?.poDetails)
 
-  const formatNumber = (num: number) => {
-    return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-  }
+  if (!open) return null
 
   const formatDate = (date: string | null | undefined) => {
     if (!date) return ''
@@ -127,6 +130,7 @@ export function POPrintPreview({ runNo, open, onClose }: POPrintPreviewProps) {
           </Flex>
         ) : poData ? (
           <div className="document-page">
+            {(() => { console.log('Rendering poData.poDetails:', poData.poDetails); return null })()}
             {/* Main Border */}
             <div className="document-border">
               {/* Header */}
@@ -206,6 +210,7 @@ export function POPrintPreview({ runNo, open, onClose }: POPrintPreviewProps) {
               </div>
 
               {/* Items Table */}
+              <div style={{ color: 'red', fontWeight: 'bold' }}>DEBUG: poDetails length = {(poData.poDetails || []).length}</div>
               <table className="items-table">
                 <thead>
                   <tr>
@@ -221,7 +226,7 @@ export function POPrintPreview({ runNo, open, onClose }: POPrintPreviewProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {poData.poDetails.map((item, index) => (
+                  {(poData.poDetails || []).map((item, index) => (
                     <tr key={item.noLine}>
                       <td className="center">{index + 1}</td>
                       <td></td>
@@ -235,7 +240,7 @@ export function POPrintPreview({ runNo, open, onClose }: POPrintPreviewProps) {
                     </tr>
                   ))}
                   {/* Fill empty rows */}
-                  {Array.from({ length: Math.max(0, 8 - poData.poDetails.length) }).map((_, i) => (
+                  {Array.from({ length: Math.max(0, 8 - (poData.poDetails || []).length) }).map((_, i) => (
                     <tr key={`empty-${i}`} className="empty-row">
                       <td>&nbsp;</td>
                       <td></td>
@@ -313,368 +318,6 @@ export function POPrintPreview({ runNo, open, onClose }: POPrintPreviewProps) {
         )}
       </div>
 
-      {/* Print Styles */}
-      <style>{`
-        .print-preview-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: #525659;
-          z-index: 1000;
-          overflow: auto;
-        }
-
-        .print-content-wrapper {
-          padding: 20px;
-          display: flex;
-          justify-content: center;
-        }
-
-        .document-page {
-          width: 210mm;
-          min-height: 297mm;
-          background: white;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-          padding: 10mm;
-        }
-
-        .document-border {
-          border: 1px solid #333;
-          min-height: calc(297mm - 20mm);
-          padding: 5mm;
-          font-family: 'Sarabun', 'Tahoma', sans-serif;
-          font-size: 11px;
-        }
-
-        /* Header */
-        .doc-header {
-          display: flex;
-          justify-content: space-between;
-          margin-bottom: 10px;
-          padding-bottom: 5px;
-        }
-
-        .header-left {
-          display: flex;
-          gap: 10px;
-        }
-
-        .company-logo {
-          width: 80px;
-          height: 40px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .company-logo img {
-          max-width: 100%;
-          max-height: 100%;
-        }
-
-        .logo-text {
-          color: #1890ff;
-          font-weight: bold;
-          font-size: 14px;
-        }
-
-        .company-info {
-          font-size: 10px;
-        }
-
-        .company-name-th {
-          color: #1890ff;
-          font-size: 14px;
-          font-weight: bold;
-        }
-
-        .company-address-th, .company-contact, .company-tax {
-          color: #666;
-        }
-
-        .header-right {
-          text-align: right;
-        }
-
-        .page-number {
-          font-size: 10px;
-          color: #666;
-        }
-
-        /* Document Title */
-        .doc-title {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          border-bottom: 1px solid #1890ff;
-          padding-bottom: 5px;
-          margin-bottom: 10px;
-        }
-
-        .title-text {
-          font-size: 18px;
-          font-weight: bold;
-          color: #1890ff;
-        }
-
-        .title-info {
-          text-align: right;
-        }
-
-        .title-row {
-          margin-bottom: 2px;
-        }
-
-        .title-row .label {
-          color: #666;
-        }
-
-        .title-row .value {
-          margin-left: 10px;
-        }
-
-        .title-row .value.highlight {
-          color: #1890ff;
-          font-weight: bold;
-        }
-
-        /* Info Section */
-        .info-section {
-          display: flex;
-          margin-bottom: 10px;
-          font-size: 10px;
-        }
-
-        .info-left {
-          flex: 2;
-        }
-
-        .info-right {
-          flex: 1;
-          text-align: right;
-        }
-
-        .info-row {
-          display: flex;
-          gap: 20px;
-          margin-bottom: 2px;
-        }
-
-        .info-row.full {
-          display: block;
-        }
-
-        .info-row.address {
-          min-height: 30px;
-        }
-
-        .info-row .label {
-          color: #1890ff;
-        }
-
-        .info-row .label-en {
-          color: #1890ff;
-        }
-
-        .info-row .value {
-          color: #333;
-        }
-
-        /* Request Text */
-        .request-text {
-          background: #f5f5f5;
-          padding: 5px 10px;
-          margin-bottom: 10px;
-          font-size: 9px;
-        }
-
-        .text-th {
-          color: #1890ff;
-        }
-
-        .text-en {
-          color: #1890ff;
-          font-size: 8px;
-        }
-
-        /* Items Table */
-        .items-table {
-          width: 100%;
-          border-collapse: collapse;
-          font-size: 10px;
-          margin-bottom: 10px;
-        }
-
-        .items-table th {
-          background: #fff;
-          border: 1px solid #999;
-          padding: 4px;
-          text-align: center;
-          font-weight: normal;
-          color: #1890ff;
-        }
-
-        .items-table td {
-          border: 1px solid #999;
-          padding: 4px;
-          vertical-align: top;
-        }
-
-        .items-table td.center {
-          text-align: center;
-        }
-
-        .items-table td.right {
-          text-align: right;
-        }
-
-        .items-table .empty-row td {
-          height: 20px;
-        }
-
-        /* Bottom Section */
-        .bottom-section {
-          display: flex;
-          gap: 20px;
-          margin-bottom: 20px;
-          font-size: 10px;
-        }
-
-        .bottom-left {
-          flex: 1;
-        }
-
-        .remarks-section {
-          margin-bottom: 10px;
-        }
-
-        .remarks-label {
-          color: #1890ff;
-          margin-bottom: 5px;
-        }
-
-        .remarks-row .label {
-          color: #1890ff;
-          margin-right: 10px;
-        }
-
-        .discount-note {
-          color: #ff4d4f;
-          font-size: 9px;
-        }
-
-        .bottom-right {
-          width: 250px;
-        }
-
-        .summary-row {
-          display: flex;
-          justify-content: space-between;
-          padding: 3px 0;
-          border-bottom: 1px dashed #ddd;
-        }
-
-        .summary-row .label {
-          color: #1890ff;
-        }
-
-        .summary-row .value {
-          text-align: right;
-          min-width: 80px;
-        }
-
-        .summary-row.total {
-          border-bottom: none;
-          border-top: 1px solid #1890ff;
-          font-weight: bold;
-          margin-top: 5px;
-          padding-top: 5px;
-        }
-
-        .summary-row.total .value {
-          color: #1890ff;
-        }
-
-        /* Signature Section */
-        .signature-section {
-          display: flex;
-          justify-content: space-between;
-          margin-top: 30px;
-          padding-top: 20px;
-          border-top: 1px solid #ddd;
-        }
-
-        .signature-box {
-          text-align: center;
-          width: 150px;
-        }
-
-        .signature-line {
-          border-bottom: 1px solid #333;
-          height: 40px;
-          margin-bottom: 5px;
-        }
-
-        .signature-label {
-          color: #1890ff;
-          font-size: 10px;
-        }
-
-        /* Print Styles */
-        @media print {
-          .no-print {
-            display: none !important;
-          }
-
-          .print-preview-overlay {
-            position: static !important;
-            background: white !important;
-            overflow: visible !important;
-          }
-
-          .print-content-wrapper {
-            padding: 0 !important;
-          }
-
-          .document-page {
-            width: 100% !important;
-            min-height: auto !important;
-            box-shadow: none !important;
-            padding: 5mm !important;
-            margin: 0 !important;
-          }
-
-          .document-border {
-            min-height: auto !important;
-          }
-
-          @page {
-            size: A4;
-            margin: 5mm;
-          }
-        }
-      `}</style>
-
-      {/* Global Print Styles - inject to head */}
-      <style>{`
-        @media print {
-          body.printing-po-preview > *:not(.print-preview-overlay) {
-            display: none !important;
-            visibility: hidden !important;
-          }
-
-          body.printing-po-preview .print-preview-overlay {
-            display: block !important;
-            visibility: visible !important;
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 100% !important;
-          }
-        }
-      `}</style>
     </div>
   )
 

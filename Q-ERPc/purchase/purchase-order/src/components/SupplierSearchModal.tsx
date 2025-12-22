@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { Modal, Table, Input, Flex, Alert } from 'antd'
 import { SearchOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
@@ -20,9 +20,14 @@ export function SupplierSearchModal({ open, onCancel, onSelect }: SupplierSearch
   const [searchText, setSearchText] = useState('')
   const [error, setError] = useState<string | null>(null)
 
-  // Fetch suppliers when modal opens
+  const hasFetched = useRef(false)
+
+  // Fetch suppliers when modal opens (only once)
   useEffect(() => {
     if (!open || !accessToken || !companyCode) return
+    // Skip if already fetched
+    if (hasFetched.current) return
+    hasFetched.current = true
 
     const fetchSuppliers = async () => {
       setIsLoading(true)

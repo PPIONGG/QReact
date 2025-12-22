@@ -89,7 +89,9 @@ export function RouteGuard({ children, menuKey }: RouteGuardProps) {
   if (isLoading) {
     return (
       <Flex justify="center" align="center" style={{ height: '50vh' }}>
-        <Spin size="large" tip="กำลังตรวจสอบสิทธิ์..." />
+        <Spin size="large" tip="กำลังตรวจสอบสิทธิ์...">
+          <div style={{ padding: 50 }} />
+        </Spin>
       </Flex>
     )
   }

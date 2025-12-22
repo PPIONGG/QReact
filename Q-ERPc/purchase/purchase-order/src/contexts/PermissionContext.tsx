@@ -65,7 +65,6 @@ export function PermissionProvider({
 
     async function fetchActionPermission() {
       if (!accessToken || !companyCode || !moduleCode) {
-        console.log('🟡 PermissionContext - Missing required params:', { accessToken: !!accessToken, companyCode, moduleCode })
         setState((prev) => ({ ...prev, isLoading: false }))
         return
       }
@@ -75,10 +74,6 @@ export function PermissionProvider({
       setState((prev) => ({ ...prev, isLoading: true, error: null }))
 
       try {
-        console.log(`🔵 PermissionContext - Fetching action permission for module: ${moduleCode}`)
-        console.log(`🔵 PermissionContext - Using companyCode: ${companyCode}`)
-        console.log(`🔵 PermissionContext - Token prefix: ${accessToken.substring(0, 20)}...`)
-
         const response = await permissionService.getActionPermission(
           moduleCode,
           accessToken,
@@ -86,8 +81,6 @@ export function PermissionProvider({
         )
 
         if (response.code === 0 && response.result) {
-          console.log('✅ PermissionContext - Action permission loaded:', response.result.permission)
-          console.log('✅ PermissionContext - New access token received')
           setState({
             actionPermission: response.result.permission,
             actionAccessToken: response.result.accessToken,

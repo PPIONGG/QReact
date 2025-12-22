@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { getDocumentTypeRightList } from '../services'
 import type { DocumentType } from '../types'
 
@@ -27,10 +27,16 @@ export function useDocumentTypes({
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const hasFetched = useRef(false)
+
   useEffect(() => {
     if (!moduleCode || !userName || !accessToken || !packageCode) {
       return
     }
+
+    // Prevent duplicate fetch
+    if (hasFetched.current) return
+    hasFetched.current = true
 
     const fetchDocumentTypes = async () => {
       setIsLoading(true)

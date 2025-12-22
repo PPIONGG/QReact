@@ -41,7 +41,9 @@ function PurchaseOrderContent() {
   if (isLoading) {
     return (
       <Flex justify="center" align="center" style={{ height: '200px' }}>
-        <Spin size="large" tip="กำลังโหลดสิทธิ์การใช้งาน..." />
+        <Spin size="large" tip="กำลังโหลดสิทธิ์การใช้งาน...">
+          <div style={{ padding: 50 }} />
+        </Spin>
       </Flex>
     )
   }

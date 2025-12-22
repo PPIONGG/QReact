@@ -379,7 +379,9 @@ function Main() {
           <Suspense
             fallback={
               <Flex justify="center" align="center" style={{ height: '50vh' }}>
-                <Spin size="large" tip="กำลังโหลด Module..." />
+                <Spin size="large" tip="กำลังโหลด Module...">
+                  <div style={{ padding: 50 }} />
+                </Spin>
               </Flex>
             }
           >
