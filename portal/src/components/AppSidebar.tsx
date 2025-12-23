@@ -3,7 +3,7 @@ import {
   HomeOutlined,
   TeamOutlined,
   // SettingOutlined,
-  // DashboardOutlined,
+  DashboardOutlined,
   // FileSearchOutlined,
   LogoutOutlined,
   ShoppingOutlined,
@@ -88,11 +88,29 @@ export function AppSidebar({ selectedMenu, onMenuClick, onLogout, collapsed = fa
         },
       ],
     },
-    // {
-    //   key: 'dashboard',
-    //   icon: <DashboardOutlined />,
-    //   label: 'Dashboard',
-    // },
+    {
+      key: 'dashboard',
+      icon: <DashboardOutlined />,
+      label: 'Dashboard',
+      children: [
+        {
+          key: 'dashboard/financial-report',
+          label: 'รายงานการเงิน',
+        },
+        {
+          key: 'dashboard/inventory',
+          label: 'สินค้าคงคลัง',
+        },
+        {
+          key: 'dashboard/purchase-summary',
+          label: 'สรุปยอดซื้อ',
+        },
+        {
+          key: 'dashboard/sales-summary',
+          label: 'สรุปยอดขาย',
+        },
+      ],
+    },
     // {
     //   key: 'search',
     //   icon: <FileSearchOutlined />,

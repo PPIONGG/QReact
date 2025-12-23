@@ -22,8 +22,12 @@ export const MODULE_MAPPING: Record<string, string> = {
   'basic-system': 'QERPc',            // Parent menu requires 'QERPc' to show
   quotation: 'QT',                    // Child route requires 'QT' to access
 
-  // Dashboard
-  dashboard: 'WBD',
+  // Dashboard (Business Data Monitoring)
+  dashboard: 'WBD',                              // Parent menu requires 'WBD' to show
+  'dashboard/financial-report': '*',             // Child route - accessible if parent allowed
+  'dashboard/inventory': '*',                    // Child route - accessible if parent allowed
+  'dashboard/purchase-summary': '*',             // Child route - accessible if parent allowed
+  'dashboard/sales-summary': '*',                // Child route - accessible if parent allowed
 
   // Search - accessible to all
   search: '*',

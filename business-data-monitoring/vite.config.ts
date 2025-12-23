@@ -4,15 +4,14 @@ import federation from '@originjs/vite-plugin-federation'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: 'http://localhost:5004/',
   plugins: [
     react(),
     federation({
-      name: 'portal',
-      remotes: {
-        salesVisitor: 'http://localhost:5001/assets/remoteEntry.js',
-        purchaseOrder: 'http://localhost:5002/assets/remoteEntry.js',
-        dashboard: 'http://localhost:5003/assets/remoteEntry.js',
-        businessDataMonitoring: 'http://localhost:5004/assets/remoteEntry.js',
+      name: 'businessDataMonitoring',
+      filename: 'remoteEntry.js',
+      exposes: {
+        './App': './src/App.tsx',
       },
       shared: ['react', 'react-dom', 'react-router-dom', 'antd']
     })
@@ -24,11 +23,11 @@ export default defineConfig({
     cssCodeSplit: false
   },
   server: {
-    port: 5000,
+    port: 5004,
     strictPort: true
   },
   preview: {
-    port: 5000,
+    port: 5004,
     strictPort: true
   }
 })

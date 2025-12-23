@@ -54,6 +54,7 @@ const loadSidebarVisible = (): boolean => {
 const SalesVisitorApp = lazy(() => import('salesVisitor/App'))
 const PurchaseOrderApp = lazy(() => import('purchaseOrder/App'))
 const DashboardApp = lazy(() => import('dashboard/App'))
+const BusinessDataMonitoringApp = lazy(() => import('businessDataMonitoring/App'))
 
 // Page components - HomePage now uses Dashboard remote
 interface DashboardPageWrapperProps {
@@ -82,12 +83,6 @@ const QuotationPage = () => (
       <Text type="secondary">หน้าใบเสนอซื้อ (กำลังพัฒนา)</Text>
     </Flex>
   </div>
-)
-
-const DashboardPage = () => (
-  <Flex justify="center" align="center" style={{ height: '50vh' }}>
-    <Text type="secondary">Dashboard (กำลังพัฒนา)</Text>
-  </Flex>
 )
 
 const SearchPage = () => (
@@ -124,6 +119,14 @@ const PurchaseOrderPageWrapper = ({ username, accessToken, companyCode, permissi
     accessToken={accessToken}
     companyCode={companyCode}
     permission={permission}
+  />
+)
+
+const BusinessDataMonitoringPageWrapper = ({ username, accessToken, companyCode }: Omit<RemoteAppPageProps, 'permission'>) => (
+  <BusinessDataMonitoringApp
+    username={username}
+    accessToken={accessToken}
+    companyCode={companyCode}
   />
 )
 
@@ -167,6 +170,10 @@ function Main() {
     const menuPaths = [
       'sales/sales-visitor',
       'purchase/purchase-order',
+      'dashboard/financial-report',
+      'dashboard/inventory',
+      'dashboard/purchase-summary',
+      'dashboard/sales-summary',
       'quotation',
       'dashboard',
       'search',
@@ -186,6 +193,10 @@ function Main() {
       'purchase/purchase-order': 'ใบสั่งซื้อ',
       quotation: 'ใบเสนอซื้อ',
       dashboard: 'Dashboard',
+      'dashboard/financial-report': 'รายงานการเงิน',
+      'dashboard/inventory': 'สินค้าคงคลัง',
+      'dashboard/purchase-summary': 'สรุปยอดซื้อ',
+      'dashboard/sales-summary': 'สรุปยอดขาย',
       search: 'ค้นหาเอกสาร',
       settings: 'ตั้งค่า',
     }
@@ -199,6 +210,10 @@ function Main() {
       'purchase/purchase-order': <img src={logoPO} alt="PO" style={{ width: 50, height: 50 }} />,
       quotation: <ShoppingOutlined />,
       dashboard: <DashboardOutlined />,
+      'dashboard/financial-report': <DashboardOutlined />,
+      'dashboard/inventory': <DashboardOutlined />,
+      'dashboard/purchase-summary': <DashboardOutlined />,
+      'dashboard/sales-summary': <DashboardOutlined />,
       search: <FileSearchOutlined />,
       settings: <SettingOutlined />,
     }
@@ -460,7 +475,20 @@ function Main() {
                 }
               />
               <Route path="quotation" element={<QuotationPage />} />
-              <Route path="dashboard" element={<DashboardPage />} />
+              <Route
+                path="dashboard/*"
+                element={
+                  <RouteGuard menuKey="dashboard">
+                    <ErrorBoundary>
+                      <BusinessDataMonitoringPageWrapper
+                        username={username || ''}
+                        accessToken={accessToken || ''}
+                        companyCode={menuPermission?.companyCode || ''}
+                      />
+                    </ErrorBoundary>
+                  </RouteGuard>
+                }
+              />
               <Route path="search" element={<SearchPage />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="*" element={<Navigate to="home" replace />} />
