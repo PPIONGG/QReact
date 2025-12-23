@@ -87,7 +87,6 @@ export function usePOColumns({
         dataIndex: 'approvedStatus01',
         key: 'approvedStatus01',
         width: 100,
-        align: 'center',
         render: (status: string, record: POHeader) => (
           <ApprovalStatusTag
             status={status}
@@ -117,7 +116,6 @@ export function usePOColumns({
         dataIndex: 'approvedStatus02',
         key: 'approvedStatus02',
         width: 140,
-        align: 'center',
         render: (status: string, record: POHeader) => (
           <ApprovalStatusTag
             status={status}
@@ -160,8 +158,8 @@ export function usePOColumns({
         width: 80,
         align: 'center',
         render: (status: number) => {
-          const { text, color } = getRecStatus(status)
-          return <Tag color={color}>{text}</Tag>
+          const { text } = getRecStatus(status)
+          return text
         },
       },
       {

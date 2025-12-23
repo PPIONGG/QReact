@@ -62,6 +62,9 @@ export function POList({ canInsert = true }: POListProps) {
   const [approvalConfirmOpen, setApprovalConfirmOpen] = useState(false)
   const [pendingApprovalParams, setPendingApprovalParams] = useState<ApprovalActionParams | null>(null)
 
+  // Selected row state
+  const [selectedRowKey, setSelectedRowKey] = useState<number | null>(null)
+
   // Data hook
   const {
     documentTypeOptions,
@@ -196,7 +199,25 @@ export function POList({ canInsert = true }: POListProps) {
   })
 
   return (
-    <Card style={{ width: '100%' }}>
+    <>
+      <style>{`
+        .cancelled-row td {
+          background-color: #fff2f0 !important;
+        }
+        .cancelled-row:hover td {
+          background-color: #ffccc7 !important;
+        }
+        .selected-row td {
+          background-color: #e6f4ff !important;
+        }
+        .selected-row:hover td {
+          background-color: #bae0ff !important;
+        }
+        .cancelled-row.selected-row td {
+          background-color: #fff2f0 !important;
+        }
+      `}</style>
+      <Card style={{ width: '100%' }}>
       <Flex justify="space-between" align="center" style={{ marginBottom: 16 }}>
         <div>
           <Title level={4} style={{ margin: 0 }}>
@@ -228,6 +249,15 @@ export function POList({ canInsert = true }: POListProps) {
         bordered
         loading={isLoadingPOHeaders}
         scroll={{ x: 'max-content' }}
+        rowClassName={(record) => {
+          const classes: string[] = []
+          if (record.recStatus === 1) classes.push('cancelled-row')
+          if (record.runNo === selectedRowKey) classes.push('selected-row')
+          return classes.join(' ')
+        }}
+        onRow={(record) => ({
+          onClick: () => setSelectedRowKey(record.runNo),
+        })}
       />
 
       <CancelPOModal
@@ -282,5 +312,6 @@ export function POList({ canInsert = true }: POListProps) {
         onCancel={handleApprovalConfirmClose}
       />
     </Card>
+    </>
   )
 }

@@ -1,5 +1,6 @@
-import { Popover, Tag, Button, Space } from 'antd'
-import { CaretDownOutlined } from '@ant-design/icons'
+import { Dropdown } from 'antd'
+import { DownOutlined } from '@ant-design/icons'
+import type { MenuProps } from 'antd'
 import type { ApprovedAction } from '../types'
 import { getApprovalStatusFromConfig } from '../utils'
 
@@ -18,6 +19,28 @@ interface ApprovalStatusTagProps {
   onAction?: (params: ApprovalActionParams) => void
 }
 
+// Jira-style status colors (3 colors only)
+// เขียว = อนุมัติ (Y), น้ำเงิน = รออนุมัติ (W, P), เทา = ไม่อนุมัติ (N) หรือว่าง
+const STATUS_STYLES: Record<string, { bg: string; text: string; hoverBg: string }> = {
+  green: { bg: '#b3df72', text: '#1f2937', hoverBg: '#a6d65c' },
+  blue: { bg: '#8fb8f6', text: '#1f2937', hoverBg: '#7aa0f0' },
+  gray: { bg: '#f3f4f6', text: '#1f2937', hoverBg: '#e5e7eb' },
+}
+
+// Map status value to color
+const getStatusColor = (statusValue: string): 'green' | 'blue' | 'gray' => {
+  if (statusValue === 'Y') return 'green'
+  if (statusValue === 'W' || statusValue === 'P') return 'blue'
+  return 'gray'
+}
+
+// Map action to approval action type
+const getActionType = (actionValue: string): 'approve' | 'reject' | 'cancel' => {
+  if (actionValue === 'Y') return 'approve'
+  if (actionValue === 'N') return 'reject'
+  return 'cancel'
+}
+
 export function ApprovalStatusTag({
   status,
   actions,
@@ -26,64 +49,88 @@ export function ApprovalStatusTag({
   disabled = false,
   onAction,
 }: ApprovalStatusTagProps) {
-  const { text, color } = getApprovalStatusFromConfig(status, actions)
+  const { text } = getApprovalStatusFromConfig(status, actions)
+  const colorKey = getStatusColor(status)
+  const style = STATUS_STYLES[colorKey]
 
-  const handleAction = (action: 'approve' | 'reject' | 'cancel') => {
-    console.log('🔔 Approval Action:', { runNo, level, action, currentStatus: status })
-    onAction?.({ runNo, level, action })
+  const handleMenuClick: MenuProps['onClick'] = ({ key }) => {
+    const actionType = getActionType(key)
+    console.log('🔔 Approval Action:', { runNo, level, action: actionType, newStatus: key })
+    onAction?.({ runNo, level, action: actionType })
   }
 
-  // Level 2 แสดง "รออนุมัติ" แทน "ยกเลิก"
-  const cancelButtonText = level === 2 ? 'รออนุมัติ' : 'ยกเลิก'
+  // Build menu items from actions config (exclude current status)
+  const menuItems: MenuProps['items'] = actions
+    .filter((action) => action.value !== status)
+    .map((action) => {
+      const itemColorKey = getStatusColor(action.value)
+      const itemStyle = STATUS_STYLES[itemColorKey]
 
-  const content = (
-    <Space size="small">
-      <Button
-        type="text"
-        size="small"
-        style={{ color: '#52c41a' }}
-        onClick={() => handleAction('approve')}
-      >
-        อนุมัติ
-      </Button>
-      <Button
-        type="text"
-        size="small"
-        style={{ color: '#ff4d4f' }}
-        onClick={() => handleAction('reject')}
-      >
-        ไม่อนุมัติ
-      </Button>
-      <Button
-        type="text"
-        size="small"
-        style={{ color: '#8c8c8c' }}
-        onClick={() => handleAction('cancel')}
-      >
-        {cancelButtonText}
-      </Button>
-    </Space>
-  )
+      return {
+        key: action.value,
+        label: (
+          <span style={{
+            padding: '2px 8px',
+            borderRadius: 3,
+            fontSize: 12,
+            fontWeight: 600,
+            backgroundColor: itemStyle.bg,
+            color: itemStyle.text,
+          }}>
+            {action.labelTH}
+          </span>
+        ),
+      }
+    })
 
-  // ถ้า disabled ให้แสดง Tag ธรรมดา
+  // Base button style
+  const buttonStyle: React.CSSProperties = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 4,
+    padding: '2px 8px',
+    borderRadius: 3,
+    fontSize: 12,
+    fontWeight: 600,
+    backgroundColor: style.bg,
+    color: style.text,
+    border: 'none',
+    cursor: disabled ? 'default' : 'pointer',
+    opacity: disabled ? 0.7 : 1,
+    transition: 'background-color 0.2s',
+  }
+
+  // Disabled state - just show the badge
   if (disabled) {
     return (
-      <Tag color={color} style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+      <span style={buttonStyle}>
         {text || '-'}
-      </Tag>
+      </span>
     )
   }
 
   return (
-    <Popover
-      content={content}
-      trigger="click"
-      placement="bottom"
-      arrow={false}
+    <Dropdown
+      menu={{
+        items: menuItems,
+        onClick: handleMenuClick,
+        style: { minWidth: 140 }
+      }}
+      trigger={['click']}
+      placement="bottomLeft"
     >
-      <Tag color={color || 'default'} style={{ cursor: 'pointer' }}>
-        {text || '-'} <CaretDownOutlined style={{ fontSize: 10 }} />
-      </Tag>
-    </Popover>
+      <span
+        style={buttonStyle}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = style.hoverBg
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = style.bg
+        }}
+      >
+        {text || '-'}
+        <DownOutlined style={{ fontSize: 10 }} />
+      </span>
+    </Dropdown>
   )
 }
