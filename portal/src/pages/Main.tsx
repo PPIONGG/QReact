@@ -10,7 +10,6 @@ import {
   Drawer,
   Grid,
   Select,
-  Popover,
 } from 'antd'
 import {
   UserOutlined,
@@ -21,7 +20,6 @@ import {
   DashboardOutlined,
   FileSearchOutlined,
   SettingOutlined,
-  DownOutlined,
 } from '@ant-design/icons'
 import type { MenuProps } from 'antd'
 import { useAuth } from '../hooks/useAuth'
@@ -139,11 +137,6 @@ function Main() {
   const [selectedCompanyCode, setSelectedCompanyCode] = useState<string | undefined>(
     permission?.companys?.[0]?.companyCode
   )
-
-  // Get the full company object from the code
-  const selectedCompany = permission?.companys?.find(
-    (company) => company.companyCode === selectedCompanyCode
-  )
   const [isLoadingCompany, setIsLoadingCompany] = useState(false)
   const screens = useBreakpoint()
 
@@ -161,6 +154,9 @@ function Main() {
 
   // Determine if we should use drawer (mobile) or sider (desktop)
   const isMobile = !screens.lg
+
+  // Check if current path is a form page (create/edit) - hide sidebar for more space
+  const isFormPage = /\/(create|edit\/|new)/.test(location.pathname)
 
   // Get current path to determine selected menu
   const fullPath = location.pathname.replace(/^\//, '') || 'home'
@@ -243,29 +239,11 @@ function Main() {
     }
   }
 
-  // Get current company name from selected company
-  const currentCompanyName = selectedCompany?.companyName
-
-  // Company selector popover content
-  const companyPopoverContent = (
-    <div style={{ padding: '8px', minWidth: 280 }}>
-      <Flex vertical gap={8}>
-        <Text type="secondary" style={{ fontSize: 11 }}>
-          เลือกบริษัท
-        </Text>
-        <Select
-          value={selectedCompanyCode}
-          onChange={handleCompanyChange}
-          loading={isLoadingCompany}
-          style={{ width: '100%' }}
-          options={permission?.companys?.map((company) => ({
-            label: `${company.companyName} (${company.companyCode})`,
-            value: company.companyCode,
-          }))}
-        />
-      </Flex>
-    </div>
-  )
+  // Company select options
+  const companyOptions = permission?.companys?.map((company) => ({
+    label: company.companyName,
+    value: company.companyCode,
+  })) || []
 
   const handleMenuClick: MenuProps['onClick'] = (e) => {
     navigate(`/${e.key}`)
@@ -285,8 +263,8 @@ function Main() {
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      {/* Desktop Sider */}
-      {!isMobile && (
+      {/* Desktop Sider - hide on form pages for more space */}
+      {!isMobile && !isFormPage && (
         <Sider
           collapsible
           collapsed={!sidebarVisible}
@@ -332,7 +310,7 @@ function Main() {
 
       <Layout
         style={{
-          marginLeft: !isMobile ? (sidebarVisible ? 200 : 64) : 0,
+          marginLeft: !isMobile && !isFormPage ? (sidebarVisible ? 200 : 64) : 0,
           transition: 'margin-left 0.2s',
         }}
       >
@@ -380,42 +358,19 @@ function Main() {
             </Flex>
           </Flex>
 
-          <Flex align="center" gap={8} style={{ minWidth: 0, flex: '1 1 auto', justifyContent: 'flex-end' }}>
-            <Text
-              type="secondary"
-              style={{
-                fontSize: 13,
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                minWidth: 0,
-                flex: '0 1 auto',
-              }}
-            >
-              {currentCompanyName || permission?.companys?.[0]?.companyName || 'บริษัท'}
-            </Text>
+          <Flex align="center" gap={12} style={{ minWidth: 0, flex: '1 1 auto', justifyContent: 'flex-end' }}>
+            <Select
+              value={selectedCompanyCode}
+              onChange={handleCompanyChange}
+              loading={isLoadingCompany}
+              style={{ minWidth: 150, maxWidth: 250 }}
+              options={companyOptions}
+            />
 
-            <Popover
-              content={companyPopoverContent}
-              trigger="click"
-              placement="bottomRight"
-            >
-              <Button
-                type="text"
-                style={{
-                  height: 'auto',
-                  padding: '4px 8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  flexShrink: 0,
-                }}
-              >
-                <Avatar icon={<UserOutlined />} size="small" />
-                <Text style={{ fontSize: 14 }}>{username}</Text>
-                <DownOutlined style={{ fontSize: 12 }} />
-              </Button>
-            </Popover>
+            <Flex align="center" gap={6}>
+              <Avatar icon={<UserOutlined />} size="small" style={{ backgroundColor: '#b30000' }} />
+              <Text style={{ fontSize: 14 }}>{username}</Text>
+            </Flex>
           </Flex>
         </Header>
 
