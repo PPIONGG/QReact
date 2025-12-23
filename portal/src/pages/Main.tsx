@@ -203,6 +203,12 @@ function Main() {
     return titles[path] || 'Q-ERP Portal'
   }
 
+  // Update document title when menu changes
+  useEffect(() => {
+    const pageTitle = getPageTitle(currentPath)
+    document.title = `${pageTitle} | Q-ERPc`
+  }, [currentPath])
+
   const getPageIcon = (path: string) => {
     const icons: Record<string, React.ReactNode> = {
       home: <HomeOutlined />,
