@@ -56,8 +56,9 @@ export function usePOFormData({ form, isEditMode, id }: UsePOFormDataProps) {
   })
 
   // Fetch document types if not loaded (e.g., direct F5 on this page)
+  // Also fetch in edit mode because selectedDocumentTypeCode is needed
   useEffect(() => {
-    if (isEditMode || !username || !accessToken || !companyCode) return
+    if (!username || !accessToken || !companyCode) return
     if (documentTypes.length > 0) return
     if (hasFetchedDocTypes.current) return
 
@@ -79,7 +80,6 @@ export function usePOFormData({ form, isEditMode, id }: UsePOFormDataProps) {
 
     fetchDocTypes()
   }, [
-    isEditMode,
     username,
     accessToken,
     companyCode,
