@@ -16,38 +16,42 @@ set "BACKUP_DIR=C:\inetpub\Web PO_backup"
 set PORTAL_DIR=portal
 set PO_DIR=Q-ERPc\purchase\purchase-order
 set DASHBOARD_DIR=general\dashboard
+set BUSINESS_DATA_DIR=business-data-monitoring
 
 if "%1"=="all" goto :build_all
 if "%1"=="portal" goto :build_portal
 if "%1"=="po" goto :build_po
 if "%1"=="dashboard" goto :build_dashboard
+if "%1"=="business-data" goto :build_business_data
 if "%1"=="copy" goto :copy_to_iis
 goto :menu
 
 :menu
 echo Select mode:
-echo   1. Build All (Portal + PO + Dashboard)
+echo   1. Build All (Portal + PO + Dashboard + Business Data)
 echo   2. Build Portal only
 echo   3. Build Purchase Order only
 echo   4. Build Dashboard only
-echo   5. Copy to IIS (C:\inetpub\Web PO)
-echo   6. Build All + Copy to IIS
-echo   7. Exit
+echo   5. Build Business Data Monitoring only
+echo   6. Copy to IIS (C:\inetpub\Web PO)
+echo   7. Build All + Copy to IIS
+echo   8. Exit
 echo.
-set /p choice="Enter choice (1-7): "
+set /p choice="Enter choice (1-8): "
 
 if "%choice%"=="1" goto :build_all
 if "%choice%"=="2" goto :build_portal
 if "%choice%"=="3" goto :build_po
 if "%choice%"=="4" goto :build_dashboard
-if "%choice%"=="5" goto :copy_to_iis
-if "%choice%"=="6" goto :build_and_copy
-if "%choice%"=="7" goto :end
+if "%choice%"=="5" goto :build_business_data
+if "%choice%"=="6" goto :copy_to_iis
+if "%choice%"=="7" goto :build_and_copy
+if "%choice%"=="8" goto :end
 goto :menu
 
 :build_all
 echo.
-echo [1/5] Building Dashboard...
+echo [1/6] Building Dashboard...
 cd %DASHBOARD_DIR%
 call npx vite build --config vite.config.prod.ts
 if errorlevel 1 (
@@ -59,7 +63,19 @@ if errorlevel 1 (
 cd ..\..
 
 echo.
-echo [2/5] Building Purchase Order...
+echo [2/6] Building Business Data Monitoring...
+cd %BUSINESS_DATA_DIR%
+call npx vite build --config vite.config.prod.ts
+if errorlevel 1 (
+    echo ERROR: Build Business Data Monitoring failed!
+    cd ..
+    pause
+    goto :end
+)
+cd ..
+
+echo.
+echo [3/6] Building Purchase Order...
 cd %PO_DIR%
 call npx vite build --config vite.config.prod.ts
 if errorlevel 1 (
@@ -71,7 +87,7 @@ if errorlevel 1 (
 cd ..\..\..
 
 echo.
-echo [3/5] Building Portal...
+echo [4/6] Building Portal...
 cd %PORTAL_DIR%
 call npx vite build --config vite.config.prod.ts
 if errorlevel 1 (
@@ -83,14 +99,15 @@ if errorlevel 1 (
 cd ..
 
 echo.
-echo [4/5] Creating Deploy folder...
+echo [5/6] Creating Deploy folder...
 if exist %DEPLOY_DIR% rmdir /s /q %DEPLOY_DIR%
 mkdir %DEPLOY_DIR%
 mkdir "%DEPLOY_DIR%\po"
 mkdir "%DEPLOY_DIR%\dashboard"
+mkdir "%DEPLOY_DIR%\business-data"
 
 echo.
-echo [5/5] Copying files...
+echo [6/6] Copying files...
 xcopy /s /e /y /q %PORTAL_DIR%\dist\* %DEPLOY_DIR%\
 copy /y deploy\web.config %DEPLOY_DIR%\web.config >nul
 
@@ -99,6 +116,9 @@ copy /y deploy\web.config.po "%DEPLOY_DIR%\po\web.config" >nul
 
 xcopy /s /e /y /q %DASHBOARD_DIR%\dist\* "%DEPLOY_DIR%\dashboard\"
 copy /y deploy\web.config.po "%DEPLOY_DIR%\dashboard\web.config" >nul
+
+xcopy /s /e /y /q %BUSINESS_DATA_DIR%\dist\* "%DEPLOY_DIR%\business-data\"
+copy /y deploy\web.config.po "%DEPLOY_DIR%\business-data\web.config" >nul
 
 echo.
 echo ==========================================
@@ -114,11 +134,13 @@ echo   +-- assets\           (Portal assets)
 echo   +-- web.config        (Portal config)
 echo   +-- po\               (Purchase Order)
 echo   +-- dashboard\        (Dashboard)
+echo   +-- business-data\    (Business Data Monitoring)
 echo.
 echo URLs after deploy:
-echo   Portal:    http://192.168.0.131:1005/
-echo   PO:        http://192.168.0.131:1005/po/
-echo   Dashboard: http://192.168.0.131:1005/dashboard/
+echo   Portal:        http://192.168.0.131:1005/
+echo   PO:            http://192.168.0.131:1005/po/
+echo   Dashboard:     http://192.168.0.131:1005/dashboard/
+echo   Business Data: http://192.168.0.131:1005/business-data/
 echo.
 goto :end
 
@@ -171,6 +193,23 @@ copy /y deploy\web.config.po "%DEPLOY_DIR%\dashboard\web.config" >nul
 
 echo.
 echo Build Dashboard Complete!
+goto :end
+
+:build_business_data
+echo.
+echo Building Business Data Monitoring...
+cd %BUSINESS_DATA_DIR%
+call npx vite build --config vite.config.prod.ts
+cd ..
+
+echo.
+echo Copying Business Data files...
+if not exist "%DEPLOY_DIR%\business-data" mkdir "%DEPLOY_DIR%\business-data"
+xcopy /s /e /y /q %BUSINESS_DATA_DIR%\dist\* "%DEPLOY_DIR%\business-data\"
+copy /y deploy\web.config.po "%DEPLOY_DIR%\business-data\web.config" >nul
+
+echo.
+echo Build Business Data Monitoring Complete!
 goto :end
 
 :copy_to_iis
@@ -235,12 +274,13 @@ echo Test URLs:
 echo   http://192.168.0.131:1005/
 echo   http://192.168.0.131:1005/po/
 echo   http://192.168.0.131:1005/dashboard/
+echo   http://192.168.0.131:1005/business-data/
 echo.
 goto :end
 
 :build_and_copy
 echo.
-echo [1/5] Building Dashboard...
+echo [1/6] Building Dashboard...
 cd %DASHBOARD_DIR%
 call npx vite build --config vite.config.prod.ts
 if errorlevel 1 (
@@ -252,7 +292,19 @@ if errorlevel 1 (
 cd ..\..
 
 echo.
-echo [2/5] Building Purchase Order...
+echo [2/6] Building Business Data Monitoring...
+cd %BUSINESS_DATA_DIR%
+call npx vite build --config vite.config.prod.ts
+if errorlevel 1 (
+    echo ERROR: Build Business Data Monitoring failed!
+    cd ..
+    pause
+    goto :end
+)
+cd ..
+
+echo.
+echo [3/6] Building Purchase Order...
 cd %PO_DIR%
 call npx vite build --config vite.config.prod.ts
 if errorlevel 1 (
@@ -264,7 +316,7 @@ if errorlevel 1 (
 cd ..\..\..
 
 echo.
-echo [3/5] Building Portal...
+echo [4/6] Building Portal...
 cd %PORTAL_DIR%
 call npx vite build --config vite.config.prod.ts
 if errorlevel 1 (
@@ -276,14 +328,15 @@ if errorlevel 1 (
 cd ..
 
 echo.
-echo [4/5] Creating Deploy folder...
+echo [5/6] Creating Deploy folder...
 if exist %DEPLOY_DIR% rmdir /s /q %DEPLOY_DIR%
 mkdir %DEPLOY_DIR%
 mkdir "%DEPLOY_DIR%\po"
 mkdir "%DEPLOY_DIR%\dashboard"
+mkdir "%DEPLOY_DIR%\business-data"
 
 echo.
-echo [5/5] Copying files...
+echo [6/6] Copying files...
 xcopy /s /e /y /q %PORTAL_DIR%\dist\* %DEPLOY_DIR%\
 copy /y deploy\web.config %DEPLOY_DIR%\web.config >nul
 
@@ -292,6 +345,9 @@ copy /y deploy\web.config.po "%DEPLOY_DIR%\po\web.config" >nul
 
 xcopy /s /e /y /q %DASHBOARD_DIR%\dist\* "%DEPLOY_DIR%\dashboard\"
 copy /y deploy\web.config.po "%DEPLOY_DIR%\dashboard\web.config" >nul
+
+xcopy /s /e /y /q %BUSINESS_DATA_DIR%\dist\* "%DEPLOY_DIR%\business-data\"
+copy /y deploy\web.config.po "%DEPLOY_DIR%\business-data\web.config" >nul
 
 echo.
 echo Build Complete! Now copying to IIS...
