@@ -12,7 +12,7 @@ export const MODULE_MAPPING: Record<string, string> = {
 
   // Sales module
   sales: 'QERPc',                        // Parent menu requires 'SV' to show
-  'sales/sales-visitor': 'SV',        // Child route requires 'SV' to access
+  'sales/sales-visitor': 'WSV',        // Child route requires 'SV' to access
 
   // Purchase module
   purchase: 'QERPc',                  // Parent menu requires 'QERPc' to show

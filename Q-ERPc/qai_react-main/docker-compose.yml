@@ -1,0 +1,43 @@
+services:
+  qai-web-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        BACKEND_BASE_URL: ${BACKEND_BASE_URL}
+        BACKEND_JWT_KEY: ${BACKEND_JWT_KEY}
+    container_name: qai-web-prod
+    ports:
+      - "8876:80"
+    restart: always
+
+  nginx:
+    image: nginx:alpine
+    container_name: qai_nginx
+    ports:
+      - "9876:9876"
+      - "9020:9020"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./cert_generator/certfiles:/usr/share/nginx/cert
+    depends_on:
+      - qai-web-prod
+      - cert_gen
+    restart: always
+
+  cert_gen:
+    image: journeykmutt/cert_generator:latest
+    container_name: cert_gen_qai
+    platform: ${PLATFORM:-linux/amd64}
+    environment:
+      - KEY_FILE=${KEY_FILE:-fiboCA.key} #INPUT OF PRIVATE KEY
+      - PEM_FILE=${PEM_FILE:-qaiCA.pem} #INPUT OF CA
+      - DOMAIN_NAMES=${DOMAIN_NAMES:-localhost} #DOMAIN NAME [IF MULTIPLE USE "," TO SEPERATE]
+      - IP_ADDRESS=${IP_ADDRESS:-202.44.15.205} #IP [IF MULTIPLE USE "," TO SEPERATE]
+      - CERT_NAME=${CERT_NAME:-server} # OUTPUT CERT AND KEY FILE NAME
+      - ORGANIZATION_NAME=${ORGANIZATION_NAME:-Institute of Field Robotics}
+      - ORGANIZATION_UNIT=${ORGANIZATION_UNIT:-King Mongkuts University of Technology Thonburi}
+      - KEY_PASSWORD=${KEY_PASSWORD:-P@ssw0rd} # PASSWORD OF INPUT PRIVATEKEY
+    volumes:
+      - ./cert_generator/certfiles:/app/cert_generator/certfiles
+      - ./cert_generator/rootcafiles:/app/cert_generator/rootcafiles
