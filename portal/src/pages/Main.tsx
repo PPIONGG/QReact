@@ -368,7 +368,7 @@ function Main() {
             />
 
             <Flex align="center" gap={6}>
-              <Avatar icon={<UserOutlined />} size="small" style={{ backgroundColor: '#b30000' }} />
+              <Avatar icon={<UserOutlined />} size="small" style={{ backgroundColor: '#52c41a' }} />
               <Text style={{ fontSize: 14 }}>{username}</Text>
             </Flex>
           </Flex>
