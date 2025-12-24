@@ -20,7 +20,7 @@ interface ApprovalStatusTagProps {
 }
 
 // Jira-style status colors (3 colors only)
-// เขียว = อนุมัติ (Y), น้ำเงิน = รออนุมัติ (W, P), เทา = ไม่อนุมัติ (N) หรือว่าง
+// เขียว = อนุมัติ (Y), ฟ้า = ไม่อนุมัติ (N), เทา = รออนุมัติ (W, P) หรือว่าง
 const STATUS_STYLES: Record<string, { bg: string; text: string; hoverBg: string }> = {
   green: { bg: '#b3df72', text: '#1f2937', hoverBg: '#a6d65c' },
   blue: { bg: '#8fb8f6', text: '#1f2937', hoverBg: '#7aa0f0' },
@@ -30,7 +30,7 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; hoverBg: string 
 // Map status value to color
 const getStatusColor = (statusValue: string): 'green' | 'blue' | 'gray' => {
   if (statusValue === 'Y') return 'green'
-  if (statusValue === 'W' || statusValue === 'P') return 'blue'
+  if (statusValue === 'N') return 'blue'
   return 'gray'
 }
 
