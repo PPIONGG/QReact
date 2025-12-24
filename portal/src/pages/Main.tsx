@@ -103,10 +103,11 @@ interface RemoteAppPageProps {
   permission: Permission | null
 }
 
-const SalesVisitorPageWrapper = ({ username, accessToken, permission }: RemoteAppPageProps) => (
+const SalesVisitorPageWrapper = ({ username, accessToken, companyCode, permission }: RemoteAppPageProps) => (
   <SalesVisitorApp
     username={username}
     accessToken={accessToken}
+    companyCode={companyCode}
     permission={permission}
   />
 )
@@ -406,7 +407,7 @@ function Main() {
               />
               <Route path="unauthorized" element={<Unauthorized />} />
               <Route
-                path="sales/sales-visitor"
+                path="sales/sales-visitor/*"
                 element={
                   <RouteGuard menuKey="sales/sales-visitor">
                     <ErrorBoundary>
