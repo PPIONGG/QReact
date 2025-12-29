@@ -44,7 +44,11 @@ Desktop.ini
 
 # Claude Code settings (local only)
 .claude/settings.local.json
+.claude/CLAUDE.personal.md
 .clinerules
+
+# Personal notes (local only)
+docs/ai-note/
 
 # Temporary files
 *.tmp
