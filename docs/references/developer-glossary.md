@@ -160,6 +160,7 @@
 |---------|----------|----------|
 | **Pattern** | วิธีการแก้ปัญหาที่ใช้กันทั่วไป | Repository Pattern |
 | **preventDefault()** | หยุด/ป้องกันพฤติกรรมเริ่มต้นของ element | `e.preventDefault()` หยุด form refresh |
+| **Proactive** | ทำล่วงหน้าโดยไม่ต้องรอให้บอก (ตรงข้าม Reactive) | เห็นปัญหา → แก้เลย ไม่รอให้ใครมาบอก |
 | **Payload** | ข้อมูลที่ส่งไปกับ request | `{"email": "...", "password": "..."}` |
 | **Port** | ช่องทางเข้าถึง service | 8080 (API), 5432 (PostgreSQL) |
 | **Production** | สภาพแวดล้อมจริงที่ผู้ใช้เข้าถึง | เว็บไซต์ที่ deploy แล้ว |
@@ -170,6 +171,7 @@
 
 | คำศัพท์ | ความหมาย | ตัวอย่าง |
 |---------|----------|----------|
+| **Reactive** | รอให้เกิดเหตุการณ์ก่อนค่อยตอบสนอง (ตรงข้าม Proactive) | รอ user บอกก่อน → ค่อยทำ |
 | **RBAC** | Role-Based Access Control - จัดการสิทธิ์ตาม role | admin, user |
 | **Redis** | In-memory database สำหรับ cache | เก็บ token, session |
 | **Repository** | ส่วนที่ติดต่อกับ database | UserRepository |

@@ -3,6 +3,17 @@
 ## Project Overview
 โปรเจค Q-ERP เป็น Micro-Frontend ERP System ที่ใช้ React + TypeScript + Vite + Module Federation
 
+## ⚠️ Backend Info (สำคัญ - อย่าเดา!)
+โปรเจคนี้เป็น **Frontend-only** ที่เรียก API จาก Backend แยกต่างหาก
+
+| ส่วน | เทคโนโลยี |
+|------|----------|
+| **Backend** | C# .NET |
+| **Database** | SQL Server |
+| **API URL** | `VITE_API_BASE_URL` (ดูใน .env) |
+
+> ⚠️ **หมายเหตุ:** Backend เป็นโปรเจคแยก ไม่ได้อยู่ใน repo นี้
+
 ## Project Structure
 ```
 QReact/
