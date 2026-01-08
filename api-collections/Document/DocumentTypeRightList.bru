@@ -1,0 +1,29 @@
+meta {
+  name: DocumentTypeRightList
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/Document/DocumentTypeRightList?ModuleCode=PO&UserName=pingpong
+  body: none
+  auth: bearer
+}
+
+params:query {
+  ModuleCode: PO
+  UserName: pingpong
+}
+
+headers {
+  X-PACKAGE: {{package}}
+}
+
+auth:bearer {
+  token: {{menuToken}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
