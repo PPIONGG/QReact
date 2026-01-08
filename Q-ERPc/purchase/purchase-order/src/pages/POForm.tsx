@@ -26,6 +26,7 @@ import type { POLineItem } from '../components/POLineItemTable'
 import type { SaveStatus } from '../components/SaveStatusModal'
 import { usePOFormData } from '../hooks/usePOFormData'
 import { useVATCalculation } from '../hooks/useVATCalculation'
+import { useDeleteLineValidation } from '../hooks/useDeleteLineValidation'
 import {
   calculatePaymentDueDate,
   getUnitConversionList,
@@ -114,6 +115,15 @@ export function POForm({ canEdit = true }: POFormProps) {
     adjustVatEnabled,
     vatBasedForVATAmountCurrency,
     vatAmountCurrencyWatch,
+  })
+
+  // Delete line validation hook
+  const { validateDelete, isValidating: isValidatingDelete } = useDeleteLineValidation({
+    form,
+    lineItems,
+    accessToken,
+    companyCode,
+    companyInfo,
   })
 
   // Auto print when in print mode
@@ -374,9 +384,16 @@ export function POForm({ canEdit = true }: POFormProps) {
   }, [lineItems, setLineItems])
 
   const handleDeleteLine = useCallback(
-    (key: string) => {
+    async (key: string) => {
       const itemToDelete = lineItems.find((item) => item.key === key)
       if (!itemToDelete) return
+
+      // Validate delete through API before actually deleting
+      const validationResult = await validateDelete(key)
+      if (!validationResult.isValid) {
+        message.error(validationResult.errorMessage || 'ไม่สามารถลบรายการได้')
+        return
+      }
 
       if (itemToDelete.statusRow === 'E') {
         const updated = lineItems.map((item) =>
@@ -398,7 +415,7 @@ export function POForm({ canEdit = true }: POFormProps) {
         setLineItems(renumbered)
       }
     },
-    [lineItems, setLineItems]
+    [lineItems, setLineItems, validateDelete]
   )
 
   const handleUndoDelete = useCallback(
@@ -568,6 +585,7 @@ export function POForm({ canEdit = true }: POFormProps) {
               lineItems={lineItems}
               isReadOnly={isReadOnly}
               isLoadingItem={isLoadingItem}
+              isValidatingDelete={isValidatingDelete}
               onLineChange={handleLineChange}
               onDeleteLine={handleDeleteLine}
               onUndoDelete={handleUndoDelete}

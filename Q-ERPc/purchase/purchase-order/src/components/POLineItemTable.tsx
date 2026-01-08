@@ -27,6 +27,7 @@ interface POLineItemTableProps {
   lineItems: POLineItem[];
   isReadOnly: boolean;
   isLoadingItem: boolean;
+  isValidatingDelete?: boolean;
   onLineChange: (key: string, field: keyof POLineItem, value: unknown) => void;
   onDeleteLine: (key: string) => void;
   onUndoDelete: (key: string) => void;
@@ -49,6 +50,7 @@ export const POLineItemTable = memo(function POLineItemTable({
   lineItems,
   isReadOnly,
   isLoadingItem,
+  isValidatingDelete = false,
   onLineChange,
   onDeleteLine,
   onUndoDelete,
@@ -261,6 +263,8 @@ export const POLineItemTable = memo(function POLineItemTable({
             danger
             icon={<DeleteOutlined />}
             onClick={() => onDeleteLine(record.key)}
+            loading={isValidatingDelete}
+            disabled={isValidatingDelete}
           />
         );
       },
