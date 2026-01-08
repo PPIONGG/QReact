@@ -1,4 +1,5 @@
-import { Menu, Button, Flex } from 'antd'
+import { useState, useEffect } from 'react'
+import { Menu, Button, Flex, Popover, Spin } from 'antd'
 import {
   HomeOutlined,
   TeamOutlined,
@@ -13,6 +14,12 @@ import { COLORS } from '../constants/colors'
 import { hasMenuPermission } from '../constants/moduleMapping'
 import { useAuth } from '../hooks/useAuth'
 import logo from '../assets/logo.svg'
+import { VERSION as PORTAL_VERSION } from '../version'
+
+interface ModuleVersion {
+  name: string
+  version: string
+}
 
 interface AppSidebarProps {
   selectedMenu: string
@@ -23,6 +30,81 @@ interface AppSidebarProps {
 
 export function AppSidebar({ selectedMenu, onMenuClick, onLogout, collapsed = false }: AppSidebarProps) {
   const { permission } = useAuth()
+  const [moduleVersions, setModuleVersions] = useState<ModuleVersion[]>([])
+  const [loadingVersions, setLoadingVersions] = useState(false)
+  const [versionPopoverOpen, setVersionPopoverOpen] = useState(false)
+
+  // Load remote module versions when popover opens (only for modules user has access to)
+  useEffect(() => {
+    if (!versionPopoverOpen) return
+
+    const loadVersions = async () => {
+      setLoadingVersions(true)
+      const versions: ModuleVersion[] = [
+        { name: 'Portal', version: PORTAL_VERSION },
+      ]
+
+      // Get user permissions
+      const company = permission?.companys?.[0]
+      const userModuleCodes = company?.moduleCodes || []
+      const hasAllPermission = company?.allPermission || false
+
+      // Helper to extract version from module (handles both direct export and default export)
+      const getVersionInfo = (mod: { VERSION?: string; APP_NAME?: string; default?: { VERSION?: string; APP_NAME?: string } }) => {
+        // Try direct export first, then default export
+        const version = mod.VERSION || mod.default?.VERSION
+        const appName = mod.APP_NAME || mod.default?.APP_NAME
+        return { version, appName }
+      }
+
+      // Load PO version (check 'purchase' menu permission)
+      if (hasMenuPermission('purchase', userModuleCodes, hasAllPermission)) {
+        try {
+          const poVersion = await import('purchaseOrder/version')
+          const { version, appName } = getVersionInfo(poVersion)
+          versions.push({
+            name: appName || 'ใบสั่งซื้อ',
+            version: version || 'N/A',
+          })
+        } catch {
+          versions.push({ name: 'ใบสั่งซื้อ', version: 'N/A' })
+        }
+      }
+
+      // Load Dashboard version (check 'dashboard' menu permission)
+      if (hasMenuPermission('dashboard', userModuleCodes, hasAllPermission)) {
+        try {
+          const dashboardVersion = await import('dashboard/version')
+          const { version, appName } = getVersionInfo(dashboardVersion)
+          versions.push({
+            name: appName || 'Dashboard',
+            version: version || 'N/A',
+          })
+        } catch {
+          versions.push({ name: 'Dashboard', version: 'N/A' })
+        }
+      }
+
+      // Load Sales Visitor version (check 'sales' menu permission)
+      if (hasMenuPermission('sales', userModuleCodes, hasAllPermission)) {
+        try {
+          const salesVersion = await import('salesVisitor/version')
+          const { version, appName } = getVersionInfo(salesVersion)
+          versions.push({
+            name: appName || 'Sales Visitor',
+            version: version || 'N/A',
+          })
+        } catch {
+          versions.push({ name: 'Sales Visitor', version: 'N/A' })
+        }
+      }
+
+      setModuleVersions(versions)
+      setLoadingVersions(false)
+    }
+
+    loadVersions()
+  }, [versionPopoverOpen, permission])
 
   // Use first company's moduleCodes from LoginJWT for menu filtering
   const firstCompany = permission?.companys?.[0]
@@ -209,13 +291,71 @@ export function AppSidebar({ selectedMenu, onMenuClick, onLogout, collapsed = fa
         />
       </div>
 
+      {/* Version */}
+      <div
+        style={{
+          padding: '8px 16px',
+          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+          marginTop: 'auto',
+          textAlign: 'center',
+          overflow: 'hidden',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        <Popover
+          open={versionPopoverOpen}
+          onOpenChange={setVersionPopoverOpen}
+          trigger="click"
+          placement="rightBottom"
+          content={
+            <div style={{ minWidth: 160 }}>
+              {loadingVersions ? (
+                <div style={{ textAlign: 'center', padding: 12 }}>
+                  <Spin size="small" />
+                </div>
+              ) : (
+                <div>
+                  {moduleVersions.map((module, index) => (
+                    <div
+                      key={index}
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        padding: '4px 0',
+                        borderBottom: index < moduleVersions.length - 1 ? '1px solid #f0f0f0' : 'none',
+                      }}
+                    >
+                      <span style={{ color: '#666' }}>{module.name}</span>
+                      <span style={{ fontWeight: 500 }}>v{module.version}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          }
+        >
+          <span
+            style={{
+              color: 'rgba(255, 255, 255, 0.45)',
+              fontSize: 11,
+              display: 'inline-block',
+              transition: 'opacity 0.2s, transform 0.2s',
+              opacity: collapsed ? 0 : 1,
+              transform: collapsed ? 'scale(0.8)' : 'scale(1)',
+              lineHeight: 1.5,
+              cursor: 'pointer',
+            }}
+          >
+            Version {PORTAL_VERSION}
+          </span>
+        </Popover>
+      </div>
+
       {/* Logout Button */}
       <div
         style={{
           padding: collapsed ? 8 : 12,
-          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
           transition: 'padding 0.2s',
-          marginTop: 'auto',
           flexShrink: 0,
         }}
       >

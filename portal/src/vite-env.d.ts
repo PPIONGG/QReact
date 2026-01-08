@@ -38,3 +38,19 @@ declare module 'businessDataMonitoring/App' {
   const App: React.ComponentType<RemoteAppProps>
   export default App
 }
+
+// Version modules
+declare module 'purchaseOrder/version' {
+  export const VERSION: string
+  export const APP_NAME: string
+}
+
+declare module 'dashboard/version' {
+  export const VERSION: string
+  export const APP_NAME: string
+}
+
+declare module 'salesVisitor/version' {
+  export const VERSION: string
+  export const APP_NAME: string
+}
