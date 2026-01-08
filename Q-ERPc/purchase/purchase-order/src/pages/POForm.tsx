@@ -513,7 +513,7 @@ export function POForm({ canEdit = true }: POFormProps) {
             adjustVatEnabled: false,
           }}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') {
+            if (e.key === 'Enter' && (e.target as HTMLElement).tagName !== 'TEXTAREA') {
               e.preventDefault()
             }
           }}
