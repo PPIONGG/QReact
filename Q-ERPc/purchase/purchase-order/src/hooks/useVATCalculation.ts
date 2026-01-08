@@ -50,6 +50,7 @@ export function useVATCalculation({
         amountDiscountBaht: 0,
         totalAmountCurrencyAfterDiscountBeforeVAT: 0,
         totalAmountBahtAfterDiscountBeforeVAT: 0,
+        vatBasedForVATAmountCurrency: '0.00',
         vatAmountCurrency: 0,
         vatAmountBaht: 0,
         totalAmountCurrencyAfterVAT: 0,
