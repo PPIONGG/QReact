@@ -31,8 +31,87 @@ QReact/
 │   │   └── purchase-order/    # PO Microfrontend
 │   └── sales/                 # Sales Module
 │       └── sales-visitor/     # Sales Visitor Microfrontend
-└── portal/                    # Host Application
+├── portal/                    # Host Application
+└── api-collections/           # 🔌 Bruno API Collections
 ```
+
+---
+
+## 🔌 API Collections (Bruno)
+
+โปรเจคใช้ **Bruno** เป็น API Client สำหรับทดสอบและจัดการ API Collections
+
+### ทำไมใช้ Bruno?
+| จุดเด่น | รายละเอียด |
+|---------|------------|
+| **Git-friendly** | เก็บเป็นไฟล์ `.bru` commit ร่วมกับโค้ดได้ |
+| **Offline** | ไม่ต้อง login ไม่ sync cloud ข้อมูลอยู่ในเครื่อง |
+| **ฟรี 100%** | ไม่มี paid tier ไม่จำกัด feature |
+| **เบา เร็ว** | ไม่หนักเครื่องเหมือน Postman |
+
+### โครงสร้าง
+```
+api-collections/
+├── bruno.json                    # Collection config
+├── environments/
+│   ├── dev.bru                   # Dev environment (commit ได้)
+│   ├── local.bru                 # Local secrets (ไม่ commit)
+│   └── local.bru.template        # Template สำหรับทีม
+├── Auth/                         # Authentication APIs
+│   └── Login JWT.bru
+├── Purchase/                     # Purchase APIs
+│   ├── Get PO List.bru
+│   └── Get PO Detail.bru
+├── Sales/                        # Sales APIs
+│   └── Get Sales Orders.bru
+└── Master/                       # Master data APIs
+    └── Get Vendors.bru
+```
+
+### วิธีใช้งาน
+
+#### 1. เปิด Collection
+```
+Bruno → Open Collection → เลือก folder `api-collections/`
+```
+
+#### 2. เลือก Environment
+- **local** - สำหรับ localhost (มี secrets)
+- **dev** - สำหรับ dev server
+
+#### 3. สำหรับเพื่อนร่วมทีม (ครั้งแรก)
+```bash
+# Copy template แล้ว rename
+cp api-collections/environments/local.bru.template api-collections/environments/local.bru
+
+# แก้ไข local.bru ใส่ credentials ของตัวเอง
+```
+
+### Environment Variables
+Request files ใช้ `{{variable}}` แทน hardcode:
+```bru
+post {
+  url: {{baseUrl}}/api/Login/LoginJWT
+}
+
+headers {
+  X-PACKAGE: {{package}}
+}
+
+auth:bearer {
+  token: {{token}}
+}
+```
+
+### เพิ่ม Request ใหม่
+1. สร้างไฟล์ `.bru` ใน folder ที่เหมาะสม (Auth, Purchase, Sales, Master)
+2. ใช้ `{{variables}}` แทน hardcode values
+3. Commit ขึ้น git (ยกเว้น local.bru)
+
+### ⚠️ Security
+- **`local.bru`** อยู่ใน `.gitignore` แล้ว (ไม่ commit)
+- **อย่า hardcode** token, password ใน request files
+- ใช้ **environment variables** เสมอ
 
 ---
 

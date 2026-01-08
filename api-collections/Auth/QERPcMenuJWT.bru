@@ -1,0 +1,50 @@
+meta {
+  name: QERPcMenuJWT
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/JWT/QERPcMenuJWT
+  body: none
+  auth: bearer
+}
+
+headers {
+  X-PACKAGE: {{package}}
+}
+
+auth:bearer {
+  token: {{loginToken}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+
+script:post-response {
+  // Auto-save menuToken สำหรับใช้กับ API ถัดไป
+  if (res.body.code === 0 && res.body.result?.accessToken) {
+    bru.setEnvVar("menuToken", res.body.result.accessToken);
+    console.log("✅ menuToken saved!");
+  }
+}
+
+docs {
+  # QERPcMenuJWT API
+
+  ใช้สำหรับดึงข้อมูล Menu ของ Module QERPc
+
+  ## ก่อนใช้งาน
+  - ต้อง Login JWT ก่อน เพื่อให้มี accessToken
+
+  ## Flow
+  1. เรียก Login JWT → ได้ accessToken (เก็บอัตโนมัติ)
+  2. เรียก QERPcMenuJWT → ใช้ accessToken จากข้อ 1 → ได้ accessToken ใหม่
+  3. เรียก QERPcMenuActionJWT → ใช้ accessToken จากข้อ 2
+
+  ## Response
+  - accessToken: token ใหม่สำหรับ API ถัดไป
+  - permission: ข้อมูลสิทธิ์ของ user
+}

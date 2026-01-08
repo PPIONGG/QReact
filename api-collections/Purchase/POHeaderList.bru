@@ -1,0 +1,32 @@
+meta {
+  name: POHeaderList
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/PO/POHeaderList?DocumentTypeCode=PODOG
+  body: none
+  auth: bearer
+}
+
+params:query {
+  DocumentTypeCode: PODOG
+  ~status: 
+  ~vendorCode: 
+  ~fromDate: 
+  ~toDate: 
+}
+
+headers {
+  X-PACKAGE: {{package}}
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

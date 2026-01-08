@@ -1,0 +1,16 @@
+vars {
+  baseUrl: https://localhost:7199
+  package: PACKAGE
+  token: YOUR_TOKEN_HERE
+  username: YOUR_USERNAME
+  password: YOUR_PASSWORD
+}
+
+# ========================================
+# HOW TO USE:
+# ========================================
+# 1. Copy this file and rename to "local.bru"
+# 2. Replace YOUR_TOKEN_HERE with your actual token
+# 3. Replace YOUR_USERNAME and YOUR_PASSWORD
+# 4. local.bru will be ignored by git (safe to store secrets)
+# ========================================

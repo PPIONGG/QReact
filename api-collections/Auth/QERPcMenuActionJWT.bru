@@ -1,0 +1,52 @@
+meta {
+  name: QERPcMenuActionJWT
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/JWT/QERPcMenuActionJWT/{{moduleCode}}
+  body: none
+  auth: bearer
+}
+
+headers {
+  X-PACKAGE: {{package}}
+}
+
+auth:bearer {
+  token: {{menuToken}}
+}
+
+vars:pre-request {
+  moduleCode: PO
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+
+docs {
+  # QERPcMenuActionJWT API
+
+  ใช้สำหรับดึงข้อมูล Menu Actions ของ Module ที่เลือก
+
+  ## ก่อนใช้งาน
+  - ต้อง QERPcMenuJWT ก่อน เพื่อให้มี menuToken
+
+  ## Flow
+  1. Login JWT → ได้ loginToken
+  2. QERPcMenuJWT → ใช้ loginToken → ได้ menuToken
+  3. QERPcMenuActionJWT → ใช้ menuToken
+
+  ## Path Parameter
+  - moduleCode: รหัส module เช่น PO, SO, IV
+
+  ## Module Codes
+  | Code | Module |
+  |------|--------|
+  | PO   | Purchase Order |
+  | SO   | Sales Order |
+  | IV   | Inventory |
+}

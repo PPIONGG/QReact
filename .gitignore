@@ -72,3 +72,10 @@ deploy/output-cloud
 
 # Misc
 nul
+
+# Bruno API Collections (local secrets)
+api-collections/environments/local.bru
+api-collections/environments/*.secret.bru
+
+# Old Products Collection (to be removed)
+Products Collection/

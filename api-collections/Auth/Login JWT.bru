@@ -1,0 +1,55 @@
+meta {
+  name: Login JWT
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/Login/LoginJWT
+  body: json
+  auth: bearer
+}
+
+headers {
+  X-PACKAGE: {{package}}
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "QERPUserOrDBUser": "Q",
+    "UserLogin": "{{username}}",
+    "Password": "{{password}}"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+
+script:post-response {
+  // Auto-save accessToken หลัง login สำเร็จ
+  if (res.body.code === 0 && res.body.result?.accessToken) {
+    bru.setEnvVar("loginToken", res.body.result.accessToken);
+    console.log("✅ loginToken saved!");
+  }
+}
+
+docs {
+  # Login JWT API
+
+  ใช้สำหรับ login เข้าระบบ Q-ERP
+
+  ## หลัง Login สำเร็จ
+  - accessToken จะถูกเก็บไว้ใน environment variable อัตโนมัติ
+  - สามารถใช้ต่อใน request อื่นๆ ได้เลย เช่น QERPcMenuJWT
+
+  ## Response
+  - code: 0 = สำเร็จ
+  - result.accessToken: JWT token สำหรับใช้งาน API อื่นๆ
+  - result.permission: ข้อมูล user และ company ที่มีสิทธิ์
+}

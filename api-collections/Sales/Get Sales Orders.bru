@@ -1,0 +1,31 @@
+meta {
+  name: Get Sales Orders
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/Sales/GetSalesOrders
+  body: none
+  auth: bearer
+}
+
+headers {
+  X-PACKAGE: {{package}}
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:query {
+  pageNumber: 1
+  pageSize: 10
+  ~status:
+  ~customerCode:
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
