@@ -228,7 +228,7 @@ export function usePOColumns({
           return (
             <Dropdown
               menu={{ items: menuItems }}
-              trigger={['hover']}
+              trigger={['click']}
               placement="bottomRight"
               disabled={isDisabled}
             >
