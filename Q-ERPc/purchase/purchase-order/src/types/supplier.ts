@@ -23,9 +23,9 @@ export interface SupplierDetail {
   documentModuleCode: string
   documentTypeCode: string
   code: string
-  prefixThai: string
-  nameThai: string
-  suffixThai: string | null
+  prefixName: string
+  currentName: string
+  suffixName: string | null
   taxId: string
   phone: string | null
   email: string | null
@@ -33,8 +33,20 @@ export interface SupplierDetail {
   headQuaterOrBranch: string
   headQuaterOrBranchCode: string | null
   headQuaterOrBranchNameT: string | null
+  category1: string | null
+  category2: string | null
+  category3: string | null
+  category4: string | null
+  category5: string | null
+  category6: string | null
+  deliveryType: string | null
+  deliveryCode: string | null
+  deliveryPrefix: string | null
+  deliveryName: string | null
+  deliverySuffix: string | null
   fullName: string | null
   fullAddress: string | null
+  deliveryFullAddress: string | null
   paymentTermCode: string | null
   paymentTermTextPurchase: string | null
   payToCode: string | null

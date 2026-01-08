@@ -20,17 +20,21 @@ export async function getSupplierList(
  * Calls /api/Supplier/GetSupplier API
  */
 export async function getSupplier(
+  moduleCode: string,
+  documentTypeCode: string,
   supplierCode: string,
   accessToken: string,
   packageCode: string
 ): Promise<SupplierDetailResponse> {
-  return httpClient.get<SupplierDetailResponse>(
-    `/api/Supplier/GetSupplier?SupplierCode=${encodeURIComponent(supplierCode)}`,
-    {
-      accessToken,
-      packageCode,
-    }
-  )
+  return httpClient.get<SupplierDetailResponse>(`/api/Supplier/GetSupplier`, {
+    accessToken,
+    packageCode,
+    params: {
+      moduleCode,
+      documentTypeCode,
+      supplierCode,
+    },
+  })
 }
 
 export const supplierService = {

@@ -54,6 +54,8 @@ export function POPrintPreview({ runNo, open, onClose }: POPrintPreviewProps) {
           if (poOrder.supplierCode) {
             try {
               const supplierResponse = await getSupplier(
+                'PO',
+                selectedDocumentTypeCode,
                 poOrder.supplierCode,
                 accessToken,
                 companyCode

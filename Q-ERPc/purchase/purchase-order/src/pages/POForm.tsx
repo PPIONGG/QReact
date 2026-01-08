@@ -321,9 +321,15 @@ export function POForm({ canEdit = true }: POFormProps) {
         paymentTermCode: supplier.paymentTermCode,
       })
 
-      if (accessToken && companyCode) {
+      if (accessToken && companyCode && selectedDocumentTypeCode) {
         try {
-          const response = await getSupplier(supplier.code, accessToken, companyCode)
+          const response = await getSupplier(
+            'PO',
+            selectedDocumentTypeCode,
+            supplier.code,
+            accessToken,
+            companyCode
+          )
           if (response.code === 0 && response.result) {
             form.setFieldsValue({
               fullAddress: response.result.fullAddress || '',
@@ -339,7 +345,7 @@ export function POForm({ canEdit = true }: POFormProps) {
         handlePaymentTermChange(supplier.paymentTermCode)
       }
     },
-    [form, accessToken, companyCode]
+    [form, accessToken, companyCode, selectedDocumentTypeCode]
   )
 
   const handlePaymentTermChange = useCallback(
