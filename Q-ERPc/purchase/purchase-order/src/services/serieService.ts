@@ -6,6 +6,7 @@ export interface SeriesAndGroupDocParams {
   yearForRunNo: number
   descT: string
   descEng: string
+  docDate: string
 }
 
 /**
@@ -27,6 +28,7 @@ export async function getSeriesAndGroupDoc(
         yearForRunNo: params.yearForRunNo,
         descT: params.descT,
         descEng: params.descEng,
+        docDate: params.docDate,
       },
     }
   )

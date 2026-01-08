@@ -57,6 +57,9 @@ export function POForm({ canEdit = true }: POFormProps) {
   const isPrintMode = searchParams.get('print') === 'true'
   const isReadOnly = isViewMode || !canEdit
 
+  // Watch poDate early - needed for useSerieInfo to fetch document number
+  const poDate = Form.useWatch('podate', form)
+
   // Use custom hook for data fetching
   const {
     username,
@@ -71,7 +74,7 @@ export function POForm({ canEdit = true }: POFormProps) {
     companyInfo,
     lineItems,
     setLineItems,
-  } = usePOFormData({ form, isEditMode, id })
+  } = usePOFormData({ form, isEditMode, id, poDate })
 
   // Modal states
   const [supplierModalOpen, setSupplierModalOpen] = useState(false)
@@ -92,7 +95,6 @@ export function POForm({ canEdit = true }: POFormProps) {
   const [isExpanded, setIsExpanded] = useState(false)
 
   // Watch form fields
-  const poDate = Form.useWatch('podate', form)
   const targetShippingDate = Form.useWatch('targetShippingDate', form)
   const discountStringBeforeVAT = Form.useWatch('discountStringBeforeVAT', form)
   const exchangeRate = Form.useWatch('exchangeRate', form)

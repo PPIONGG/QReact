@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormInstance } from 'antd'
+import type { Dayjs } from 'dayjs'
 import { useAuthStore, useDocumentTypes, useSelectedDocumentType } from '../stores'
 import { getSeriesAndGroupDoc } from '../services'
 import type { SeriesAndGroupDocResult } from '../types'
@@ -7,12 +8,14 @@ import type { SeriesAndGroupDocResult } from '../types'
 interface UseSerieInfoProps {
   form: FormInstance
   isEditMode: boolean
+  poDate: Dayjs | null
 }
 
 /**
  * Hook for fetching serie info when creating new PO
+ * Calls API when document type changes or poDate changes
  */
-export function useSerieInfo({ form, isEditMode }: UseSerieInfoProps) {
+export function useSerieInfo({ form, isEditMode, poDate }: UseSerieInfoProps) {
   const { accessToken, companyCode } = useAuthStore()
   const documentTypes = useDocumentTypes()
   const selectedDocumentTypeCode = useSelectedDocumentType()
@@ -20,20 +23,29 @@ export function useSerieInfo({ form, isEditMode }: UseSerieInfoProps) {
   const [serieInfo, setSerieInfo] = useState<SeriesAndGroupDocResult | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
-  const lastFetchedDocType = useRef<string | null>(null)
+  // Track last fetched params to prevent duplicate calls
+  const lastFetchedParams = useRef<string | null>(null)
 
   useEffect(() => {
+    // Skip if edit mode or missing required data
     if (isEditMode || !accessToken || !companyCode || !selectedDocumentTypeCode) return
 
-    // Prevent duplicate fetch for same document type
-    if (lastFetchedDocType.current === selectedDocumentTypeCode) return
+    // poDate is required - must have a value
+    if (!poDate) return
 
     const selectedDocType = documentTypes.find(
       (dt) => dt.documentTypeCode === selectedDocumentTypeCode
     )
     if (!selectedDocType) return
 
-    lastFetchedDocType.current = selectedDocumentTypeCode
+    // Format date as string for API
+    const docDateString = poDate.format('YYYY-MM-DD')
+
+    // Create unique key for current params to prevent duplicate fetch
+    const currentParamsKey = `${selectedDocumentTypeCode}_${docDateString}`
+    if (lastFetchedParams.current === currentParamsKey) return
+
+    lastFetchedParams.current = currentParamsKey
 
     const fetchSerieInfo = async () => {
       setIsLoading(true)
@@ -46,6 +58,7 @@ export function useSerieInfo({ form, isEditMode }: UseSerieInfoProps) {
             yearForRunNo: currentYear,
             descT: selectedDocType.documentTypeCodeDescriptionT,
             descEng: selectedDocType.documentTypeCodeDescriptionE,
+            docDate: docDateString,
           },
           accessToken,
           companyCode
@@ -63,7 +76,7 @@ export function useSerieInfo({ form, isEditMode }: UseSerieInfoProps) {
     }
 
     fetchSerieInfo()
-  }, [isEditMode, accessToken, companyCode, selectedDocumentTypeCode, documentTypes, form])
+  }, [isEditMode, accessToken, companyCode, selectedDocumentTypeCode, documentTypes, form, poDate])
 
   return {
     serieInfo,

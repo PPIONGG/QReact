@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormInstance } from 'antd'
+import type { Dayjs } from 'dayjs'
 import { useAuthStore, usePOStore, useDocumentTypes, useSelectedDocumentType } from '../stores'
 import { getDocumentTypeRightList } from '../services'
 import { useMasterData } from './useMasterData'
@@ -11,13 +12,14 @@ interface UsePOFormDataProps {
   form: FormInstance
   isEditMode: boolean
   id: string | undefined
+  poDate: Dayjs | null
 }
 
 /**
  * Main hook for PO form data management
  * Composes smaller hooks for master data, serie info, and edit data
  */
-export function usePOFormData({ form, isEditMode, id }: UsePOFormDataProps) {
+export function usePOFormData({ form, isEditMode, id, poDate }: UsePOFormDataProps) {
   const { username, accessToken, companyCode } = useAuthStore()
   const documentTypes = useDocumentTypes()
   const selectedDocumentTypeCode = useSelectedDocumentType()
@@ -44,7 +46,7 @@ export function usePOFormData({ form, isEditMode, id }: UsePOFormDataProps) {
 
   // Use composed hooks
   const { paymentTerms, currencies, warehouses, companyInfo } = useMasterData()
-  const { serieInfo, isLoading: isLoadingSerie } = useSerieInfo({ form, isEditMode })
+  const { serieInfo, isLoading: isLoadingSerie } = useSerieInfo({ form, isEditMode, poDate })
 
   // Fetch PO data for edit mode
   usePOEditData({
