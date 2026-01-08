@@ -42,7 +42,7 @@ export function useVATCalculation({
     // Check if there are any items with transactionCode (exclude deleted items)
     const hasValidItems = lineItems.some((item) => item.transactionCode && item.statusRow !== 'D')
     if (!hasValidItems) {
-      // Reset all summary fields
+      // Reset all summary fields (except discountStringBeforeVAT - user input field)
       form.setFieldsValue({
         totalAmountCurrency: 0,
         totalAmountBeforeVATBaht: 0,

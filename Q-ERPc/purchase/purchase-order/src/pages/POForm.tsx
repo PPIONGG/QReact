@@ -395,27 +395,35 @@ export function POForm({ canEdit = true }: POFormProps) {
         return
       }
 
+      let newLineItems: typeof lineItems
+
       if (itemToDelete.statusRow === 'E') {
         const updated = lineItems.map((item) =>
           item.key === key ? { ...item, statusRow: 'D' as const } : item
         )
         let vlineCounter = 1
-        const renumbered = updated.map((item) => {
+        newLineItems = updated.map((item) => {
           if (item.statusRow === 'D') return item
           return { ...item, vline: vlineCounter++ }
         })
-        setLineItems(renumbered)
       } else {
         const filtered = lineItems.filter((item) => item.key !== key)
         let vlineCounter = 1
-        const renumbered = filtered.map((item) => {
+        newLineItems = filtered.map((item) => {
           if (item.statusRow === 'D') return item
           return { ...item, vline: vlineCounter++ }
         })
-        setLineItems(renumbered)
+      }
+
+      setLineItems(newLineItems)
+
+      // Clear discount when all valid items are deleted
+      const hasValidItems = newLineItems.some((item) => item.transactionCode && item.statusRow !== 'D')
+      if (!hasValidItems) {
+        form.setFieldValue('discountStringBeforeVAT', '')
       }
     },
-    [lineItems, setLineItems, validateDelete]
+    [lineItems, setLineItems, validateDelete, form]
   )
 
   const handleUndoDelete = useCallback(
