@@ -19,6 +19,7 @@ export function SupplierSearchModal({ open, onCancel, onSelect }: SupplierSearch
   const [isLoading, setIsLoading] = useState(false)
   const [searchText, setSearchText] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [pageSize, setPageSize] = useState(10)
 
   const hasFetched = useRef(false)
 
@@ -120,7 +121,12 @@ export function SupplierSearchModal({ open, onCancel, onSelect }: SupplierSearch
           dataSource={filteredSuppliers}
           rowKey="code"
           loading={isLoading}
-          pagination={{ pageSize: 10 }}
+          pagination={{
+            pageSize,
+            showSizeChanger: true,
+            pageSizeOptions: ['10', '20', '50', '100'],
+            onShowSizeChange: (_, size) => setPageSize(size),
+          }}
           size="small"
           rowClassName="supplier-row-hover"
           onRow={(record) => ({
