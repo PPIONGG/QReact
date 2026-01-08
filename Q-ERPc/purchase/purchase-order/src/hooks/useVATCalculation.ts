@@ -106,10 +106,10 @@ export function useVATCalculation({
 
       const totalFromDetails = calculateDetails.reduce((sum, item) => sum + item.totalAmountCurrency, 0)
 
-      // Parse vatBasedForVATAmountCurrency value
+      // Parse vatBasedForVATAmountCurrency value (remove comma before parsing)
       let vatBasedValue = 0
       if (adjustVatEnabled && vatBasedForVATAmountCurrency !== undefined && vatBasedForVATAmountCurrency !== null && vatBasedForVATAmountCurrency !== '') {
-        vatBasedValue = parseFloat(String(vatBasedForVATAmountCurrency)) || 0
+        vatBasedValue = parseFloat(String(vatBasedForVATAmountCurrency).replace(/,/g, '')) || 0
       }
 
       // Parse vatAmountCurrency value when adjustVatEnabled
@@ -130,7 +130,7 @@ export function useVATCalculation({
           includeVATTrueFalse: false,
           totalAmountCurrency: totalFromDetails,
           totalAmountBeforeVATLocalCurrency: totalFromDetails * rate,
-          discountStringBeforeVAT: discountStringBeforeVAT || '',
+          discountStringBeforeVAT: discountStringBeforeVAT?.replace(/,/g, '') || '',
           amountDiscountCurrency: 0,
           amountDiscountBaht: 0,
           totalAmountCurrencyAfterDiscountBeforeVAT: totalFromDetails,
@@ -163,7 +163,7 @@ export function useVATCalculation({
           if (!adjustVatEnabled) {
             fieldsToUpdate.vatAmountCurrency = header.vatAmountCurrency
             fieldsToUpdate.vatAmountBaht = header.vatAmountCurrency * rate
-            fieldsToUpdate.vatBasedForVATAmountCurrency = header.vatBasedForVATAmountCurrency
+            fieldsToUpdate.vatBasedForVATAmountCurrency = header.vatBasedForVATAmountCurrency.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
           } else {
             fieldsToUpdate.vatAmountBaht = header.vatAmountLocalCurrency
           }

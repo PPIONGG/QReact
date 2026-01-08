@@ -74,13 +74,13 @@ export function POSummarySection({
               </Text>
               <Form.Item name="discountStringBeforeVAT" noStyle>
                 <Input
-                  style={{ width: 80, textAlign: 'right' }}
+                  style={{ width: 100, textAlign: 'right' }}
                   disabled={isReadOnly}
                   onKeyDown={(e) => {
                     const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End']
                     if (allowedKeys.includes(e.key)) return
 
-                    const regex = /^[0-9.%]$/
+                    const regex = /^[0-9.%,]$/
                     if (!regex.test(e.key)) {
                       e.preventDefault()
                     }
@@ -88,9 +88,9 @@ export function POSummarySection({
                   onBlur={(e) => {
                     let value = e.target.value.trim()
                     if (value && !value.includes('%')) {
-                      const num = parseFloat(value)
+                      const num = parseFloat(value.replace(/,/g, ''))
                       if (!isNaN(num)) {
-                        value = num.toFixed(2)
+                        value = num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                         form.setFieldValue('discountStringBeforeVAT', value)
                       }
                     }
@@ -189,14 +189,14 @@ export function POSummarySection({
               </Text>
               <Form.Item name="vatBasedForVATAmountCurrency" noStyle>
                 <Input
-                  style={{ width: 100, textAlign: 'right' }}
+                  style={{ width: 120, textAlign: 'right' }}
                   readOnly
                   onBlur={(e) => {
                     let value = e.target.value.trim()
                     if (value) {
-                      const num = parseFloat(value)
+                      const num = parseFloat(value.replace(/,/g, ''))
                       if (!isNaN(num)) {
-                        value = num.toFixed(2)
+                        value = num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                         form.setFieldValue('vatBasedForVATAmountCurrency', value)
                       }
                     }

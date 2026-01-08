@@ -111,7 +111,11 @@ export function usePOEditData({
             memo: poOrder.memo,
             billingCode: poOrder.billingCode,
             billingAddress,
-            discountStringBeforeVAT: poOrder.discountStringBeforeVat,
+            discountStringBeforeVAT: poOrder.discountStringBeforeVat
+              ? poOrder.discountStringBeforeVat.includes('%')
+                ? poOrder.discountStringBeforeVat
+                : parseFloat(poOrder.discountStringBeforeVat).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+              : '',
             totalAmountCurrency: poOrder.totalAmountCurrency,
             amountDiscountCurrency: poOrder.amountDiscountCurrency,
             totalAmountCurrencyAfterDiscountBeforeVAT:
