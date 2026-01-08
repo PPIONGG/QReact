@@ -62,6 +62,14 @@ export const usePOStore = create<POState>((set) => ({
   reset: () => set(initialState),
 }))
 
+// Listen for logout event from Portal and reset store
+if (typeof window !== 'undefined') {
+  window.addEventListener('qerp:logout', () => {
+    usePOStore.getState().reset()
+    console.log('🔄 PO Store reset on logout')
+  })
+}
+
 // Selector hooks for better performance
 // Return raw array, let component memoize the transform
 export const useDocumentTypes = () =>

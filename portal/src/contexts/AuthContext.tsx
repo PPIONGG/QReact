@@ -85,6 +85,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     authService.logout()
 
+    // Dispatch custom event for micro-frontends to reset their stores
+    window.dispatchEvent(new CustomEvent('qerp:logout'))
+
     setState({
       isAuthenticated: false,
       username: null,
