@@ -111,11 +111,6 @@ export function AppSidebar({ selectedMenu, onMenuClick, onLogout, collapsed = fa
   const moduleCodes = firstCompany?.moduleCodes || []
   const allPermission = firstCompany?.allPermission || false
 
-  // Debug: Log permission info
-  console.log('AppSidebar - firstCompany:', firstCompany)
-  console.log('AppSidebar - moduleCodes:', moduleCodes)
-  console.log('AppSidebar - allPermission:', allPermission)
-
   // Helper function to filter menu items based on permission
   const filterMenuItems = (items: MenuProps['items']): MenuProps['items'] => {
     if (!items) return items

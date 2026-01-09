@@ -42,23 +42,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         // Get first company code to call QERPcMenuJWT
         const firstCompany = response.result.permission.companys[0]
-        console.log('🔵 AuthContext - Login successful, first company:', firstCompany)
 
         // Call QERPcMenuJWT immediately after login
         let menuPermission = null
         let menuAccessToken = response.result.accessToken // Default to LoginJWT token
         if (firstCompany) {
           try {
-            console.log('🔵 AuthContext - Calling QERPcMenuJWT for company:', firstCompany.companyCode)
             const menuResponse = await authService.getMenuJWT(firstCompany.companyCode)
-            console.log('🟢 AuthContext - QERPcMenuJWT response:', menuResponse)
-
             if (menuResponse.code === 0 && menuResponse.result) {
               menuPermission = menuResponse.result.permission
               menuAccessToken = menuResponse.result.accessToken // Use token from QERPcMenuJWT
-              console.log('✅ AuthContext - Menu permission loaded:', menuPermission)
-              console.log('✅ AuthContext - Module codes from QERPcMenuJWT:', menuPermission.moduleCodes)
-              console.log('✅ AuthContext - Menu access token updated')
             }
           } catch (error) {
             console.error('❌ AuthContext - Failed to get menu permission:', error)

@@ -43,7 +43,6 @@ export function RouteGuard({ children, menuKey }: RouteGuardProps) {
 
       // If parent menu not accessible, deny immediately
       if (!hasParentPermission) {
-        console.log('RouteGuard - No parent permission for:', parentKey)
         setHasAccess(false)
         setIsLoading(false)
         return
@@ -65,7 +64,6 @@ export function RouteGuard({ children, menuKey }: RouteGuardProps) {
               detailedPermission.moduleCodes,
               detailedPermission.allPermission
             )
-            console.log('RouteGuard - Detailed check for:', menuKey, '-> hasAccess:', hasDetailedAccess)
             setHasAccess(hasDetailedAccess)
           } else {
             setHasAccess(false)

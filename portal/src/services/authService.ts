@@ -61,11 +61,9 @@ export const authService = {
   },
 
   async getMenuJWT(companyCode: string): Promise<ApiJWTResponse<ResMenuJWT>> {
-    console.log('🔵 Calling getMenuJWT with companyCode:', companyCode)
 
     // Get current token to send with request
     const currentToken = this.getToken()
-    console.log('🔵 Using token:', currentToken ? `${currentToken.substring(0, 20)}...` : 'No token')
 
     // Try POST instead of GET (API may require POST method)
     const response = await httpClient.post<ApiJWTResponse<ResMenuJWT>>(
@@ -77,7 +75,6 @@ export const authService = {
       }
     )
 
-    console.log('🟢 getMenuJWT response:', response)
 
     if (response.code === 0 && response.result?.accessToken) {
       this.setToken(response.result.accessToken)
