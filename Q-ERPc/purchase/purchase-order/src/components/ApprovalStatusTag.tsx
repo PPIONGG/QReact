@@ -7,7 +7,7 @@ import { getApprovalStatusFromConfig } from '../utils'
 export interface ApprovalActionParams {
   runNo: number
   level: number
-  action: 'approve' | 'reject' | 'cancel'
+  action: 'approve' | 'reject' | 'cancel' | 'request'
 }
 
 interface ApprovalStatusTagProps {
@@ -36,9 +36,10 @@ const getStatusColor = (statusValue: string): 'green' | 'blue' | 'gray' => {
 }
 
 // Map action to approval action type
-const getActionType = (actionValue: string): 'approve' | 'reject' | 'cancel' => {
+const getActionType = (actionValue: string): 'approve' | 'reject' | 'cancel' | 'request' => {
   if (actionValue === 'Y') return 'approve'
   if (actionValue === 'N') return 'reject'
+  if (actionValue === 'P') return 'request'
   return 'cancel'
 }
 

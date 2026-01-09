@@ -157,7 +157,7 @@ export function usePOListData() {
 
   // Submit approval action
   const handleApprovalAction = useCallback(
-    async (params: { runNo: number; level: number; action: 'approve' | 'reject' | 'cancel'; comment?: string }) => {
+    async (params: { runNo: number; level: number; action: 'approve' | 'reject' | 'cancel' | 'request'; comment?: string }) => {
       if (!username || !accessToken || !companyCode || !selectedDocumentType) return false
 
       setIsSubmittingApproval(true)
@@ -167,7 +167,7 @@ export function usePOListData() {
           documentTypeCode: selectedDocumentType,
           runNo: params.runNo,
           level: params.level,
-          action: params.action === 'approve' ? 'Y' : params.action === 'reject' ? 'N' : 'W',
+          action: params.action === 'approve' ? 'Y' : params.action === 'reject' ? 'N' : params.action === 'request' ? 'P' : 'W',
           comment: params.comment || '',
           userName: username,
         }
