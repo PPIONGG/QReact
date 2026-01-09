@@ -4,13 +4,18 @@ export interface Supplier {
   code: string
   prefixThai: string
   nameThai: string
-  taxId: string
   suffixThai: string | null
+  prefixEng: string | null
+  nameEng: string | null
+  suffixEng: string | null
+  taxId: string
   headQuaterOrBranch: string
   headQuaterOrBranchCode: string | null
   headQuaterOrBranchNameT: string | null
   recStatus: number
+  createdDate: string | null
   paymentTermCode: string | null
+  currencyCode: string | null
 }
 
 export interface SupplierListResponse {

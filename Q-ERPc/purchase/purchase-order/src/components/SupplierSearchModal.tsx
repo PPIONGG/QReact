@@ -83,9 +83,14 @@ export function SupplierSearchModal({ open, onCancel, onSelect }: SupplierSearch
       width: 120,
     },
     {
-      title: 'ชื่อ',
+      title: 'ชื่อไทย',
       dataIndex: 'nameThai',
       key: 'nameThai',
+    },
+    {
+      title: 'ชื่ออังกฤษ',
+      dataIndex: 'nameEng',
+      key: 'nameEng',
     },
     {
       title: 'เลขประจำตัวผู้เสียภาษี',
