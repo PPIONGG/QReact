@@ -35,47 +35,9 @@ export function PrintFormSelectModal({
     }
   }, [open])
 
-  const fetchPrintFormList = async () => {
-    setIsLoading(true)
-    try {
-      const response = await printFormService.getPrintFormList(
-        DOCUMENT_TYPE_PRINT_FORM_CODE,
-        accessToken || '',
-        companyCode || ''
-      )
-
-      if (response.code === 0 && response.result) {
-        setPrintForms(response.result)
-        // Auto-select first item if available
-        if (response.result.length > 0) {
-          setSelectedRowKey(response.result[0].orderPrintFormInDocumentTypePrintForm)
-        }
-      } else {
-        message.error(response.msg || 'ไม่สามารถดึงรายการฟอร์มได้')
-        setPrintForms([])
-      }
-    } catch (error) {
-      console.error('Error fetching print form list:', error)
-      message.error('เกิดข้อผิดพลาดในการดึงรายการฟอร์ม')
-      setPrintForms([])
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleAfterClose = useCallback(() => {
-    setSelectedRowKey(null)
-    setPrintForms([])
-  }, [])
-
-  const handleConfirm = async () => {
-    if (selectedRowKey === null || runNo === null || !documentTypeCode) return
-
-    const selectedForm = printForms.find(
-      (form) => form.orderPrintFormInDocumentTypePrintForm === selectedRowKey
-    )
-
-    if (!selectedForm) return
+  // Generate PDF and open in new tab
+  const generatePDF = async (form: PrintForm) => {
+    if (runNo === null || !documentTypeCode) return
 
     // Open window BEFORE async operation to avoid popup blocker
     const pdfWindow = window.open('', '_blank')
@@ -134,31 +96,85 @@ export function PrintFormSelectModal({
 
     setIsGeneratingPDF(true)
     try {
-      // API returns PDF as Blob directly
       const pdfBlob = await printFormService.getPOReportPDF(
         {
           CompanyCode: companyCode || '',
           DocumentTypeCode: documentTypeCode,
           RunNo: runNo,
           DocumentTypePrintFormCode: DOCUMENT_TYPE_PRINT_FORM_CODE,
-          OrderPrintFormInDocumentTypePrintForm: selectedForm.orderPrintFormInDocumentTypePrintForm,
+          OrderPrintFormInDocumentTypePrintForm: form.orderPrintFormInDocumentTypePrintForm,
         },
         accessToken || '',
         companyCode || ''
       )
 
-      // Create URL from Blob and redirect the window to it
       const blobUrl = URL.createObjectURL(pdfBlob)
       pdfWindow.location.href = blobUrl
 
       onCancel() // Close modal after success
     } catch (error) {
       console.error('Error generating PDF:', error)
-      pdfWindow.close() // Close the loading window on error
+      pdfWindow.close()
       message.error('เกิดข้อผิดพลาดในการสร้างรายงาน')
     } finally {
       setIsGeneratingPDF(false)
     }
+  }
+
+  const fetchPrintFormList = async () => {
+    setIsLoading(true)
+    try {
+      const response = await printFormService.getPrintFormList(
+        DOCUMENT_TYPE_PRINT_FORM_CODE,
+        accessToken || '',
+        companyCode || ''
+      )
+
+      if (response.code === 0 && response.result) {
+        const forms = response.result
+
+        // If only one form, skip selection and generate PDF directly
+        if (forms.length === 1) {
+          setPrintForms(forms)
+          setSelectedRowKey(forms[0].orderPrintFormInDocumentTypePrintForm)
+          // Generate PDF immediately
+          await generatePDF(forms[0])
+          return
+        }
+
+        setPrintForms(forms)
+        // Auto-select first item if available
+        if (forms.length > 0) {
+          setSelectedRowKey(forms[0].orderPrintFormInDocumentTypePrintForm)
+        }
+      } else {
+        message.error(response.msg || 'ไม่สามารถดึงรายการฟอร์มได้')
+        setPrintForms([])
+      }
+    } catch (error) {
+      console.error('Error fetching print form list:', error)
+      message.error('เกิดข้อผิดพลาดในการดึงรายการฟอร์ม')
+      setPrintForms([])
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleAfterClose = useCallback(() => {
+    setSelectedRowKey(null)
+    setPrintForms([])
+  }, [])
+
+  const handleConfirm = async () => {
+    if (selectedRowKey === null) return
+
+    const selectedForm = printForms.find(
+      (form) => form.orderPrintFormInDocumentTypePrintForm === selectedRowKey
+    )
+
+    if (!selectedForm) return
+
+    await generatePDF(selectedForm)
   }
 
   const columns: ColumnsType<PrintForm> = [
@@ -171,8 +187,17 @@ export function PrintFormSelectModal({
         <input
           type="checkbox"
           checked={selectedRowKey === record.orderPrintFormInDocumentTypePrintForm}
-          onChange={() => setSelectedRowKey(record.orderPrintFormInDocumentTypePrintForm)}
-          style={{ cursor: 'pointer', width: 16, height: 16 }}
+          onChange={() => {
+            if (!isGeneratingPDF) {
+              setSelectedRowKey(record.orderPrintFormInDocumentTypePrintForm)
+            }
+          }}
+          disabled={isGeneratingPDF}
+          style={{
+            cursor: isGeneratingPDF ? 'not-allowed' : 'pointer',
+            width: 16,
+            height: 16,
+          }}
         />
       ),
     },
@@ -213,22 +238,29 @@ export function PrintFormSelectModal({
       width={500}
       destroyOnHidden
       maskClosable={false}
+      closable={!isGeneratingPDF}
+      keyboard={!isGeneratingPDF}
     >
       <Table
         columns={columns}
         dataSource={printForms}
         rowKey="orderPrintFormInDocumentTypePrintForm"
-        loading={isLoading}
+        loading={isLoading || isGeneratingPDF}
         pagination={false}
         size="small"
         onRow={(record) => ({
-          onClick: () => setSelectedRowKey(record.orderPrintFormInDocumentTypePrintForm),
+          onClick: () => {
+            if (!isGeneratingPDF) {
+              setSelectedRowKey(record.orderPrintFormInDocumentTypePrintForm)
+            }
+          },
           style: {
-            cursor: 'pointer',
+            cursor: isGeneratingPDF ? 'not-allowed' : 'pointer',
             backgroundColor:
               selectedRowKey === record.orderPrintFormInDocumentTypePrintForm
                 ? '#e6f4ff'
                 : undefined,
+            opacity: isGeneratingPDF ? 0.5 : 1,
           },
         })}
       />
