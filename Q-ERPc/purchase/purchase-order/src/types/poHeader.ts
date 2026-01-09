@@ -4,6 +4,13 @@ import type { ApiResponse } from "@qerp/shared"
 
 // import type { ApiResponse } from "../../../../../shared/src/types/api"
 
+// Approval status for each level
+export interface ApprovalStatus {
+  level: number
+  status: string | null
+  canApprove: boolean
+}
+
 export interface POHeader {
   documentModuleCode: string
   documentTypeCode: string
@@ -14,16 +21,23 @@ export interface POHeader {
   podate: string
   supplierCode: string
   supplierName: string
-  approvedStatus01: string
-  approvedByName01: string
+  approvedStatus01: string | null
+  approvedByName01: string | null
   approvedByLastDated01: string | null
-  approvedStatus02: string
-  approvedByName02: string
+  approvedStatus02: string | null
+  approvedByName02: string | null
   approvedByLastDated02: string | null
+  approvedStatus03: string | null
+  approvedStatus04: string | null
+  approvedStatus05: string | null
   deliveryStatus: string
+  deliveryStatusComplete: string
+  currencyCode: string
+  totalAmountCurrencyAfterVat: number
   recStatus: number
   lastUpdated: string
   updatedUser: string
+  approvalStatuses: ApprovalStatus[]
 }
 
 export interface POHeaderListResponse {
