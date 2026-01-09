@@ -29,6 +29,7 @@ export function usePOEditData({
 
   const hasFetched = useRef(false)
   const [billingCode, setBillingCode] = useState<string | null>(null)
+  const [isEditDataLoaded, setIsEditDataLoaded] = useState(false)
 
   // Set billingAddress when warehouses become available and billingCode is set
   useEffect(() => {
@@ -123,6 +124,10 @@ export function usePOEditData({
             totalAmountCurrencyAfterDiscountBeforeVAT:
               poOrder.totalAmountCurrencyAfterDiscountBeforeVat,
             vatAmountCurrency: poOrder.vatamountCurrency,
+            vatBasedForVATAmountCurrency: poOrder.vatBasedForVATAmountCurrency?.toLocaleString('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }) || '0.00',
             totalAmountCurrencyAfterVAT: poOrder.totalAmountCurrencyAfterVat,
             adjustVatEnabled: poOrder.adjustVATYesNo === 'Y',
           })
@@ -167,6 +172,9 @@ export function usePOEditData({
             )
             setLineItems(items)
           }
+
+          // Mark edit data as loaded after all data is set
+          setIsEditDataLoaded(true)
         }
       } catch (error) {
         console.error('Failed to fetch PO order:', error)
@@ -185,4 +193,6 @@ export function usePOEditData({
     warehouses,
     setLineItems,
   ])
+
+  return { isEditDataLoaded }
 }

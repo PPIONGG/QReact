@@ -84,6 +84,7 @@ export interface POOrder {
   totalAmountCurrency: number
   vatrate: number
   vatamountCurrency: number
+  vatBasedForVATAmountCurrency: number
   totalAmountCurrencyAfterVat: number
   amountDiscountCurrency: number
   totalAmountCurrencyAfterDiscountBeforeVat: number

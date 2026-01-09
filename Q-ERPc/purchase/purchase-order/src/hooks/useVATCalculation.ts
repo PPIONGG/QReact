@@ -18,6 +18,9 @@ interface UseVATCalculationProps {
   adjustVatEnabled: boolean | undefined
   vatBasedForVATAmountCurrency: string | number | undefined
   vatAmountCurrencyWatch: number | undefined
+  // Edit mode
+  isEditMode: boolean
+  isEditDataLoaded: boolean
 }
 
 export function useVATCalculation({
@@ -32,12 +35,17 @@ export function useVATCalculation({
   adjustVatEnabled,
   vatBasedForVATAmountCurrency,
   vatAmountCurrencyWatch,
+  isEditMode,
+  isEditDataLoaded,
 }: UseVATCalculationProps) {
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastCalcKey = useRef<string>('')
 
   useEffect(() => {
     if (!accessToken || !companyCode) return
+
+    // In edit mode, wait until data is loaded from API before calculating
+    if (isEditMode && !isEditDataLoaded) return
 
     // Check if there are any items with transactionCode (exclude deleted items)
     const hasValidItems = lineItems.some((item) => item.transactionCode && item.statusRow !== 'D')
@@ -161,10 +169,12 @@ export function useVATCalculation({
             totalAmountAfterVATBaht: header.totalAmountCurrencyAfterVAT * rate,
           }
 
+          // Always update vatBasedForVATAmountCurrency from API response
+          fieldsToUpdate.vatBasedForVATAmountCurrency = header.vatBasedForVATAmountCurrency.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
           if (!adjustVatEnabled) {
             fieldsToUpdate.vatAmountCurrency = header.vatAmountCurrency
             fieldsToUpdate.vatAmountBaht = header.vatAmountCurrency * rate
-            fieldsToUpdate.vatBasedForVATAmountCurrency = header.vatBasedForVATAmountCurrency.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
           } else {
             fieldsToUpdate.vatAmountBaht = header.vatAmountLocalCurrency
           }
@@ -205,5 +215,7 @@ export function useVATCalculation({
     adjustVatEnabled,
     vatBasedForVATAmountCurrency,
     vatAmountCurrencyWatch,
+    isEditMode,
+    isEditDataLoaded,
   ])
 }

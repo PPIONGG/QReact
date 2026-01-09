@@ -49,7 +49,7 @@ export function usePOFormData({ form, isEditMode, id, poDate }: UsePOFormDataPro
   const { serieInfo, isLoading: isLoadingSerie } = useSerieInfo({ form, isEditMode, poDate })
 
   // Fetch PO data for edit mode
-  usePOEditData({
+  const { isEditDataLoaded } = usePOEditData({
     form,
     isEditMode,
     id,
@@ -110,5 +110,7 @@ export function usePOFormData({ form, isEditMode, id, poDate }: UsePOFormDataPro
     // Line items
     lineItems,
     setLineItems,
+    // Edit mode state
+    isEditDataLoaded,
   }
 }

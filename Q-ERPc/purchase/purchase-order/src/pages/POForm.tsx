@@ -74,6 +74,7 @@ export function POForm({ canEdit = true }: POFormProps) {
     companyInfo,
     lineItems,
     setLineItems,
+    isEditDataLoaded,
   } = usePOFormData({ form, isEditMode, id, poDate })
 
   // Modal states
@@ -117,6 +118,8 @@ export function POForm({ canEdit = true }: POFormProps) {
     adjustVatEnabled,
     vatBasedForVATAmountCurrency,
     vatAmountCurrencyWatch,
+    isEditMode,
+    isEditDataLoaded,
   })
 
   // Delete line validation hook
@@ -266,6 +269,7 @@ export function POForm({ canEdit = true }: POFormProps) {
           totalAmountCurrency: (values.totalAmountCurrency as number) || 0,
           vatrate: 7,
           vatamountCurrency: (values.vatAmountCurrency as number) || 0,
+          vatBasedForVATAmountCurrency: parseFloat(String(values.vatBasedForVATAmountCurrency || '0').replace(/,/g, '')) || 0,
           totalAmountCurrencyAfterVat: (values.totalAmountCurrencyAfterVAT as number) || 0,
           amountDiscountCurrency: (values.amountDiscountCurrency as number) || 0,
           totalAmountCurrencyAfterDiscountBeforeVat:
@@ -282,6 +286,7 @@ export function POForm({ canEdit = true }: POFormProps) {
           sellerRefNo: (values.quotationRefDoc as string) || '',
           adjustVATYesNo: values.adjustVatEnabled ? 'Y' : '',
           poDetails: poDetails,
+          
         },
       }
 
