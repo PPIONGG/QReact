@@ -95,7 +95,9 @@ export function usePOEditData({
           // Set form values
           form.setFieldsValue({
             supplierCode: poOrder.supplierCode,
+            supplierPrefix: poOrder.supplierPrefix || '',
             supplierName: poOrder.supplierName,
+            supplierSuffix: poOrder.supplierSuffix || '',
             pono: poOrder.pono,
             podate: poOrder.podate ? dayjs(poOrder.podate) : null,
             targetShippingDate: poOrder.targetShippingDate

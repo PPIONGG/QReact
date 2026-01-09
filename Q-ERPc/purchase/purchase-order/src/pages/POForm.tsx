@@ -254,9 +254,9 @@ export function POForm({ canEdit = true }: POFormProps) {
           refNoYours: (values.supplierRefDoc as string) || '',
           refNoOurs: (values.companyRefDoc as string) || '',
           supplierCode: (values.supplierCode as string) || '',
-          supplierPrefix: '',
+          supplierPrefix: (values.supplierPrefix as string) || '',
           supplierName: (values.supplierName as string) || '',
-          supplierSuffix: '',
+          supplierSuffix: (values.supplierSuffix as string) || '',
           targetShippingDate: values.targetShippingDate
             ? (values.targetShippingDate as dayjs.Dayjs).format('YYYY-MM-DDTHH:mm:ss')
             : null,
@@ -318,41 +318,6 @@ export function POForm({ canEdit = true }: POFormProps) {
     [username, accessToken, companyCode, serieInfo, isEditMode, id, selectedDocumentTypeCode, lineItems, navigate]
   )
 
-  const handleSupplierSelect = useCallback(
-    async (supplier: Supplier) => {
-      form.setFieldsValue({
-        supplierCode: supplier.code,
-        supplierName: supplier.nameThai,
-        paymentTermCode: supplier.paymentTermCode,
-      })
-
-      if (accessToken && companyCode && selectedDocumentTypeCode) {
-        try {
-          const response = await getSupplier(
-            'PO',
-            selectedDocumentTypeCode,
-            supplier.code,
-            accessToken,
-            companyCode
-          )
-          if (response.code === 0 && response.result) {
-            form.setFieldsValue({
-              fullAddress: response.result.fullAddress || '',
-              supplierPhone: response.result.phone || '',
-            })
-          }
-        } catch (error) {
-          console.error('Failed to fetch supplier detail:', error)
-        }
-      }
-
-      if (supplier.paymentTermCode) {
-        handlePaymentTermChange(supplier.paymentTermCode)
-      }
-    },
-    [form, accessToken, companyCode, selectedDocumentTypeCode]
-  )
-
   const handlePaymentTermChange = useCallback(
     async (paymentTermCode: string) => {
       if (!paymentTermCode || !accessToken || !companyCode) {
@@ -373,6 +338,73 @@ export function POForm({ canEdit = true }: POFormProps) {
       }
     },
     [form, accessToken, companyCode]
+  )
+
+  const handleSupplierSelect = useCallback(
+    async (supplier: Supplier) => {
+      if (!accessToken || !companyCode || !selectedDocumentTypeCode) {
+        // Fallback: ใช้ข้อมูลจาก SupplierList
+        form.setFieldsValue({
+          supplierCode: supplier.code,
+          supplierName: supplier.nameThai,
+          paymentTermCode: supplier.paymentTermCode,
+        })
+        if (supplier.paymentTermCode) {
+          handlePaymentTermChange(supplier.paymentTermCode)
+        }
+        return
+      }
+
+      try {
+        const response = await getSupplier(
+          'PO',
+          selectedDocumentTypeCode,
+          supplier.code,
+          accessToken,
+          companyCode
+        )
+        if (response.code === 0 && response.result) {
+          const detail = response.result
+
+          form.setFieldsValue({
+            supplierCode: detail.code,
+            supplierPrefix: detail.prefixName || '',
+            supplierName: detail.currentName || '',
+            supplierSuffix: detail.suffixName || '',
+            paymentTermCode: detail.paymentTermCode,
+            currencyCode: detail.currencyCode || 'THB',
+            fullAddress: detail.fullAddress || '',
+            supplierPhone: detail.phone || '',
+          })
+
+          if (detail.paymentTermCode) {
+            handlePaymentTermChange(detail.paymentTermCode)
+          }
+        } else {
+          // Fallback ถ้า API fail
+          form.setFieldsValue({
+            supplierCode: supplier.code,
+            supplierName: supplier.nameThai,
+            paymentTermCode: supplier.paymentTermCode,
+          })
+          if (supplier.paymentTermCode) {
+            handlePaymentTermChange(supplier.paymentTermCode)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch supplier detail:', error)
+        // Fallback ถ้า API error
+        form.setFieldsValue({
+          supplierCode: supplier.code,
+          supplierName: supplier.nameThai,
+          paymentTermCode: supplier.paymentTermCode,
+        })
+        if (supplier.paymentTermCode) {
+          handlePaymentTermChange(supplier.paymentTermCode)
+        }
+      }
+    },
+    [form, accessToken, companyCode, selectedDocumentTypeCode, handlePaymentTermChange]
   )
 
   // Line item handlers

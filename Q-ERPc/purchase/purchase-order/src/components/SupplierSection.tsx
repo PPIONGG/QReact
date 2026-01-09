@@ -3,6 +3,7 @@ import { UserOutlined, SearchOutlined } from '@ant-design/icons'
 import type { FormInstance } from 'antd'
 import type { Dayjs } from 'dayjs'
 import type { PaymentTerm, Currency } from '../types'
+import { useMemo } from 'react'
 
 const { Text } = Typography
 const { TextArea } = Input
@@ -32,6 +33,15 @@ export function SupplierSection({
   onSupplierSearch,
   onPaymentTermChange,
 }: SupplierSectionProps) {
+  // Watch supplier name fields for combined display
+  const supplierPrefix = Form.useWatch('supplierPrefix', form)
+  const supplierName = Form.useWatch('supplierName', form)
+  const supplierSuffix = Form.useWatch('supplierSuffix', form)
+
+  const supplierFullName = useMemo(() => {
+    return [supplierPrefix, supplierName, supplierSuffix].filter(Boolean).join(' ')
+  }, [supplierPrefix, supplierName, supplierSuffix])
+
   return (
     <Card style={{ marginBottom: 16, display: isExpanded ? 'none' : 'block' }}>
       <Flex align="center" gap={12} style={{ marginBottom: 16 }}>
@@ -112,10 +122,22 @@ export function SupplierSection({
           </Form.Item>
         </Col>
 
+        {/* Hidden fields สำหรับส่ง API แยก */}
+        <Form.Item name="supplierPrefix" hidden>
+          <Input />
+        </Form.Item>
+        <Form.Item name="supplierSuffix" hidden>
+          <Input />
+        </Form.Item>
+
         {/* Row 2 */}
         <Col span={8}>
-          <Form.Item label="ชื่อผู้ขาย" name="supplierName">
-            <Input placeholder="ชื่อผู้ขาย" readOnly />
+          <Form.Item label="ชื่อผู้ขาย">
+            <Input placeholder="ชื่อผู้ขาย" readOnly value={supplierFullName} />
+          </Form.Item>
+          {/* Hidden field เก็บค่า supplierName แยก */}
+          <Form.Item name="supplierName" hidden>
+            <Input />
           </Form.Item>
         </Col>
         <Col span={8}>

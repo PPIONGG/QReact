@@ -55,6 +55,7 @@ export interface SupplierDetail {
   paymentTermCode: string | null
   paymentTermTextPurchase: string | null
   payToCode: string | null
+  currencyCode: string | null
 }
 
 export interface SupplierDetailResponse {
