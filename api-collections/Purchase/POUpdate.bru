@@ -1,0 +1,84 @@
+meta {
+  name: POUpdate
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/PO/POUpdate
+  body: json
+  auth: bearer
+}
+
+headers {
+  X-PACKAGE: {{package}}
+}
+
+auth:bearer {
+  token: {{menuToken}}
+}
+
+body:json {
+  {
+    "userName": "pingpong",
+    "poOrder": {
+      "documentModuleCode": "PO",
+      "documentTypeCode": "PODOG",
+      "runNo": 256913,
+      "pono": "FPO6901-012",
+      "podate": "2026-01-08T00:00:00",
+      "refNoYours": "",
+      "refNoOurs": "",
+      "supplierCode": "A-001",
+      "supplierPrefix": "ศูนย์เครื่องเขียน",
+      "supplierName": "ABC",
+      "supplierSuffix": "",
+      "targetShippingDate": null,
+      "paymentTermCode": "CREDIT7",
+      "paymentDueDate": "2026-01-08T00:00:00",
+      "currencyCode": "THB",
+      "exchangeRate": 1,
+      "totalAmountCurrency": 0,
+      "vatrate": 7,
+      "vatamountCurrency": 0,
+      "vatBasedForVATAmountCurrency": 0,
+      "totalAmountCurrencyAfterVat": 0,
+      "amountDiscountCurrency": 0,
+      "totalAmountCurrencyAfterDiscountBeforeVat": 0,
+      "discountStringBeforeVat": "",
+      "note": "",
+      "totalAmountIncludeVattrueFalse": false,
+      "costCenterCode": "",
+      "costCenterName": "",
+      "billingCode": "FAC SUP",
+      "contactName": "",
+      "paymentTermRefDoc": "",
+      "memo": "",
+      "sellerRefNo": "",
+      "adjustVATYesNo": "",
+      "poDetails": [
+        {
+          "noLine": 1,
+          "vline": 1,
+          "transactionCode": "AEC-6090",
+          "transactionDescription": "ธง กลุ่มอาเซียน 60x90 cm. ผ้าร่ม",
+          "transactionCodeSupplier": "",
+          "quantity": 12,
+          "defaultUnitCode": "ชุด",
+          "purchaseUnitCode": "ชุด",
+          "unitPriceCurrency": 0,
+          "discount": "",
+          "totalAmountCurrency": 0,
+          "totalAmountAfterDiscount": 0,
+          "statusRow": "E",
+          "excludeVATTrueFalse": false
+        }
+      ]
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

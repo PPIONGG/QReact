@@ -1,0 +1,33 @@
+meta {
+  name: CheckStatus
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/PO/CheckStatus
+  body: json
+  auth: bearer
+}
+
+headers {
+  X-PACKAGE: {{package}}
+}
+
+auth:bearer {
+  token: {{menuToken}}
+}
+
+body:json {
+  {
+    "documentModuleCode": "PO",
+    "documentTypeCode": "PODOG",
+    "runNo": 25694,
+    "mode": "Edit"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

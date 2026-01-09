@@ -1,0 +1,84 @@
+meta {
+  name: POInsert
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/PO/POInsert
+  body: json
+  auth: bearer
+}
+
+headers {
+  X-PACKAGE: {{package}}
+}
+
+auth:bearer {
+  token: {{menuToken}}
+}
+
+body:json {
+  {
+    "userName": "pingpong",
+    "poOrder": {
+      "documentModuleCode": "PO",
+      "documentTypeCode": "PODOG",
+      "runNo": 0,
+      "pono": "FPO6901-013",
+      "podate": "2026-01-09T19:57:04",
+      "refNoYours": "",
+      "refNoOurs": "",
+      "supplierCode": "G-001",
+      "supplierPrefix": "",
+      "supplierName": "กายแอ็ทเซส อีควิปเม้นท์",
+      "supplierSuffix": "",
+      "targetShippingDate": "2026-01-08T19:57:04",
+      "paymentTermCode": "CREDIT30",
+      "paymentDueDate": "2026-02-08T00:00:00",
+      "currencyCode": "THB",
+      "exchangeRate": 1,
+      "totalAmountCurrency": 1476,
+      "vatrate": 7,
+      "vatamountCurrency": 103.32,
+      "vatBasedForVATAmountCurrency": 1476,
+      "totalAmountCurrencyAfterVat": 1579.32,
+      "amountDiscountCurrency": 0,
+      "totalAmountCurrencyAfterDiscountBeforeVat": 1476,
+      "discountStringBeforeVat": "",
+      "note": "",
+      "totalAmountIncludeVattrueFalse": false,
+      "costCenterCode": "",
+      "costCenterName": "",
+      "billingCode": "OF",
+      "contactName": "",
+      "paymentTermRefDoc": "",
+      "memo": "",
+      "sellerRefNo": "",
+      "adjustVATYesNo": "",
+      "poDetails": [
+        {
+          "noLine": 1,
+          "vline": 1,
+          "transactionCode": "8859401202931",
+          "transactionDescription": "ธงชาติไทย 60x90 cm. ผ้าร่ม",
+          "transactionCodeSupplier": "",
+          "quantity": 12,
+          "defaultUnitCode": "แพ็ค",
+          "purchaseUnitCode": "แพ็ค",
+          "unitPriceCurrency": 123,
+          "discount": "",
+          "totalAmountCurrency": 1476,
+          "totalAmountAfterDiscount": 1476,
+          "statusRow": "N",
+          "excludeVATTrueFalse": false
+        }
+      ]
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

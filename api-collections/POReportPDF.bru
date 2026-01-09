@@ -1,0 +1,34 @@
+meta {
+  name: POReportPDF
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/Report/POReportPDF
+  body: json
+  auth: bearer
+}
+
+headers {
+  X-PACKAGE: {{package}}
+}
+
+auth:bearer {
+  token: {{menuToken}}
+}
+
+body:json {
+  {
+    "CompanyCode": "PACKAGE",
+    "DocumentTypeCode": "PODOG",
+    "RunNo": 2568200,
+    "DocumentTypePrintFormCode": "PODOG",
+    "OrderPrintFormInDocumentTypePrintForm": 7
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

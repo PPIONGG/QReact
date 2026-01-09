@@ -1,0 +1,38 @@
+meta {
+  name: PrintFormList
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/api/Report/PrintFormList?CompanyCode=PACKAGE&DocumentTypePrintFormCode=PODOG
+  body: none
+  auth: bearer
+}
+
+params:query {
+  CompanyCode: PACKAGE
+  DocumentTypePrintFormCode: PODOG
+}
+
+headers {
+  X-PACKAGE: {{package}}
+}
+
+auth:bearer {
+  token: {{menuToken}}
+}
+
+body:json {
+  {
+    "documentModuleCode": "PO",
+    "documentTypeCode": "PODOG",
+    "runNo": 25694,
+    "mode": "Edit"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
