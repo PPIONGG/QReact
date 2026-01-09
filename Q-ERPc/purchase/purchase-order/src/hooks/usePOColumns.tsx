@@ -152,8 +152,6 @@ export function usePOColumns({
 
   // Generate approval columns dynamically
   const approvalColumns: ColumnsType<POHeader> = useMemo(() => {
-    console.log('🔍 usePOColumns - configuredLevels:', configuredLevels.length, configuredLevels)
-    console.log('🔍 usePOColumns - actionsByLevel:', actionsByLevel)
 
     // If using new dynamic config
     if (configuredLevels.length > 0) {

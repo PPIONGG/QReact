@@ -78,14 +78,12 @@ export function ApprovalStatusTag({
   disabled = false,
   onAction,
 }: ApprovalStatusTagProps) {
-  console.log(`🏷️ ApprovalStatusTag Level ${level}:`, { status, actionsCount: actions.length, disabled, runNo, approvalStatus })
   const { text } = getApprovalStatusFromConfig(status, actions)
   const colorKey = getStatusColor(status)
   const style = STATUS_STYLES[colorKey]
 
   const handleMenuClick: MenuProps['onClick'] = ({ key }) => {
     const actionType = getActionType(key)
-    console.log('🔔 Approval Action:', { runNo, level, action: actionType, newStatus: key })
     onAction?.({ runNo, level, action: actionType })
   }
 

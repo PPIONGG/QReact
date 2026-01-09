@@ -167,7 +167,6 @@ export function useVATCalculation({
 
       try {
         const response = await calculateVatAmount(request, accessToken, companyCode)
-        console.log('Calculate API response:', response) // Debug: ดู response จาก API
 
         if (response.code === 0 && response.result) {
           const header = response.result.calculateHeader

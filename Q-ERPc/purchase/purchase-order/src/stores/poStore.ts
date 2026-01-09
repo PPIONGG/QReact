@@ -66,7 +66,6 @@ export const usePOStore = create<POState>((set) => ({
 if (typeof window !== 'undefined') {
   window.addEventListener('qerp:logout', () => {
     usePOStore.getState().reset()
-    console.log('🔄 PO Store reset on logout')
   })
 }
 

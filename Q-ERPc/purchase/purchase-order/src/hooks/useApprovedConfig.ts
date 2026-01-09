@@ -10,18 +10,14 @@ export function useApprovedConfig() {
 
   // Fetch approved config on mount
   useEffect(() => {
-    console.log('🔧 useApprovedConfig - checking credentials:', { hasToken: !!accessToken, hasCompanyCode: !!companyCode })
     if (!accessToken || !companyCode) return
 
     const fetchConfig = async () => {
       setIsLoading(true)
-      console.log('🔧 useApprovedConfig - fetching config...')
       try {
         const response = await getApprovedConfigPO(accessToken, companyCode)
-        console.log('🔧 useApprovedConfig - response:', response)
         if (response.status && response.data) {
           setApprovedConfig(response.data)
-          console.log('🔧 useApprovedConfig - config loaded:', response.data)
         }
       } catch (error) {
         console.error('Failed to fetch approved config:', error)

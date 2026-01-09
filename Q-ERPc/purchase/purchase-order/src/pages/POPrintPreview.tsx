@@ -70,13 +70,11 @@ export function POPrintPreview({ runNo, open, onClose }: POPrintPreviewProps) {
           }
 
           // Set PO data with supplier details
-          console.log('poOrder.poDetails:', poOrder.poDetails)
           const newPoData = {
             ...poOrder,
             fullAddress,
             phone,
           }
-          console.log('newPoData.poDetails:', newPoData.poDetails)
           setPOData(newPoData)
         }
       } catch (error) {
@@ -97,7 +95,6 @@ export function POPrintPreview({ runNo, open, onClose }: POPrintPreviewProps) {
     document.body.classList.remove('printing-po-preview')
   }
 
-  console.log('POPrintPreview render - open:', open, 'loading:', loading, 'poData:', poData, 'poDetails:', poData?.poDetails)
 
   if (!open) return null
 
