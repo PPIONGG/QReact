@@ -313,7 +313,10 @@ export function POForm({ canEdit = true }: POFormProps) {
       } catch (error) {
         console.error(isEditMode ? 'POUpdate error:' : 'POInsert error:', error)
         setSaveStatus('error')
-        setSaveErrorMessage('เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง')
+        // Extract error message from API response (e.g., HTTP 400)
+        const axiosError = error as { response?: { data?: { msg?: string } } }
+        const apiErrorMessage = axiosError?.response?.data?.msg
+        setSaveErrorMessage(apiErrorMessage || 'เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง')
       }
     },
     [username, accessToken, companyCode, serieInfo, isEditMode, id, selectedDocumentTypeCode, lineItems, navigate]
