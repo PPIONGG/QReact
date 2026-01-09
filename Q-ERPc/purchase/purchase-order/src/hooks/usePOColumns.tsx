@@ -178,16 +178,21 @@ export function usePOColumns({
               dataIndex,
               key,
               width: 120,
-              render: (status: string, record: POHeader) => (
-                <ApprovalStatusTag
-                  status={status}
-                  actions={actions}
-                  runNo={record.runNo}
-                  level={level}
-                  disabled={record.recStatus === 1}
-                  onAction={onApprovalAction}
-                />
-              ),
+              render: (status: string, record: POHeader) => {
+                // Find approval status flags for this level
+                const approvalStatus = record.approvalStatuses?.find((s) => s.level === level)
+                return (
+                  <ApprovalStatusTag
+                    status={status}
+                    actions={actions}
+                    approvalStatus={approvalStatus}
+                    runNo={record.runNo}
+                    level={level}
+                    disabled={record.recStatus === 1}
+                    onAction={onApprovalAction}
+                  />
+                )
+              },
             })
           } else if (fieldBase === 'approvedbylastdated') {
             columns.push({
@@ -218,16 +223,20 @@ export function usePOColumns({
         dataIndex: 'approvedStatus01',
         key: 'approvedStatus01',
         width: 100,
-        render: (status: string, record: POHeader) => (
-          <ApprovalStatusTag
-            status={status}
-            actions={approvedActions01}
-            runNo={record.runNo}
-            level={1}
-            disabled={record.recStatus === 1 || record.approvedStatus02 === 'Y' || record.approvedStatus02 === 'N'}
-            onAction={onApprovalAction}
-          />
-        ),
+        render: (status: string, record: POHeader) => {
+          const approvalStatus = record.approvalStatuses?.find((s) => s.level === 1)
+          return (
+            <ApprovalStatusTag
+              status={status}
+              actions={approvedActions01}
+              approvalStatus={approvalStatus}
+              runNo={record.runNo}
+              level={1}
+              disabled={record.recStatus === 1}
+              onAction={onApprovalAction}
+            />
+          )
+        },
       },
       {
         title: 'ชื่อผู้อนุมัติ',
@@ -247,16 +256,20 @@ export function usePOColumns({
         dataIndex: 'approvedStatus02',
         key: 'approvedStatus02',
         width: 140,
-        render: (status: string, record: POHeader) => (
-          <ApprovalStatusTag
-            status={status}
-            actions={approvedActions02}
-            runNo={record.runNo}
-            level={2}
-            disabled={record.recStatus === 1 || record.approvedStatus01 !== 'Y'}
-            onAction={onApprovalAction}
-          />
-        ),
+        render: (status: string, record: POHeader) => {
+          const approvalStatus = record.approvalStatuses?.find((s) => s.level === 2)
+          return (
+            <ApprovalStatusTag
+              status={status}
+              actions={approvedActions02}
+              approvalStatus={approvalStatus}
+              runNo={record.runNo}
+              level={2}
+              disabled={record.recStatus === 1}
+              onAction={onApprovalAction}
+            />
+          )
+        },
       },
       {
         title: 'ชื่อผู้อนุมัติผู้บริหาร',
