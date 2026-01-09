@@ -96,7 +96,7 @@ export function SupplierSearchModal({ open, onCancel, onSelect }: SupplierSearch
       title: 'เลขประจำตัวผู้เสียภาษี',
       dataIndex: 'taxId',
       key: 'taxId',
-      width: 150,
+      width: 180,
     },
   ]
 
