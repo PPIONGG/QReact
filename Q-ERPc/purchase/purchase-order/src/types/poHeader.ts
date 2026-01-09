@@ -33,6 +33,8 @@ export interface POHeader {
   deliveryStatus: string
   deliveryStatusComplete: string
   currencyCode: string
+  currencyNameThai: string
+  currencyNameEng: string
   totalAmountCurrencyAfterVat: number
   recStatus: number
   lastUpdated: string

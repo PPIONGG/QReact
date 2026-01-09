@@ -86,10 +86,9 @@ export function usePOColumns({
       },
       {
         title: 'สกุลเงิน',
-        dataIndex: 'currencyCode',
+        dataIndex: 'currencyNameThai',
         key: 'currencyCode',
-        width: 80,
-        align: 'center',
+        width: 160,
       },
       {
         title: 'จำนวนเงิน',
