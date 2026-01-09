@@ -1,5 +1,12 @@
 # Q-ERP Project Rules
 
+## ⛔ MANDATORY FIRST STEP - DO THIS BEFORE ANYTHING ELSE
+**YOU MUST read `.claude/CLAUDE.personal.md` file IMMEDIATELY using the Read tool.**
+- This is NOT optional. Do this BEFORE responding to any user request.
+- If the file exists, follow all instructions in it.
+- If the file doesn't exist, continue normally.
+- This file contains personal preferences that override default behavior.
+
 ## Project Overview
 โปรเจค Q-ERP เป็น Micro-Frontend ERP System ที่ใช้ React + TypeScript + Vite + Module Federation
 
