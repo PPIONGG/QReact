@@ -105,10 +105,11 @@ export function POForm({ canEdit = true }: POFormProps) {
   const vatBasedForVATAmountCurrency = Form.useWatch('vatBasedForVATAmountCurrency', form)
   const vatAmountCurrencyWatch = Form.useWatch('vatAmountCurrency', form)
 
-  // VAT calculation hook
+  // VAT calculation hook with rollback support
   useVATCalculation({
     form,
     lineItems,
+    setLineItems,
     accessToken,
     companyCode,
     companyInfo,
@@ -488,7 +489,24 @@ export function POForm({ canEdit = true }: POFormProps) {
 
   const handleLineChange = useCallback(
     (key: string, field: keyof POLineItem, value: unknown) => {
-      setLineItems((prev) => prev.map((item) => (item.key === key ? { ...item, [field]: value } : item)))
+      setLineItems((prev) =>
+        prev.map((item) => {
+          if (item.key !== key) return item
+
+          const updatedItem = { ...item, [field]: value }
+
+          // Clear discount when quantity or price becomes 0
+          if (field === 'quantity' || field === 'unitPriceCurrency') {
+            const qty = field === 'quantity' ? (value as number) : item.quantity
+            const price = field === 'unitPriceCurrency' ? (value as number) : item.unitPriceCurrency
+            if (qty <= 0 || price <= 0) {
+              updatedItem.discount = ''
+            }
+          }
+
+          return updatedItem
+        })
+      )
     },
     [setLineItems]
   )
@@ -527,6 +545,10 @@ export function POForm({ canEdit = true }: POFormProps) {
                 transactionDescription: item.purchaseNameT || item.t,
                 purchaseUnitCode: item.purchaseUnitCode || '',
                 unitOptions: unitOptions.map((u) => ({ code: u.code, t: u.t })),
+                // Reset values when changing product
+                quantity: 0,
+                unitPriceCurrency: 0,
+                discount: '',
               }
             : lineItem
         )

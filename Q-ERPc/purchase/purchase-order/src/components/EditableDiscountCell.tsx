@@ -12,6 +12,7 @@ interface EditableDiscountCellProps {
 /**
  * Editable discount cell with local state to prevent parent re-renders while typing.
  * Supports both fixed amount and percentage (e.g., "100" or "10%").
+ * Fixed amounts are formatted with commas (e.g., "1,234.56").
  */
 export const EditableDiscountCell = memo(function EditableDiscountCell({
   value,
@@ -24,11 +25,24 @@ export const EditableDiscountCell = memo(function EditableDiscountCell({
   const [editingValue, setEditingValue] = useState<string | null>(null);
   const isEditing = editingValue !== null;
 
-  const displayValue = isEditing ? editingValue : value;
+  // Format value with commas for display (only for non-percentage values)
+  const formatDisplayValue = (val: string): string => {
+    if (!val || val.includes("%")) return val;
+    const num = parseFloat(val);
+    if (isNaN(num)) return val;
+    return num.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
+  const displayValue = isEditing ? editingValue : formatDisplayValue(value);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
-    const regex = /^[0-9]*\.?[0-9]*%?$/;
+    // Allow digits, one decimal point, and % at the end
+    // Also allow commas for user convenience while typing
+    const regex = /^[0-9,]*\.?[0-9]*%?$/;
     if (regex.test(newValue) || newValue === "") {
       setEditingValue(newValue);
     }
@@ -38,9 +52,11 @@ export const EditableDiscountCell = memo(function EditableDiscountCell({
     if (editingValue === null) return;
 
     let finalValue = editingValue.trim();
+    // Remove commas for parsing
+    const cleanValue = finalValue.replace(/,/g, "");
 
-    if (finalValue && !finalValue.includes("%")) {
-      const num = parseFloat(finalValue);
+    if (cleanValue && !cleanValue.includes("%")) {
+      const num = parseFloat(cleanValue);
       if (!isNaN(num)) {
         // Validate: discount should not exceed price per unit
         if (maxValue > 0 && num > maxValue) {
@@ -49,11 +65,13 @@ export const EditableDiscountCell = memo(function EditableDiscountCell({
           finalValue = num.toFixed(2);
         }
       }
-    } else if (finalValue.includes("%")) {
+    } else if (cleanValue.includes("%")) {
       // Validate: percentage should not exceed 100%
-      const percent = parseFloat(finalValue.replace("%", ""));
+      const percent = parseFloat(cleanValue.replace("%", ""));
       if (!isNaN(percent) && percent > 100) {
         finalValue = "100%";
+      } else if (!isNaN(percent)) {
+        finalValue = `${percent}%`;
       }
     }
 
@@ -67,6 +85,7 @@ export const EditableDiscountCell = memo(function EditableDiscountCell({
   };
 
   const handleFocus = () => {
+    // When focusing, show raw value without commas for easier editing
     setEditingValue(value);
   };
 

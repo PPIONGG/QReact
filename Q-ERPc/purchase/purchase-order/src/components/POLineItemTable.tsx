@@ -144,7 +144,7 @@ export const POLineItemTable = memo(function POLineItemTable({
       render: (text, record) => (
         <EditableNumberCell
           value={text}
-          disabled={isReadOnly || record.statusRow === "D"}
+          disabled={isReadOnly || !record.transactionCode || record.statusRow === "D"}
           onChange={(value) => handleQuantityChange(record.key, value)}
         />
       ),
@@ -186,7 +186,7 @@ export const POLineItemTable = memo(function POLineItemTable({
       render: (text, record) => (
         <EditableNumberCell
           value={text}
-          disabled={isReadOnly || record.statusRow === "D"}
+          disabled={isReadOnly || !record.transactionCode || record.statusRow === "D"}
           onChange={(value) => handleUnitPriceChange(record.key, value)}
         />
       ),
@@ -200,12 +200,13 @@ export const POLineItemTable = memo(function POLineItemTable({
       render: (text, record) => {
         const pricePerUnit = record.unitPriceCurrency || 0;
         const hasNoPrice = pricePerUnit <= 0;
+        const hasNoProduct = !record.transactionCode;
 
         return (
           <EditableDiscountCell
             value={text}
-            disabled={isReadOnly || record.statusRow === "D" || hasNoPrice}
-            placeholder={hasNoPrice ? "กรอกราคาก่อน" : ""}
+            disabled={isReadOnly || record.statusRow === "D" || hasNoProduct || hasNoPrice}
+            placeholder={hasNoProduct ? "" : hasNoPrice ? "กรอกราคาก่อน" : ""}
             maxValue={pricePerUnit}
             onChange={(value) => handleDiscountChange(record.key, value)}
           />

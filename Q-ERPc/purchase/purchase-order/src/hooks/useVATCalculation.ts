@@ -8,6 +8,7 @@ import type { POLineItem } from '../components/POLineItemTable'
 interface UseVATCalculationProps {
   form: FormInstance
   lineItems: POLineItem[]
+  setLineItems: React.Dispatch<React.SetStateAction<POLineItem[]>>
   accessToken: string
   companyCode: string
   companyInfo: CompanyInfo | null
@@ -26,6 +27,7 @@ interface UseVATCalculationProps {
 export function useVATCalculation({
   form,
   lineItems,
+  setLineItems,
   accessToken,
   companyCode,
   companyInfo,
@@ -40,6 +42,15 @@ export function useVATCalculation({
 }: UseVATCalculationProps) {
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastCalcKey = useRef<string>('')
+  // Store last valid state for rollback
+  const lastValidLineItems = useRef<POLineItem[]>([])
+  const lastValidFormFields = useRef<{
+    discountStringBeforeVAT?: string
+    exchangeRate?: number | string
+    vatRate?: number | string
+    adjustVatEnabled?: boolean
+    vatAmountCurrency?: number
+  }>({})
 
   useEffect(() => {
     if (!accessToken || !companyCode) return
@@ -156,6 +167,8 @@ export function useVATCalculation({
 
       try {
         const response = await calculateVatAmount(request, accessToken, companyCode)
+        console.log('Calculate API response:', response) // Debug: ดู response จาก API
+
         if (response.code === 0 && response.result) {
           const header = response.result.calculateHeader
           const fieldsToUpdate: Record<string, unknown> = {
@@ -180,10 +193,79 @@ export function useVATCalculation({
           }
 
           form.setFieldsValue(fieldsToUpdate)
+
+          // Save current state as valid after successful calculation
+          lastValidLineItems.current = lineItems.map((item) => ({ ...item }))
+          lastValidFormFields.current = {
+            discountStringBeforeVAT,
+            exchangeRate,
+            vatRate,
+            adjustVatEnabled,
+            vatAmountCurrency: vatAmountCurrencyWatch,
+          }
+        } else {
+          // API returned error - rollback to last valid state
+          const hasValidState = lastValidLineItems.current.length > 0 || Object.keys(lastValidFormFields.current).length > 0
+          if (hasValidState) {
+            message.error(response.msg || 'ไม่สามารถคำนวณได้ กรุณาตรวจสอบข้อมูล')
+
+            // Rollback lineItems
+            if (lastValidLineItems.current.length > 0) {
+              setLineItems(lastValidLineItems.current.map((item) => ({ ...item })))
+            }
+
+            // Rollback form fields
+            if (Object.keys(lastValidFormFields.current).length > 0) {
+              form.setFieldsValue({
+                discountStringBeforeVAT: lastValidFormFields.current.discountStringBeforeVAT,
+                exchangeRate: lastValidFormFields.current.exchangeRate,
+                vatRate: lastValidFormFields.current.vatRate,
+                adjustVatEnabled: lastValidFormFields.current.adjustVatEnabled,
+                vatAmountCurrency: lastValidFormFields.current.vatAmountCurrency,
+              })
+            }
+
+            // Reset calcKey to allow recalculation after rollback
+            lastCalcKey.current = ''
+          }
         }
       } catch (error) {
         console.error('Failed to calculate VAT:', error)
-        message.warning('ไม่สามารถคำนวณ VAT ได้ กรุณาตรวจสอบข้อมูล')
+
+        // Extract error message from API response (Axios error)
+        let errorMessage = 'เกิดข้อผิดพลาดในการคำนวณ กรุณาตรวจสอบข้อมูล'
+        const axiosError = error as { response?: { data?: { msg?: string } } }
+        if (axiosError.response?.data?.msg) {
+          // Replace \r\n with actual line breaks for display
+          errorMessage = axiosError.response.data.msg.replace(/\\r\\n/g, '\n').replace(/\r\n/g, '\n')
+        }
+
+        // Rollback to last valid state on error
+        const hasValidState = lastValidLineItems.current.length > 0 || Object.keys(lastValidFormFields.current).length > 0
+        if (hasValidState) {
+          message.error(errorMessage)
+
+          // Rollback lineItems
+          if (lastValidLineItems.current.length > 0) {
+            setLineItems(lastValidLineItems.current.map((item) => ({ ...item })))
+          }
+
+          // Rollback form fields
+          if (Object.keys(lastValidFormFields.current).length > 0) {
+            form.setFieldsValue({
+              discountStringBeforeVAT: lastValidFormFields.current.discountStringBeforeVAT,
+              exchangeRate: lastValidFormFields.current.exchangeRate,
+              vatRate: lastValidFormFields.current.vatRate,
+              adjustVatEnabled: lastValidFormFields.current.adjustVatEnabled,
+              vatAmountCurrency: lastValidFormFields.current.vatAmountCurrency,
+            })
+          }
+
+          // Reset calcKey to allow recalculation after rollback
+          lastCalcKey.current = ''
+        } else {
+          message.warning(errorMessage)
+        }
       }
     }
 
@@ -205,6 +287,7 @@ export function useVATCalculation({
     }
   }, [
     lineItems,
+    setLineItems,
     discountStringBeforeVAT,
     exchangeRate,
     accessToken,
