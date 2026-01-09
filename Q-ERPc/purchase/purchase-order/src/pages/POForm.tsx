@@ -142,6 +142,21 @@ export function POForm({ canEdit = true }: POFormProps) {
     }
   }, [isPrintMode, isViewMode, lineItems])
 
+  // Warn before leaving page (refresh, close tab) when in edit/create mode
+  useEffect(() => {
+    if (isReadOnly) return
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+      // Modern browsers ignore custom message but still show confirmation
+      e.returnValue = 'คุณมีข้อมูลที่ยังไม่ได้บันทึก ต้องการออกจากหน้านี้หรือไม่?'
+      return e.returnValue
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [isReadOnly])
+
   const pageTitle = isViewMode
     ? 'ดูรายละเอียดใบสั่งซื้อ'
     : isEditMode
