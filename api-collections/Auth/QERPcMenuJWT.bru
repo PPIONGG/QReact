@@ -27,7 +27,6 @@ script:post-response {
   // Auto-save menuToken สำหรับใช้กับ API ถัดไป
   if (res.body.code === 0 && res.body.result?.accessToken) {
     bru.setEnvVar("menuToken", res.body.result.accessToken);
-    console.log("✅ menuToken saved!");
   }
 }
 

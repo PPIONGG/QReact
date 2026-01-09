@@ -35,7 +35,6 @@ script:post-response {
   // Auto-save accessToken หลัง login สำเร็จ
   if (res.body.code === 0 && res.body.result?.accessToken) {
     bru.setEnvVar("loginToken", res.body.result.accessToken);
-    console.log("✅ loginToken saved!");
   }
 }
 
