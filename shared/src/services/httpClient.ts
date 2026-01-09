@@ -114,6 +114,14 @@ export class HttpClient {
     return response.data
   }
 
+  async postBlob(endpoint: string, body?: unknown, options?: RequestOptions): Promise<Blob> {
+    const response = await this.axiosInstance.post(endpoint, body, {
+      headers: this.createHeaders(options),
+      responseType: 'blob',
+    })
+    return response.data
+  }
+
   /** Update default token (e.g., after login) */
   setDefaultToken(token: string) {
     this.defaultToken = token

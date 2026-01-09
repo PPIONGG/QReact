@@ -6,6 +6,7 @@ import { POSearchFilter } from '../components/POSearchFilter'
 import { CancelPOModal } from '../components/CancelPOModal'
 import { RejectReasonModal } from '../components/RejectReasonModal'
 import { CheckStatusModal } from '../components/CheckStatusModal'
+import { PrintFormSelectModal } from '../components/PrintFormSelectModal'
 import { ConfirmModal } from '../../../../../shared/src/components/ConfirmModal'
 import type { ApprovalActionParams } from '../components/ApprovalStatusTag'
 import { usePOColumns, getDefaultVisibleColumns } from '../hooks/usePOColumns'
@@ -60,6 +61,11 @@ export function POList({ canInsert = true }: POListProps) {
   const [printPreviewOpen, setPrintPreviewOpen] = useState(false)
   const [selectedRunNoForPrint, setSelectedRunNoForPrint] = useState<number | null>(null)
 
+  // Print form select modal state
+  const [printFormSelectOpen, setPrintFormSelectOpen] = useState(false)
+  const [selectedRunNoForPrintForm, setSelectedRunNoForPrintForm] = useState<number | null>(null)
+  const [selectedDocTypeCodeForPrintForm, setSelectedDocTypeCodeForPrintForm] = useState<string | null>(null)
+
   // Reject reason modal state
   const [rejectModalOpen, setRejectModalOpen] = useState(false)
   const [pendingRejectParams, setPendingRejectParams] = useState<ApprovalActionParams | null>(null)
@@ -111,8 +117,9 @@ export function POList({ canInsert = true }: POListProps) {
   }, [])
 
   const handleView = useCallback((record: POHeader) => {
-    setSelectedRunNoForPrint(record.runNo)
-    setPrintPreviewOpen(true)
+    setSelectedRunNoForPrintForm(record.runNo)
+    setSelectedDocTypeCodeForPrintForm(record.documentTypeCode)
+    setPrintFormSelectOpen(true)
   }, [])
 
   const handleCancel = useCallback((record: POHeader) => {
@@ -199,6 +206,13 @@ export function POList({ canInsert = true }: POListProps) {
   const handleClosePrintPreview = useCallback(() => {
     setPrintPreviewOpen(false)
     setSelectedRunNoForPrint(null)
+  }, [])
+
+  // Print form select handlers
+  const handlePrintFormSelectClose = useCallback(() => {
+    setPrintFormSelectOpen(false)
+    setSelectedRunNoForPrintForm(null)
+    setSelectedDocTypeCodeForPrintForm(null)
   }, [])
 
   // Approval action handler
@@ -390,6 +404,13 @@ export function POList({ canInsert = true }: POListProps) {
         confirmLoading={isSubmittingApproval}
         onConfirm={handleApprovalConfirm}
         onCancel={handleApprovalConfirmClose}
+      />
+
+      <PrintFormSelectModal
+        open={printFormSelectOpen}
+        runNo={selectedRunNoForPrintForm}
+        documentTypeCode={selectedDocTypeCodeForPrintForm}
+        onCancel={handlePrintFormSelectClose}
       />
     </Card>
     </>
