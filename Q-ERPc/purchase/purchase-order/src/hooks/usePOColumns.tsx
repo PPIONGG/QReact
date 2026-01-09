@@ -33,7 +33,7 @@ export const PO_COLUMN_CONFIGS: ColumnConfig[] = [
 export const getDefaultVisibleColumns = (): string[] => PO_COLUMN_CONFIGS.map((c) => c.key)
 
 interface UsePOColumnsProps {
-  onEdit: (runNo: number) => void
+  onEdit: (record: POHeader) => void
   onView: (record: POHeader) => void
   onCancel: (record: POHeader) => void
   onPrint: (record: POHeader) => void
@@ -216,7 +216,7 @@ export function usePOColumns({
               label: 'แก้ไข',
               icon: <EditOutlined />,
               disabled: isDisabled,
-              onClick: () => onEdit(record.runNo),
+              onClick: () => onEdit(record),
             },
             {
               key: 'cancel',

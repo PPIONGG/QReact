@@ -7,6 +7,8 @@ import type {
   POOrderResponse,
   POCancelRequest,
   POCancelResponse,
+  CheckStatusRequest,
+  CheckStatusResponse,
 } from '../types'
 
 /**
@@ -100,10 +102,26 @@ export async function poCancel(
   })
 }
 
+/**
+ * Check status before edit/cancel PO
+ * Calls POST /api/PO/CheckStatus API
+ */
+export async function checkStatus(
+  request: CheckStatusRequest,
+  accessToken: string,
+  packageCode: string
+): Promise<CheckStatusResponse> {
+  return httpClient.post<CheckStatusResponse>(`/api/PO/CheckStatus`, request, {
+    accessToken,
+    packageCode,
+  })
+}
+
 export const poService = {
   getPOHeaderList,
   poInsert,
   poUpdate,
   getPOOrder,
   poCancel,
+  checkStatus,
 }

@@ -5,13 +5,18 @@ import { useNavigate } from 'react-router-dom'
 import { POSearchFilter } from '../components/POSearchFilter'
 import { CancelPOModal } from '../components/CancelPOModal'
 import { RejectReasonModal } from '../components/RejectReasonModal'
+import { CheckStatusModal } from '../components/CheckStatusModal'
 import { ConfirmModal } from '../../../../../shared/src/components/ConfirmModal'
 import type { ApprovalActionParams } from '../components/ApprovalStatusTag'
 import { usePOColumns, getDefaultVisibleColumns } from '../hooks/usePOColumns'
 import { usePOListData } from '../hooks/usePOListData'
 import { useApprovedConfig } from '../hooks/useApprovedConfig'
 import { POPrintPreview } from './POPrintPreview'
-import type { POHeader } from '../types'
+import type { POHeader, CheckStatusMode } from '../types'
+import { poService } from '../services'
+import { useAuthStore } from '../stores'
+
+type CheckStatusModalState = 'confirm' | 'loading' | 'error'
 
 const VISIBLE_COLUMNS_STORAGE_KEY = 'po-list-visible-columns'
 
@@ -37,6 +42,7 @@ const loadVisibleColumns = (): string[] => {
 
 export function POList({ canInsert = true }: POListProps) {
   const navigate = useNavigate()
+  const { accessToken, companyCode } = useAuthStore()
 
   // Column visibility state
   const [visibleColumns, setVisibleColumns] = useState<string[]>(loadVisibleColumns)
@@ -65,6 +71,13 @@ export function POList({ canInsert = true }: POListProps) {
   // Selected row state
   const [selectedRowKey, setSelectedRowKey] = useState<number | null>(null)
 
+  // CheckStatus modal state
+  const [checkStatusModalOpen, setCheckStatusModalOpen] = useState(false)
+  const [checkStatusMode, setCheckStatusMode] = useState<CheckStatusMode | null>(null)
+  const [checkStatusPO, setCheckStatusPO] = useState<POHeader | null>(null)
+  const [checkStatusModalState, setCheckStatusModalState] = useState<CheckStatusModalState>('confirm')
+  const [checkStatusErrorMessage, setCheckStatusErrorMessage] = useState<string | null>(null)
+
   // Data hook
   const {
     documentTypeOptions,
@@ -89,12 +102,13 @@ export function POList({ canInsert = true }: POListProps) {
     navigate('create')
   }, [navigate])
 
-  const handleEdit = useCallback(
-    (runNo: number) => {
-      navigate(`edit/${runNo}`)
-    },
-    [navigate]
-  )
+  const handleEdit = useCallback((record: POHeader) => {
+    setCheckStatusPO(record)
+    setCheckStatusMode('Edit')
+    setCheckStatusModalState('confirm')
+    setCheckStatusErrorMessage(null)
+    setCheckStatusModalOpen(true)
+  }, [])
 
   const handleView = useCallback((record: POHeader) => {
     setSelectedRunNoForPrint(record.runNo)
@@ -102,8 +116,64 @@ export function POList({ canInsert = true }: POListProps) {
   }, [])
 
   const handleCancel = useCallback((record: POHeader) => {
-    setSelectedPOForCancel(record)
-    setCancelModalOpen(true)
+    setCheckStatusPO(record)
+    setCheckStatusMode('Cancel')
+    setCheckStatusModalState('confirm')
+    setCheckStatusErrorMessage(null)
+    setCheckStatusModalOpen(true)
+  }, [])
+
+  // CheckStatus modal confirm handler
+  const handleCheckStatusConfirm = useCallback(async () => {
+    if (!checkStatusPO || !checkStatusMode) return
+
+    setCheckStatusModalState('loading')
+
+    try {
+      const response = await poService.checkStatus(
+        {
+          documentModuleCode: 'PO',
+          documentTypeCode: checkStatusPO.documentTypeCode,
+          runNo: checkStatusPO.runNo,
+          mode: checkStatusMode,
+        },
+        accessToken || '',
+        companyCode || ''
+      )
+
+      if (response.code === 0 && response.result) {
+        if (response.result.canProceed) {
+          // Success - close modal and proceed
+          setCheckStatusModalOpen(false)
+
+          if (checkStatusMode === 'Edit') {
+            navigate(`edit/${checkStatusPO.runNo}`)
+          } else {
+            // Cancel mode - open cancel confirmation modal
+            setSelectedPOForCancel(checkStatusPO)
+            setCancelModalOpen(true)
+          }
+        } else {
+          // Cannot proceed - show error message
+          setCheckStatusErrorMessage(response.result.message || 'ไม่สามารถดำเนินการได้')
+          setCheckStatusModalState('error')
+        }
+      } else {
+        setCheckStatusErrorMessage(response.msg || 'เกิดข้อผิดพลาดในการตรวจสอบสถานะ')
+        setCheckStatusModalState('error')
+      }
+    } catch (error) {
+      console.error('CheckStatus error:', error)
+      setCheckStatusErrorMessage('เกิดข้อผิดพลาดในการตรวจสอบสถานะ')
+      setCheckStatusModalState('error')
+    }
+  }, [checkStatusPO, checkStatusMode, accessToken, companyCode, navigate])
+
+  const handleCheckStatusModalClose = useCallback(() => {
+    setCheckStatusModalOpen(false)
+    setCheckStatusPO(null)
+    setCheckStatusMode(null)
+    setCheckStatusErrorMessage(null)
   }, [])
 
   const handlePrint = useCallback((record: POHeader) => {
@@ -258,6 +328,16 @@ export function POList({ canInsert = true }: POListProps) {
         onRow={(record) => ({
           onClick: () => setSelectedRowKey(record.runNo),
         })}
+      />
+
+      <CheckStatusModal
+        open={checkStatusModalOpen}
+        mode={checkStatusMode}
+        poNo={checkStatusPO?.pono || ''}
+        state={checkStatusModalState}
+        errorMessage={checkStatusErrorMessage}
+        onConfirm={handleCheckStatusConfirm}
+        onClose={handleCheckStatusModalClose}
       />
 
       <CancelPOModal
