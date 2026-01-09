@@ -1,7 +1,7 @@
 import { Dropdown } from 'antd'
 import { DownOutlined } from '@ant-design/icons'
 import type { MenuProps } from 'antd'
-import type { ApprovedAction } from '../types'
+import type { ApprovedAction, ApprovalStatus } from '../types'
 import { getApprovalStatusFromConfig } from '../utils'
 
 export interface ApprovalActionParams {
@@ -13,6 +13,7 @@ export interface ApprovalActionParams {
 interface ApprovalStatusTagProps {
   status: string
   actions: ApprovedAction[]
+  approvalStatus?: ApprovalStatus  // Flags to filter available actions
   runNo: number
   level: number
   disabled?: boolean
@@ -41,15 +42,42 @@ const getActionType = (actionValue: string): 'approve' | 'reject' | 'cancel' => 
   return 'cancel'
 }
 
+// Check if action is allowed based on approval status flags
+const isActionAllowed = (action: ApprovedAction, approvalStatus?: ApprovalStatus): boolean => {
+  if (!approvalStatus?.actionPermissions) return true // If no flags provided, allow all
+
+  const permissions = approvalStatus.actionPermissions
+  switch (action.type) {
+    case 'Complete':
+      return permissions.Complete === true
+    case 'UnComplete':
+      return permissions.UnComplete === true
+    case 'Process':
+      return permissions.Process === true
+    case 'Request':
+      return permissions.Request === true
+    default:
+      return true
+  }
+}
+
+// Check if all flags are false (or missing)
+const areAllFlagsFalse = (approvalStatus?: ApprovalStatus): boolean => {
+  if (!approvalStatus?.actionPermissions) return false
+  const p = approvalStatus.actionPermissions
+  return !p.Complete && !p.Process && !p.UnComplete && !p.Request
+}
+
 export function ApprovalStatusTag({
   status,
   actions,
+  approvalStatus,
   runNo,
   level,
   disabled = false,
   onAction,
 }: ApprovalStatusTagProps) {
-  console.log(`🏷️ ApprovalStatusTag Level ${level}:`, { status, actionsCount: actions.length, disabled, runNo })
+  console.log(`🏷️ ApprovalStatusTag Level ${level}:`, { status, actionsCount: actions.length, disabled, runNo, approvalStatus })
   const { text } = getApprovalStatusFromConfig(status, actions)
   const colorKey = getStatusColor(status)
   const style = STATUS_STYLES[colorKey]
@@ -60,9 +88,12 @@ export function ApprovalStatusTag({
     onAction?.({ runNo, level, action: actionType })
   }
 
-  // Build menu items from actions config (exclude current status)
+  // Check if all flags are false - completely disable (no dropdown)
+  const allFlagsFalse = areAllFlagsFalse(approvalStatus)
+
+  // Build menu items from actions config (exclude current status and filter by flags)
   const menuItems: MenuProps['items'] = actions
-    .filter((action) => action.value !== status)
+    .filter((action) => action.value !== status && isActionAllowed(action, approvalStatus))
     .map((action) => {
       const itemColorKey = getStatusColor(action.value)
       const itemStyle = STATUS_STYLES[itemColorKey]
@@ -87,6 +118,9 @@ export function ApprovalStatusTag({
   // Display text - use wider placeholder when empty
   const displayText = text || 'เลือก'
 
+  // Check if component should be in disabled state
+  const isDisabledState = disabled || menuItems.length === 0 || allFlagsFalse
+
   // Base button style
   const buttonStyle: React.CSSProperties = {
     display: 'inline-flex',
@@ -100,14 +134,15 @@ export function ApprovalStatusTag({
     backgroundColor: style.bg,
     color: style.text,
     border: 'none',
-    cursor: disabled ? 'default' : 'pointer',
-    opacity: disabled ? 0.7 : 1,
+    cursor: isDisabledState ? 'default' : 'pointer',
+    opacity: isDisabledState ? 0.5 : 1,
     transition: 'background-color 0.2s',
     minWidth: 60,
   }
 
-  // Disabled state or no actions available - just show the badge
-  if (disabled || menuItems.length === 0) {
+  // Disabled state: recStatus=1, no actions available, or all flags are false
+  // Just show the badge without dropdown (like cancelled document)
+  if (isDisabledState) {
     return (
       <span style={buttonStyle}>
         {displayText}

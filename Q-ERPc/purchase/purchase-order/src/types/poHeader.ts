@@ -4,11 +4,18 @@ import type { ApiResponse } from "@qerp/shared"
 
 // import type { ApiResponse } from "../../../../../shared/src/types/api"
 
-// Approval status for each level
+// Action permissions for each approval level
+export interface ActionPermissions {
+  Complete?: boolean    // Can select "อนุมัติ" (Y)
+  Process?: boolean     // Can select "รออนุมัติ" (W)
+  UnComplete?: boolean  // Can select "ไม่อนุมัติ" (N)
+  Request?: boolean     // Can select "ขอร้อง" (P)
+}
+
+// Approval status flags for each level (from POHeaderList API)
 export interface ApprovalStatus {
   level: number
-  status: string | null
-  canApprove: boolean
+  actionPermissions: ActionPermissions
 }
 
 export interface POHeader {
