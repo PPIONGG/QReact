@@ -2,26 +2,23 @@ import { useMemo } from 'react'
 import { Tag, Button, Dropdown } from 'antd'
 import { EditOutlined, EyeOutlined, PrinterOutlined, StopOutlined, EllipsisOutlined } from '@ant-design/icons'
 import type { ColumnsType, ColumnType } from 'antd/es/table'
-import type { POHeader, ApprovedAction } from '../types'
+import type { POHeader, ApprovedAction, ApprovedLevel } from '../types'
 import dayjs from 'dayjs'
 import { getDeliveryStatus, getRecStatus } from '../utils'
 import { ColumnSelector, type ColumnConfig } from '../components/ColumnSelector'
 import { ApprovalStatusTag, type ApprovalActionParams } from '../components/ApprovalStatusTag'
 
-// Column configurations for the selector
-export const PO_COLUMN_CONFIGS: ColumnConfig[] = [
+// Base column configurations (without approval columns)
+const BASE_COLUMN_CONFIGS: ColumnConfig[] = [
   { key: 'index', title: 'ลำดับ', required: true },
   { key: 'pono', title: 'เลขที่ใบสั่งซื้อ', required: true },
   { key: 'podate', title: 'วันที่เอกสาร' },
   { key: 'supplierName', title: 'ชื่อผู้ขาย' },
   { key: 'currencyCode', title: 'สกุลเงิน' },
   { key: 'totalAmountCurrencyAfterVat', title: 'จำนวนเงิน' },
-  { key: 'approvedStatus01', title: 'สถานะอนุมัติ' },
-  { key: 'approvedByName01', title: 'ชื่อผู้อนุมัติ' },
-  { key: 'approvedByLastDated01', title: 'วันที่อนุมัติ' },
-  { key: 'approvedStatus02', title: 'สถานะอนุมัติผู้บริหาร' },
-  { key: 'approvedByName02', title: 'ชื่อผู้อนุมัติผู้บริหาร' },
-  { key: 'approvedByLastDated02', title: 'วันที่อนุมัติผู้บริหาร' },
+]
+
+const AFTER_APPROVAL_CONFIGS: ColumnConfig[] = [
   { key: 'deliveryStatus', title: 'สถานะรับสินค้า' },
   { key: 'recStatus', title: 'สถานะ' },
   { key: 'lastUpdated', title: 'แก้ไขล่าสุด' },
@@ -29,8 +26,45 @@ export const PO_COLUMN_CONFIGS: ColumnConfig[] = [
   { key: 'action', title: 'ตัวเลือก', required: true },
 ]
 
+// Generate approval column configs for a level
+function getApprovalColumnConfigsForLevel(level: number, displayColumns: { field: string; captionTH: string }[]): ColumnConfig[] {
+  const levelStr = level.toString().padStart(2, '0')
+  return displayColumns.map((col) => ({
+    key: `${col.field}${levelStr}`,
+    title: col.captionTH,
+  }))
+}
+
+// Generate column configs dynamically based on configured levels
+export function generateColumnConfigs(configuredLevels: ApprovedLevel[]): ColumnConfig[] {
+  const approvalConfigs: ColumnConfig[] = []
+
+  configuredLevels.forEach((level) => {
+    approvalConfigs.push(...getApprovalColumnConfigsForLevel(level.level, level.displayColumns))
+  })
+
+  return [...BASE_COLUMN_CONFIGS, ...approvalConfigs, ...AFTER_APPROVAL_CONFIGS]
+}
+
+// Legacy static config for backward compatibility
+export const PO_COLUMN_CONFIGS: ColumnConfig[] = [
+  ...BASE_COLUMN_CONFIGS,
+  { key: 'approvedStatus01', title: 'สถานะอนุมัติ' },
+  { key: 'approvedByName01', title: 'ชื่อผู้อนุมัติ' },
+  { key: 'approvedByLastDated01', title: 'วันที่อนุมัติ' },
+  { key: 'approvedStatus02', title: 'สถานะอนุมัติผู้บริหาร' },
+  { key: 'approvedByName02', title: 'ชื่อผู้อนุมัติผู้บริหาร' },
+  { key: 'approvedByLastDated02', title: 'วันที่อนุมัติผู้บริหาร' },
+  ...AFTER_APPROVAL_CONFIGS,
+]
+
 // Get default visible columns (all columns)
 export const getDefaultVisibleColumns = (): string[] => PO_COLUMN_CONFIGS.map((c) => c.key)
+
+// Get default visible columns based on configured levels
+export function getDefaultVisibleColumnsFromConfig(configuredLevels: ApprovedLevel[]): string[] {
+  return generateColumnConfigs(configuredLevels).map((c) => c.key)
+}
 
 interface UsePOColumnsProps {
   onEdit: (record: POHeader) => void
@@ -40,6 +74,9 @@ interface UsePOColumnsProps {
   onApprovalAction?: (params: ApprovalActionParams) => void
   visibleColumns?: string[]
   onVisibleColumnsChange?: (columns: string[]) => void
+  configuredLevels?: ApprovedLevel[]
+  actionsByLevel?: Record<number, ApprovedAction[]>
+  // Legacy props for backward compatibility
   approvedActions01?: ApprovedAction[]
   approvedActions02?: ApprovedAction[]
 }
@@ -52,10 +89,21 @@ export function usePOColumns({
   onApprovalAction,
   visibleColumns,
   onVisibleColumnsChange,
+  configuredLevels = [],
+  actionsByLevel = {},
   approvedActions01 = [],
   approvedActions02 = [],
 }: UsePOColumnsProps) {
-  const allColumns: ColumnsType<POHeader> = useMemo(
+  // Generate dynamic column configs based on configured levels
+  const dynamicColumnConfigs = useMemo(() => {
+    if (configuredLevels.length > 0) {
+      return generateColumnConfigs(configuredLevels)
+    }
+    return PO_COLUMN_CONFIGS
+  }, [configuredLevels])
+
+  // Base columns (always present)
+  const baseColumns: ColumnsType<POHeader> = useMemo(
     () => [
       {
         title: 'ลำดับ',
@@ -98,6 +146,73 @@ export function usePOColumns({
         align: 'right',
         render: (value: number) => value?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '-',
       },
+    ],
+    []
+  )
+
+  // Generate approval columns dynamically
+  const approvalColumns: ColumnsType<POHeader> = useMemo(() => {
+    console.log('🔍 usePOColumns - configuredLevels:', configuredLevels.length, configuredLevels)
+    console.log('🔍 usePOColumns - actionsByLevel:', actionsByLevel)
+
+    // If using new dynamic config
+    if (configuredLevels.length > 0) {
+      const columns: ColumnsType<POHeader> = []
+
+      configuredLevels.forEach((levelConfig) => {
+        const level = levelConfig.level
+        const actions = actionsByLevel[level] || []
+
+        levelConfig.displayColumns.forEach((displayCol) => {
+          // API returns field with level suffix already (e.g., "ApprovedStatus01")
+          // Convert to lowercase for dataIndex to match POHeader type
+          const fieldLower = displayCol.field.charAt(0).toLowerCase() + displayCol.field.slice(1)
+          const key = fieldLower
+          const dataIndex = fieldLower
+
+          // Check field name (case-insensitive)
+          const fieldBase = displayCol.field.replace(/\d+$/, '').toLowerCase()
+          if (fieldBase === 'approvedstatus') {
+            columns.push({
+              title: displayCol.captionTH,
+              dataIndex,
+              key,
+              width: 120,
+              render: (status: string, record: POHeader) => (
+                <ApprovalStatusTag
+                  status={status}
+                  actions={actions}
+                  runNo={record.runNo}
+                  level={level}
+                  disabled={record.recStatus === 1}
+                  onAction={onApprovalAction}
+                />
+              ),
+            })
+          } else if (fieldBase === 'approvedbylastdated') {
+            columns.push({
+              title: displayCol.captionTH,
+              dataIndex,
+              key,
+              width: 140,
+              render: (date: string | null) => (date ? dayjs(date).format('DD/MM/YYYY HH:mm') : '-'),
+            })
+          } else {
+            columns.push({
+              title: displayCol.captionTH,
+              dataIndex,
+              key,
+              width: 120,
+            })
+          }
+        })
+      })
+
+      return columns
+    }
+
+    // Fallback to legacy hardcoded columns
+    return [
       {
         title: 'สถานะอนุมัติ',
         dataIndex: 'approvedStatus01',
@@ -156,6 +271,12 @@ export function usePOColumns({
         width: 150,
         render: (date: string | null) => (date ? dayjs(date).format('DD/MM/YYYY HH:mm') : '-'),
       },
+    ]
+  }, [configuredLevels, actionsByLevel, approvedActions01, approvedActions02, onApprovalAction])
+
+  // After approval columns (always present)
+  const afterApprovalColumns: ColumnsType<POHeader> = useMemo(
+    () => [
       {
         title: 'สถานะรับสินค้า',
         dataIndex: 'deliveryStatus',
@@ -195,8 +316,8 @@ export function usePOColumns({
       {
         title: onVisibleColumnsChange ? (
           <ColumnSelector
-            columns={PO_COLUMN_CONFIGS}
-            visibleColumns={visibleColumns || getDefaultVisibleColumns()}
+            columns={dynamicColumnConfigs}
+            visibleColumns={visibleColumns || dynamicColumnConfigs.map((c) => c.key)}
             onChange={onVisibleColumnsChange}
           />
         ) : (
@@ -259,7 +380,13 @@ export function usePOColumns({
         },
       },
     ],
-    [onEdit, onView, onCancel, onPrint, onApprovalAction, onVisibleColumnsChange, visibleColumns, approvedActions01, approvedActions02]
+    [onEdit, onView, onCancel, onPrint, onVisibleColumnsChange, visibleColumns, dynamicColumnConfigs]
+  )
+
+  // Combine all columns
+  const allColumns: ColumnsType<POHeader> = useMemo(
+    () => [...baseColumns, ...approvalColumns, ...afterApprovalColumns],
+    [baseColumns, approvalColumns, afterApprovalColumns]
   )
 
   // Filter columns based on visibility

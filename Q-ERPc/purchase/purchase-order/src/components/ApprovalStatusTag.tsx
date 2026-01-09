@@ -49,6 +49,7 @@ export function ApprovalStatusTag({
   disabled = false,
   onAction,
 }: ApprovalStatusTagProps) {
+  console.log(`🏷️ ApprovalStatusTag Level ${level}:`, { status, actionsCount: actions.length, disabled, runNo })
   const { text } = getApprovalStatusFromConfig(status, actions)
   const colorKey = getStatusColor(status)
   const style = STATUS_STYLES[colorKey]
@@ -83,10 +84,14 @@ export function ApprovalStatusTag({
       }
     })
 
+  // Display text - use wider placeholder when empty
+  const displayText = text || 'เลือก'
+
   // Base button style
   const buttonStyle: React.CSSProperties = {
     display: 'inline-flex',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 4,
     padding: '2px 8px',
     borderRadius: 3,
@@ -98,13 +103,14 @@ export function ApprovalStatusTag({
     cursor: disabled ? 'default' : 'pointer',
     opacity: disabled ? 0.7 : 1,
     transition: 'background-color 0.2s',
+    minWidth: 60,
   }
 
-  // Disabled state - just show the badge
-  if (disabled) {
+  // Disabled state or no actions available - just show the badge
+  if (disabled || menuItems.length === 0) {
     return (
       <span style={buttonStyle}>
-        {text || '-'}
+        {displayText}
       </span>
     )
   }
@@ -128,7 +134,7 @@ export function ApprovalStatusTag({
           e.currentTarget.style.backgroundColor = style.bg
         }}
       >
-        {text || '-'}
+        {displayText}
         <DownOutlined style={{ fontSize: 10 }} />
       </span>
     </Dropdown>

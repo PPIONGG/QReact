@@ -193,6 +193,15 @@ export function usePOListData() {
         }
       } catch (error) {
         console.error('Failed to submit approval:', error)
+        // Handle API error response (e.g., 400 Bad Request)
+        if (error && typeof error === 'object' && 'response' in error) {
+          const axiosError = error as { response?: { data?: { message?: string; messageE?: string } } }
+          const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.messageE
+          if (errorMessage) {
+            message.error(errorMessage)
+            return false
+          }
+        }
         message.error('เกิดข้อผิดพลาดในการส่งคำขอ')
         return false
       } finally {

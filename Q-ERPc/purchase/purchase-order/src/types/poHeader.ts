@@ -21,15 +21,31 @@ export interface POHeader {
   podate: string
   supplierCode: string
   supplierName: string
+  // Level 1
   approvedStatus01: string | null
+  approvedByCode01: string | null
   approvedByName01: string | null
   approvedByLastDated01: string | null
+  // Level 2
   approvedStatus02: string | null
+  approvedByCode02: string | null
   approvedByName02: string | null
   approvedByLastDated02: string | null
+  // Level 3
   approvedStatus03: string | null
+  approvedByCode03: string | null
+  approvedByName03: string | null
+  approvedByLastDated03: string | null
+  // Level 4
   approvedStatus04: string | null
+  approvedByCode04: string | null
+  approvedByName04: string | null
+  approvedByLastDated04: string | null
+  // Level 5
   approvedStatus05: string | null
+  approvedByCode05: string | null
+  approvedByName05: string | null
+  approvedByLastDated05: string | null
   deliveryStatus: string
   deliveryStatusComplete: string
   currencyCode: string

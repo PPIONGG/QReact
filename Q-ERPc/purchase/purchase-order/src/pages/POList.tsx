@@ -95,7 +95,7 @@ export function POList({ canInsert = true }: POListProps) {
   } = usePOListData()
 
   // Approved config hook
-  const { getActionsForLevel } = useApprovedConfig()
+  const { configuredLevels, actionsByLevel, getActionsForLevel, isLoading: isLoadingConfig } = useApprovedConfig()
 
   // Handlers
   const handleCreate = useCallback(() => {
@@ -221,11 +221,10 @@ export function POList({ canInsert = true }: POListProps) {
   const handleApprovalConfirm = useCallback(async () => {
     if (!pendingApprovalParams) return
 
-    const success = await handleApprovalAction(pendingApprovalParams)
-    if (success) {
-      setApprovalConfirmOpen(false)
-      setPendingApprovalParams(null)
-    }
+    await handleApprovalAction(pendingApprovalParams)
+    // Always close modal after API call (success or error)
+    setApprovalConfirmOpen(false)
+    setPendingApprovalParams(null)
   }, [pendingApprovalParams, handleApprovalAction])
 
   const handleApprovalConfirmClose = useCallback(() => {
@@ -237,15 +236,13 @@ export function POList({ canInsert = true }: POListProps) {
     async (reason: string) => {
       if (!pendingRejectParams) return
 
-      const success = await handleApprovalAction({
+      await handleApprovalAction({
         ...pendingRejectParams,
         comment: reason,
       })
-
-      if (success) {
-        setRejectModalOpen(false)
-        setPendingRejectParams(null)
-      }
+      // Always close modal after API call (success or error)
+      setRejectModalOpen(false)
+      setPendingRejectParams(null)
     },
     [pendingRejectParams, handleApprovalAction]
   )
@@ -264,6 +261,9 @@ export function POList({ canInsert = true }: POListProps) {
     onApprovalAction: handleApprovalClick,
     visibleColumns,
     onVisibleColumnsChange: setVisibleColumns,
+    configuredLevels,
+    actionsByLevel,
+    // Legacy props for backward compatibility
     approvedActions01: getActionsForLevel(1),
     approvedActions02: getActionsForLevel(2),
   })
@@ -317,7 +317,7 @@ export function POList({ canInsert = true }: POListProps) {
         pagination={{ pageSize: 10 }}
         size="middle"
         bordered
-        loading={isLoadingPOHeaders}
+        loading={isLoadingPOHeaders || isLoadingConfig}
         scroll={{ x: 'max-content' }}
         rowClassName={(record) => {
           const classes: string[] = []

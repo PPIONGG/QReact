@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useAuthStore } from '../stores'
 import { getApprovedConfigPO } from '../services'
-import type { ApprovedConfigData, ApprovedAction } from '../types'
+import type { ApprovedConfigData, ApprovedAction, ApprovedLevel } from '../types'
 
 export function useApprovedConfig() {
   const { accessToken, companyCode } = useAuthStore()
@@ -10,14 +10,18 @@ export function useApprovedConfig() {
 
   // Fetch approved config on mount
   useEffect(() => {
+    console.log('🔧 useApprovedConfig - checking credentials:', { hasToken: !!accessToken, hasCompanyCode: !!companyCode })
     if (!accessToken || !companyCode) return
 
     const fetchConfig = async () => {
       setIsLoading(true)
+      console.log('🔧 useApprovedConfig - fetching config...')
       try {
         const response = await getApprovedConfigPO(accessToken, companyCode)
+        console.log('🔧 useApprovedConfig - response:', response)
         if (response.status && response.data) {
           setApprovedConfig(response.data)
+          console.log('🔧 useApprovedConfig - config loaded:', response.data)
         }
       } catch (error) {
         console.error('Failed to fetch approved config:', error)
@@ -28,6 +32,12 @@ export function useApprovedConfig() {
 
     fetchConfig()
   }, [accessToken, companyCode])
+
+  // Get all configured levels (sorted by level number)
+  const configuredLevels = useMemo((): ApprovedLevel[] => {
+    if (!approvedConfig) return []
+    return [...approvedConfig.levels].sort((a, b) => a.level - b.level)
+  }, [approvedConfig])
 
   // Create a map of status value to label for each level
   const getStatusLabel = useMemo(() => {
@@ -57,10 +67,23 @@ export function useApprovedConfig() {
     }
   }, [approvedConfig])
 
+  // Get all actions mapped by level
+  const actionsByLevel = useMemo((): Record<number, ApprovedAction[]> => {
+    if (!approvedConfig) return {}
+
+    const result: Record<number, ApprovedAction[]> = {}
+    approvedConfig.levels.forEach((level) => {
+      result[level.level] = level.actions
+    })
+    return result
+  }, [approvedConfig])
+
   return {
     approvedConfig,
     isLoading,
+    configuredLevels,
     getStatusLabel,
     getActionsForLevel,
+    actionsByLevel,
   }
 }
