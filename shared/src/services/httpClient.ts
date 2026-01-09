@@ -37,7 +37,6 @@ export class HttpClient {
     // Request interceptor
     this.axiosInstance.interceptors.request.use(
       (config) => {
-        console.log(`🔵 HTTP ${config.method?.toUpperCase()} ${config.url}`)
         return config
       },
       (error) => Promise.reject(error)
@@ -46,7 +45,6 @@ export class HttpClient {
     // Response interceptor
     this.axiosInstance.interceptors.response.use(
       (response) => {
-        console.log(`✅ HTTP ${response.status} ${response.config.url}`)
         return response
       },
       (error: AxiosError) => {
